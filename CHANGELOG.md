@@ -1,5 +1,15 @@
 # CHANGELOG — Consolidação das branches
 
+## [1.1.0] — 2026-07-15
+
+Preparação para hospedagem na Render (e plataformas similares que injetam `PORT`):
+
+- Apache passa a respeitar a variável `PORT` via `docker/apache-entrypoint.sh` (padrão continua 80 no compose local).
+- `render.yaml` (blueprint): serviço web Docker + serviço privado MySQL 8 com disco e seed automático (`docker/db.Dockerfile`); senha do banco gerada pela Render e injetada como `DB_PASS`.
+- `DB_PORT` configurável na conexão (padrão `3306`) — necessário para MySQL externo no plano free.
+- Health check leve em `public/healthz.php` (sem tocar o banco) para o `healthCheckPath` da Render.
+- `DEPLOY.md` com o passo a passo das duas opções de deploy na Render; `README.md` atualizado.
+
 ## [1.0.0] — 2026-07-15
 
 Versão definitiva única, combinando o melhor de cada branch do repositório.

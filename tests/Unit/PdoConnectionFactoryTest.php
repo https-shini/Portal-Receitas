@@ -31,7 +31,8 @@ class PdoConnectionFactoryTest extends TestCase
             $host,
             getenv('TEST_DB_NAME') ?: 'tcc_receitas',
             getenv('TEST_DB_USER') ?: 'root',
-            getenv('TEST_DB_PASS') !== false ? (string) getenv('TEST_DB_PASS') : ''
+            getenv('TEST_DB_PASS') !== false ? (string) getenv('TEST_DB_PASS') : '',
+            getenv('TEST_DB_PORT') ?: '3306'
         );
 
         $connection = $factory->create();

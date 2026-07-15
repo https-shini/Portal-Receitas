@@ -16,6 +16,11 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction --no-script
 
 COPY . /var/www/html/
 RUN composer dump-autoload --optimize --no-dev \
-    && chown -R www-data:www-data /var/www/html
+    && chown -R www-data:www-data /var/www/html \
+    && cp docker/apache-entrypoint.sh /usr/local/bin/apache-entrypoint.sh \
+    && chmod +x /usr/local/bin/apache-entrypoint.sh
 
 EXPOSE 80
+
+# Respeita a variável PORT quando a plataforma injeta (ex.: Render); localmente segue 80
+ENTRYPOINT ["apache-entrypoint.sh"]

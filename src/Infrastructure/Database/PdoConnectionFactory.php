@@ -15,6 +15,7 @@ class PdoConnectionFactory
         private readonly string $database,
         private readonly string $username,
         private readonly string $password,
+        private readonly string $port = '3306',
     ) {
     }
 
@@ -25,7 +26,7 @@ class PdoConnectionFactory
         }
 
         $this->connection = new PDO(
-            sprintf('mysql:host=%s;dbname=%s;charset=utf8mb4', $this->host, $this->database),
+            sprintf('mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4', $this->host, $this->port, $this->database),
             $this->username,
             $this->password,
             [

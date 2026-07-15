@@ -1,0 +1,47 @@
+# Blueprint da Render (https://render.com/docs/blueprint-spec)
+# Deploy: Dashboard → New → Blueprint → aponte para este repositório.
+#
+# Observação: o serviço privado de MySQL (portal-receitas-db) exige plano pago
+# na Render (serviços privados + disco). No plano free, crie apenas o serviço
+# web e aponte DB_HOST/DB_PORT/DB_USER/DB_PASS/DB_NAME para um MySQL externo
+# (Aiven, Railway, PlanetScale etc.) — veja DEPLOY.md.
+
+services:
+  - type: web
+    name: portal-receitas
+    runtime: docker
+    plan: starter
+    healthCheckPath: /healthz.php
+    envVars:
+      - key: DB_HOST
+        fromService:
+          type: pserv
+          name: portal-receitas-db
+          property: host
+      - key: DB_PORT
+        value: "3306"
+      - key: DB_NAME
+        value: tcc_receitas
+      - key: DB_USER
+        value: root
+      - key: DB_PASS
+        fromService:
+          type: pserv
+          name: portal-receitas-db
+          envVarKey: MYSQL_ROOT_PASSWORD
+
+  - type: pserv
+    name: portal-receitas-db
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./docker/db.Dockerfile
+    dockerContext: .
+    disk:
+      name: mysql-data
+      mountPath: /var/lib/mysql
+      sizeGB: 1
+    envVars:
+      - key: MYSQL_ROOT_PASSWORD
+        generateValue: true
+      - key: MYSQL_DATABASE
+        value: tcc_receitas
