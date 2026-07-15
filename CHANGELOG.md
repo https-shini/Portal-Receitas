@@ -1,5 +1,17 @@
 # CHANGELOG — Consolidação das branches
 
+## [1.3.0] — 2026-07-15
+
+Login e Cadastro reconstruídos com o AuthService (https://github.com/https-shini/AuthService) como referência de UX e arquitetura de autenticação, mantendo a identidade visual HomeMadeGourmet:
+
+- Tela única de acesso (`src/Presentation/View/auth.php`) com card duplo e painel deslizante login ⇄ cadastro, medidor de força de senha em 5 níveis, alertas inline, toggle de visibilidade, loading nos botões e Enter para enviar — servida por `login.php` e `register.php` (que redirecionam para a home se já autenticado).
+- API JSON de autenticação em `public/api/` (`register`, `login`, `logout`, `me`) no padrão de respostas do AuthService (`{"detail": ...}`, 400/401/503); frontend consome via `fetch`.
+- Política de senha (`PasswordPolicy`): mínimo 8 caracteres com pelo menos uma letra e um número — aplicada no cadastro e na troca de senha do perfil.
+- Sessão endurecida: cookie `HttpOnly` + `SameSite=Lax` (+`Secure` atrás de HTTPS), `session_regenerate_id` após login (anti fixation).
+- Logging de tentativas de cadastro/login com sanitização anti log-injection.
+- Removidos: views e assets antigos de login/cadastro (`script-login/register/radio.js`, `login.css`, `register.css`, `emailExists.php`).
+- Testes novos: `PasswordPolicyTest` + casos de senha fraca (20 testes no total).
+
 ## [1.2.0] — 2026-07-15
 
 Deploy 100% gratuito na Render, tudo em Docker:

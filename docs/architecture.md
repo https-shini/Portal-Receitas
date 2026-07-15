@@ -10,6 +10,7 @@
 ## Estrutura principal
 
 - `public/`: único docroot — pontos de entrada HTTP e assets estáticos (`public/assets/`).
+- `public/api/`: endpoints JSON de autenticação (`register`, `login`, `logout`, `me`) consumidos via `fetch` pela tela de acesso (padrão de referência: AuthService).
 - `config/bootstrap.php`: composição de dependências (lê `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS` do ambiente).
 - `src/`: núcleo arquitetural por camada.
 - `tests/`: testes PHPUnit dos casos de uso e da conexão.

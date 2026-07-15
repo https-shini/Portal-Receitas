@@ -52,4 +52,10 @@ class RegisterUserUseCaseTest extends TestCase
         $this->expectException(ValidationException::class);
         $this->useCase->execute('Maria', 'maria@example.com', 'segredo123', null);
     }
+
+    public function testRejectsWeakPassword(): void
+    {
+        $this->expectException(ValidationException::class);
+        $this->useCase->execute('Maria', 'maria@example.com', 'fraca', 5);
+    }
 }

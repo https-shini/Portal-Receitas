@@ -26,15 +26,15 @@ class UpdateUserProfileUseCaseTest extends TestCase
 
     public function testUpdatesNameEmailAndPasswordWithHash(): void
     {
-        $updated = $this->useCase->execute($this->userId, 'Novo Nome', 'novo@example.com', 'novaSenha!');
+        $updated = $this->useCase->execute($this->userId, 'Novo Nome', 'novo@example.com', 'novaSenha1!');
 
         $this->assertTrue($updated);
 
         $user = $this->repository->findByEmail('novo@example.com');
         $this->assertNotNull($user);
         $this->assertSame('Novo Nome', $user['nomeUsuario']);
-        $this->assertNotSame('novaSenha!', $user['senhaUsuario']);
-        $this->assertTrue(password_verify('novaSenha!', $user['senhaUsuario']));
+        $this->assertNotSame('novaSenha1!', $user['senhaUsuario']);
+        $this->assertTrue(password_verify('novaSenha1!', $user['senhaUsuario']));
     }
 
     public function testKeepsPasswordWhenNewPasswordIsBlank(): void
