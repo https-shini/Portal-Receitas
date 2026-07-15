@@ -1,14 +1,16 @@
 <img width=100% src="https://capsule-render.vercel.app/api?type=waving&color=gradient&height=120&section=header" alt="Header Wave"/>
 
 <div align="center">
-  <img src="https://readme-typing-svg.herokuapp.com?font=Orbitron&weight=700&size=32&duration=3000&pause=1000&color=FF6B6B&center=true&vCenter=true&width=900&lines=Sua+Jornada+Culinária+Personalizada;Descubra+Receitas+e+Crie+Sua+História;Homemade+Gourmet" alt="Título Dinâmico" />
+  <img src="https://readme-typing-svg.herokuapp.com?font=Orbitron&weight=700&size=32&duration=3000&pause=1000&color=FF6B6B&center=true&vCenter=true&width=900&lines=Sua+Jornada+Culin%C3%A1ria+Personalizada;Descubra+Receitas+e+Crie+Sua+Hist%C3%B3ria;Homemade+Gourmet" alt="Título Dinâmico" />
 </div>
 
 <div align="center">
 
-[![Status](https://img.shields.io/badge/Status-Concluído-success?style=for-the-badge)](https://github.com)
+[![Status](https://img.shields.io/badge/Status-Concluído-success?style=for-the-badge)](https://github.com/https-shini/Portal-Receitas)
 [![License](https://img.shields.io/badge/Licença-MIT-yellow?style=for-the-badge)](LICENSE)
-[![Year](https://img.shields.io/badge/Ano-2022-blue?style=for-the-badge)](https://github.com)
+[![PHP](https://img.shields.io/badge/PHP-8.2%2B-777BB4?style=for-the-badge&logo=php&logoColor=white)](composer.json)
+[![Arquitetura](https://img.shields.io/badge/Clean-Architecture-2d3436?style=for-the-badge)](docs/architecture.md)
+[![TCC](https://img.shields.io/badge/TCC-2022→Refactor%202026-blue?style=for-the-badge)](CHANGELOG.md)
 
 </div>
 
@@ -16,41 +18,96 @@
 
 ## 🍳 Sobre o Projeto
 
-**Homemade Gourmet** é um portal de receitas desenvolvido como TCC (ETEC de Vila Formosa, 2022) e posteriormente consolidado com Clean Architecture, deploy via Docker e segurança de senhas com bcrypt.
+**Homemade Gourmet** é um portal de receitas nascido como TCC (ETEC de Vila Formosa, NOVOTEC, 2022) e, em 2026, reescrito sobre **Clean Architecture** em PHP 8.2, com deploy em Docker/Render, senhas protegidas por bcrypt e testes automatizados.
 
-O que o site faz hoje:
+O que o site faz hoje, exatamente como está no código:
 
-- **Catálogo de receitas** com foto, tempo de preparo, porções, calorias e categoria.
-- **Detalhe de cada receita** com vídeo do YouTube incorporado, lista de ingredientes e modo de preparo passo a passo.
-- **Busca por ingrediente** e **filtro por categoria** (Frutos do Mar, Massas, Veganas, Salgados, Doces, Carnes).
-- **Cadastro e login de usuários** com senha protegida por `password_hash`/`password_verify` (bcrypt).
-- **Perfil do usuário** com edição de nome, e-mail e senha.
+- **Catálogo de receitas** em cards com foto, tempo de preparo e categoria.
+- **Detalhe de cada receita** com vídeo do YouTube incorporado (iframe), lista de até 15 ingredientes, porções, calorias e modo de preparo dividido em passos.
+- **Busca por ingrediente**: o termo é comparado (`LIKE`) contra as 15 colunas de ingredientes de cada receita.
+- **Filtro por categoria**, com seis categorias fixas: Frutos do Mar, Massas, Veganas, Salgados, Doces e Carnes.
+- **Cadastro e login de usuários** com senha protegida por `password_hash`/`password_verify` (bcrypt, `PASSWORD_DEFAULT`).
+- **Perfil do usuário** com edição de nome, e-mail e senha, protegido por guard de sessão.
 - **Logout** com encerramento de sessão.
+- **Resiliência de deploy**: página amigável de indisponibilidade (HTTP 503) quando o banco está fora, e endpoint `healthz.php` (HTTP 200, sem tocar o banco) para health check das plataformas.
 
-## 🗺️ Roadmap (não implementado)
+### 🗺️ Roadmap (ainda não implementado)
 
-Funcionalidades idealizadas na concepção original do TCC que **ainda não existem** no código e ficam como evolução futura:
-
-- Engine de recomendação inteligente por preferências.
-- Calculadora de calorias em tempo real por porção.
-- Sistema de favoritos e avaliações de receitas.
-- Receitas com contexto histórico e comunidade de usuários.
+Ideias da concepção original do TCC que **não existem** no código atual e ficam como evolução futura: engine de recomendação por preferências, calculadora de calorias em tempo real por porção, sistema de favoritos e avaliações, e camada de comunidade entre usuários.
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
+## 🛠️ Stack
 
 <div align="center">
 
 | Camada | Tecnologia |
 |--------|-----------|
-| **Interface** | HTML5, CSS3, JavaScript |
-| **Backend** | PHP 8.2 (Clean Architecture, PSR-4, Composer) |
-| **Dados** | MySQL 8 (PDO + prepared statements) |
-| **Deploy** | Docker + Docker Compose (php:8.2-apache) |
-| **Testes** | PHPUnit |
+| **Interface** | HTML5, CSS3, JavaScript (vanilla) |
+| **Backend** | PHP 8.2+ · Clean Architecture · PSR-4 (`App\ → src/`) · Composer |
+| **Dados** | MySQL 8 / MariaDB · PDO com prepared statements (`EMULATE_PREPARES = false`, `utf8mb4`) |
+| **Segurança** | bcrypt (`password_hash`/`password_verify`) · queries 100% parametrizadas · TLS opcional na conexão |
+| **Deploy** | Docker + Docker Compose (`php:8.2-apache`) · blueprint Render (`render.yaml`) |
+| **Testes** | PHPUnit 11 |
 
 </div>
+
+---
+
+## 📁 Estrutura do Projeto
+
+```
+Portal-Receitas/
+├─ public/                              ← Único docroot (Apache serve só esta pasta)
+│  ├─ index.php                         ← Home: listagem, busca e filtro
+│  ├─ login.php · register.php · profile.php
+│  ├─ healthz.php                       ← Health check (200, não toca o banco)
+│  └─ assets/                           ← css/, js/, img/ e php/ (logout, emailExists)
+│
+├─ src/                                 ← Núcleo por camada (regra: Presentation → Application → Domain)
+│  ├─ Domain/
+│  │  ├─ Repository/                    ← UserRepositoryInterface, RecipeRepositoryInterface
+│  │  └─ Exception/                     ← Domain / Validation / Authentication Exception
+│  ├─ Application/UseCase/              ← AuthenticateUser · RegisterUser · UpdateUserProfile · FindRecipes
+│  ├─ Infrastructure/
+│  │  ├─ Database/PdoConnectionFactory.php
+│  │  └─ Repository/                    ← PdoUserRepository, PdoRecipeRepository (implementam o Domain)
+│  └─ Presentation/
+│     ├─ Controller/                    ← Auth · Profile · Recipe
+│     ├─ Http/SessionManager.php
+│     └─ View/                          ← index · login · register · profile · unavailable
+│
+├─ config/bootstrap.php                 ← Composição de dependências + leitura do ambiente
+├─ tests/                               ← Unit/ (use cases + conexão PDO) e Support/ (fakes in-memory)
+│
+├─ DB_Receitas.sql                      ← Seed atual (schema + dados + usuários-demo)
+├─ ReceitasAntigo.sql                   ← Schema legado (referência histórica)
+├─ Dockerfile · docker-compose.yml
+├─ docker/                              ← Entrypoint (porta dinâmica) e imagens all-in-one/DB
+├─ render.yaml                          ← Blueprint de deploy na Render (plano free)
+├─ DEPLOY.md · CHANGELOG.md · docs/architecture.md
+└─ composer.json · phpunit.xml
+```
+
+A regra de dependência e o papel de cada camada estão detalhados em [docs/architecture.md](docs/architecture.md).
+
+---
+
+## ⚙️ Configuração (variáveis de ambiente)
+
+O banco é configurado **inteiramente por ambiente**, lido em `config/bootstrap.php`. Sem variáveis, os padrões apontam para um XAMPP local.
+
+| Variável | Padrão | Descrição |
+|----------|--------|-----------|
+| `DB_HOST` | `localhost` | Host do MySQL |
+| `DB_NAME` | `tcc_receitas` | Nome do banco |
+| `DB_USER` | `root` | Usuário |
+| `DB_PASS` | *(vazio)* | Senha |
+| `DB_PORT` | `3306` | Porta (útil em MySQL gerenciado externo) |
+| `DB_SSL_CA` | *(nulo)* | Caminho do certificado CA (PEM) quando o provedor exige TLS (ex.: Aiven) |
+| `DB_SSL_VERIFY` | `true` | Verificação do certificado do servidor; use `false` só para cert. autoassinado |
+
+> `WEB_PORT` e `DB_PASS` do `.env.example` são consumidos pelo `docker-compose.yml` (porta publicada e senha do serviço MySQL).
 
 ---
 
@@ -65,56 +122,27 @@ cp .env.example .env          # opcional: ajuste WEB_PORT e DB_PASS
 docker compose up --build -d
 ```
 
-Acesse **http://localhost:8080**. O seed (`DB_Receitas.sql`) é importado automaticamente na primeira subida. Detalhes em [DEPLOY.md](DEPLOY.md).
+Acesse **http://localhost:8080**. O seed (`DB_Receitas.sql`) é importado automaticamente na **primeira** subida (volume vazio), e o serviço `web` só inicia depois do healthcheck do `db` ficar `healthy`.
 
-### ☁️ Na Render (grátis)
+### ☁️ Na Render (plano free)
 
-O repositório traz um blueprint pronto (`render.yaml`) para o **plano free**: **New → Blueprint** no dashboard da Render e pronto — um único container Docker roda o site + MariaDB com o seed importado no boot, custo zero. Atenção: no free não há disco persistente, então cadastros feitos no site são reiniciados quando o serviço hiberna (receitas e demos sempre voltam pelo seed). Alternativas com persistência em [DEPLOY.md](DEPLOY.md).
+O repositório traz o blueprint `render.yaml` (**New → Blueprint** no dashboard). No modo free, um único container roda Apache/PHP + MariaDB com o seed importado no boot — custo zero e health check já apontado para `/healthz.php`.
 
-**Usuários de demonstração** (do seed):
+> ⚠️ O free não tem disco persistente: cadastros e edições feitos em runtime somem quando o serviço hiberna ou redeploya (receitas e usuários-demo sempre voltam pelo seed). Opções com persistência (MySQL externo ou serviços separados) estão em [DEPLOY.md](DEPLOY.md).
+
+### 💻 Com XAMPP (desenvolvimento local)
+
+1. Clone o projeto e rode `composer install`.
+2. Importe `DB_Receitas.sql` (cria o banco `tcc_receitas`).
+3. Aponte o docroot do Apache para a pasta **`public/`**.
+4. Sem variáveis de ambiente, a conexão usa `localhost` / `root` / senha vazia / `tcc_receitas`.
+
+### 🔑 Usuários de demonstração (do seed)
 
 | E-mail | Senha |
 |--------|-------|
 | `kk.123@gmail.com` | `123456` |
 | `tectutors.123@gmail.com` | `271821` |
-
-### 💻 Com XAMPP (desenvolvimento local)
-
-1. Clone o projeto e rode `composer install`.
-2. Importe `DB_Receitas.sql` no phpMyAdmin (cria o banco `tcc_receitas`).
-3. Aponte o docroot do Apache para a pasta `public/` do projeto.
-4. Sem variáveis de ambiente, a conexão usa os padrões `localhost` / `root` / senha vazia / banco `tcc_receitas`.
-
-A configuração do banco é feita por variáveis de ambiente: `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS`.
-
----
-
-## 📁 Estrutura do Projeto
-
-```
-Portal-Receitas/
-├─ public/                        ← Único docroot (entrypoints HTTP)
-│  ├─ index.php                   ← Home / listagem e busca de receitas
-│  ├─ login.php                   ← Autenticação
-│  ├─ register.php                ← Cadastro
-│  ├─ profile.php                 ← Perfil do usuário
-│  └─ assets/                     ← CSS, JS, imagens e endpoints auxiliares
-├─ src/
-│  ├─ Domain/                     ← Contratos de repositório e exceções de negócio
-│  ├─ Application/                ← Casos de uso (registro, login, perfil, receitas)
-│  ├─ Infrastructure/             ← PDO, repositórios MySQL
-│  └─ Presentation/               ← Controllers, sessão e views
-├─ config/bootstrap.php           ← Composição de dependências
-├─ tests/                         ← Testes PHPUnit
-├─ DB_Receitas.sql                ← Seed do banco (schema + dados)
-├─ Dockerfile / docker-compose.yml
-├─ render.yaml                    ← Blueprint de deploy na Render
-├─ docker/                        ← Entrypoint (porta dinâmica) e imagem do MySQL com seed
-├─ DEPLOY.md                      ← Guia de deploy
-└─ CHANGELOG.md                   ← Histórico da consolidação
-```
-
-Mais detalhes da arquitetura em [docs/architecture.md](docs/architecture.md).
 
 ---
 
@@ -125,20 +153,32 @@ composer install
 composer test
 ```
 
-Os testes cobrem os casos de uso de cadastro (hash bcrypt, e-mail duplicado, validação), autenticação (credenciais corretas/erradas, hash do seed) e edição de perfil, além do fluxo de conexão PDO (o teste de integração roda quando `TEST_DB_HOST` está definido).
+A suíte PHPUnit cobre os casos de uso e o fluxo de conexão:
+
+- **Cadastro** — hash bcrypt compatível, rejeição de e-mail duplicado, formato de e-mail inválido e categoria ausente.
+- **Autenticação** — credenciais corretas, hash dos usuários-demo do seed, senha errada, e-mail inexistente e credenciais vazias.
+- **Perfil** — atualização de nome/e-mail/senha com hash, preservação da senha quando o campo vem em branco e rejeição de ID inválido.
+- **Conexão PDO** — exceção em host inalcançável e reuso da mesma conexão; o teste de integração real roda apenas quando `TEST_DB_HOST` está definido.
+
+Os testes usam fakes in-memory (`tests/Support/`), sem dependência de banco para a maioria dos casos.
 
 ---
 
-## 👥 Desenvolvedores do Projeto
+## 🔐 Notas de segurança
 
-### Instituição Acadêmica
+- Todas as senhas são gravadas e verificadas via bcrypt (`password_hash`/`password_verify`); a coluna `senhaUsuario` é `varchar(255)` para comportar o hash.
+- **100% das queries** usam prepared statements parametrizados (`PdoUserRepository`, `PdoRecipeRepository`), com `EMULATE_PREPARES = false`.
+- O acesso ao perfil exige sessão autenticada (`SessionManager` + guard no `ProfileController`); todo redirecionamento é seguido de `exit;`.
 
-- **Escola:** ETEC de Vila Formosa
-- **Curso:** Técnico em Desenvolvimento de Sistemas
-- **Programa:** Integrado ao NOVOTEC
-- **Ano:** 2022
+---
 
-### Equipe de Desenvolvimento
+## 👥 Créditos
+
+### Instituição
+
+- **Escola:** ETEC de Vila Formosa · **Curso:** Técnico em Desenvolvimento de Sistemas (Integrado ao NOVOTEC) · **Ano:** 2022
+
+### Equipe
 
 <div align="center">
 
@@ -160,10 +200,11 @@ Os testes cobrem os casos de uso de cadastro (hash bcrypt, e-mail duplicado, val
 
 ## 🐛 Troubleshooting
 
-- **Conexão ao banco recusada (Docker):** aguarde o healthcheck do serviço `db` ficar `healthy` (`docker compose ps`); o `web` só inicia depois dele.
-- **Conexão ao banco recusada (XAMPP):** confira se o MySQL está ativo e se o banco `tcc_receitas` foi importado. Os padrões de conexão são `localhost`/`root`/senha vazia; para outros valores, defina `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS`.
+- **Conexão recusada (Docker):** aguarde o serviço `db` ficar `healthy` (`docker compose ps`); o `web` só sobe depois dele.
+- **Conexão recusada (XAMPP):** confira se o MySQL está ativo e se o banco `tcc_receitas` foi importado. Para valores diferentes dos padrões, defina `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS`.
 - **Seed não reimporta:** o MySQL só importa `DB_Receitas.sql` com o volume vazio. Rode `docker compose down -v` e suba de novo.
-- **Página em branco:** verifique os logs (`docker compose logs -f web` ou `xampp/apache/logs/error.log`).
+- **Página 503 (indisponível):** o banco está fora do ar — a aplicação exibe a view `unavailable.php` em vez de um erro 500 seco. Verifique o serviço de banco.
+- **Página em branco:** cheque os logs (`docker compose logs -f web` ou `xampp/apache/logs/error.log`).
 
 ---
 
