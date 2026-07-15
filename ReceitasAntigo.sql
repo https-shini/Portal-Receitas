@@ -36,7 +36,7 @@ create table Usuario (
 idUsuario int(3) primary key not null auto_increment,
 nomeUsuario varchar(30) not null,
 emailUsuario varchar(60) unique not null,
-senhaUsuario varchar(20) not null,
+senhaUsuario varchar(255) not null,
 idCategoriaFK int(2),
 foreign key (idCategoriaFK)
 references Categoria(idCategoria)
