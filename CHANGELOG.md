@@ -1,5 +1,18 @@
 # CHANGELOG — Consolidação das branches
 
+## [1.4.0] — 2026-07-15
+
+Banco de dados único e oficial — `ReceitasAntigo.sql` removido definitivamente:
+
+- `DB_Receitas.sql` reescrito como script único, autocontido e idempotente, organizado em 17 seções comentadas (configuração, drops, criação do banco, tabelas, constraints, índices, views, functions, procedures, triggers, seed, consultas de exemplo, DCL, TCL e testes).
+- DDL modernizado mantendo o contrato com a aplicação: constraints nomeadas (`pk_/fk_/uq_/ck_`), CHECKs (formato de e-mail, senha sempre em hash ≥60 chars, porções > 0, calorias ≥ 0), FKs com `ON DELETE SET NULL`/`ON UPDATE CASCADE`, timestamps de criação/atualização e índice FULLTEXT nos ingredientes.
+- Views (`vw_receita_card`, `vw_estatisticas_categoria`, `vw_usuario_publico` — atualizável e sem coluna de senha), functions (`fn_calorias_por_porcao`, `fn_total_receitas_categoria`) e procedures (`sp_buscar_receitas_por_ingrediente`, `sp_relatorio_categorias` com cursor/loop/handler, `sp_trocar_categoria_favorita` com transação e RESIGNAL).
+- Triggers de validação e auditoria (`auditoria_usuario` registra INSERT/UPDATE/DELETE de contas sem expor senhas).
+- DCL com princípio do menor privilégio: papéis `papel_leitura`/`papel_aplicacao`, usuários `portal_app`/`portal_relatorios`, exemplos de GRANT/REVOKE.
+- TCL: transações com COMMIT/ROLLBACK/SAVEPOINT, níveis de isolamento e bloqueio `FOR UPDATE`.
+- Seção final de autoteste: o import valida volumetria, integridade, hash das senhas, view atualizável, rotinas e auditoria a cada implantação.
+- Compatível e testado nos dois motores do deploy: MySQL 8 (compose) e MariaDB 10.11 (Render free).
+
 ## [1.3.0] — 2026-07-15
 
 Login e Cadastro reconstruídos com o AuthService (https://github.com/https-shini/AuthService) como referência de UX e arquitetura de autenticação, mantendo a identidade visual HomeMadeGourmet:

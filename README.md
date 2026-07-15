@@ -80,8 +80,7 @@ Portal-Receitas/
 ├─ config/bootstrap.php                 ← Composição de dependências + leitura do ambiente
 ├─ tests/                               ← Unit/ (use cases + conexão PDO) e Support/ (fakes in-memory)
 │
-├─ DB_Receitas.sql                      ← Seed atual (schema + dados + usuários-demo)
-├─ ReceitasAntigo.sql                   ← Schema legado (referência histórica)
+├─ DB_Receitas.sql                      ← Banco oficial (script único: DDL, views, rotinas, triggers, seed)
 ├─ Dockerfile · docker-compose.yml
 ├─ docker/                              ← Entrypoint (porta dinâmica) e imagens all-in-one/DB
 ├─ render.yaml                          ← Blueprint de deploy na Render (plano free)
