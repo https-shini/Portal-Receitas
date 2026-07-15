@@ -1,43 +1,538 @@
--- phpMyAdmin SQL Dump
--- version 5.2.0
--- https://www.phpmyadmin.net/
+-- ═══════════════════════════════════════════════════════════════════════════
+--  PORTAL RECEITAS · HOMEMADE GOURMET — BANCO DE DADOS OFICIAL
+-- ═══════════════════════════════════════════════════════════════════════════
+--  Script único, autocontido e idempotente. Substitui integralmente as
+--  implementações anteriores (DB_Receitas.sql legado e ReceitasAntigo.sql).
 --
--- Host: 127.0.0.1
--- Tempo de geração: 05-Dez-2022 às 19:42
--- Versão do servidor: 10.4.24-MariaDB
--- versão do PHP: 7.4.29
-
-SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-START TRANSACTION;
-SET time_zone = "+00:00";
-
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
-
+--  SGBDs suportados : MySQL 8.x e MariaDB 10.5+ (strict mode habilitado)
+--  Charset/Collation: utf8mb4 / utf8mb4_unicode_ci
+--  Aplicação        : PHP 8.2 (PDO + prepared statements) — Clean Architecture
 --
--- Banco de dados: `tcc_receitas`
+--  ORGANIZAÇÃO DO SCRIPT
+--    1.  Configuração inicial
+--    2.  Remoção de objetos existentes
+--    3.  Criação do banco de dados
+--    4.  Schemas
+--    5.  Criação das tabelas (DDL)
+--    6.  Constraints (integridade referencial e regras de domínio)
+--    7.  Índices e otimização
+--    8.  Views
+--    9.  Functions
+--    10. Stored Procedures
+--    11. Packages (nota de compatibilidade)
+--    12. Triggers (validação e auditoria)
+--    13. Seed — dados iniciais (DML)
+--    14. Consultas de exemplo (JOINs, subconsultas, CTEs, janelas, PREPARE)
+--    15. Controle de acesso (DCL — usuários, papéis, GRANT/REVOKE)
+--    16. Transações e concorrência (TCL — COMMIT/ROLLBACK/SAVEPOINT, isolamento)
+--    17. Testes e validações
 --
-CREATE DATABASE IF NOT EXISTS `tcc_receitas` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-USE `tcc_receitas`;
+--  IMPORTANTE — contrato com a aplicação PHP (não renomear):
+--    · categoria(idCategoria, nomeCategoria)
+--    · usuario(idUsuario, nomeUsuario, emailUsuario, senhaUsuario, idCategoriaFK)
+--    · receita(idReceita, nomeReceita, porcoes, tempoReceita, qtdCalorias, link,
+--              ingrediente_1..ingrediente_15, modoPreparo, idcategoriaFK, imagem)
+-- ═══════════════════════════════════════════════════════════════════════════
 
--- --------------------------------------------------------
 
+-- ═══════════════════════════════════════════════════════════════════════════
+--  1. CONFIGURAÇÃO INICIAL
+-- ═══════════════════════════════════════════════════════════════════════════
+--  Charset da sessão e fuso horário neutro. O modo estrito do SGBD permanece
+--  habilitado (as regras de integridade abaixo assumem strict mode).
+
+SET NAMES utf8mb4;
+SET time_zone = '+00:00';
+
+
+-- ═══════════════════════════════════════════════════════════════════════════
+--  2. REMOÇÃO DE OBJETOS EXISTENTES
+-- ═══════════════════════════════════════════════════════════════════════════
+--  Torna o script idempotente: pode ser reexecutado em qualquer ambiente de
+--  desenvolvimento/homologação sem resíduos de versões anteriores.
+--  (Em produção, prefira migrações incrementais a recriar o banco.)
+
+DROP DATABASE IF EXISTS tcc_receitas;
+
+
+-- ═══════════════════════════════════════════════════════════════════════════
+--  3. CRIAÇÃO DO BANCO DE DADOS
+-- ═══════════════════════════════════════════════════════════════════════════
+
+CREATE DATABASE tcc_receitas
+    CHARACTER SET utf8mb4
+    COLLATE utf8mb4_unicode_ci;
+
+USE tcc_receitas;
+
+
+-- ═══════════════════════════════════════════════════════════════════════════
+--  4. SCHEMAS
+-- ═══════════════════════════════════════════════════════════════════════════
+--  No MySQL/MariaDB, SCHEMA é sinônimo de DATABASE — o banco `tcc_receitas`
+--  criado acima já é o schema da aplicação. Em SGBDs com schemas nomeados
+--  (PostgreSQL, Oracle), as tabelas abaixo residiriam num schema `portal`.
+
+
+-- ═══════════════════════════════════════════════════════════════════════════
+--  5. CRIAÇÃO DAS TABELAS (DDL)
+-- ═══════════════════════════════════════════════════════════════════════════
+--  Convenções adotadas:
+--    · Tabelas no singular, em minúsculas (contrato herdado pela aplicação);
+--    · Constraints nomeadas: pk_ / fk_ / uq_ / ck_  +  tabela  +  papel;
+--    · Índices nomeados:     idx_ / ftx_            +  tabela  +  colunas;
+--    · Rotinas:              sp_ (procedure) / fn_ (function) / trg_ (trigger)
+--                            / vw_ (view) / papel_ (role).
+
+-- ── 5.1 · categoria ─────────────────────────────────────────────────────────
+--  Domínio de categorias de receitas (Frutos do Mar, Massas, ...).
+CREATE TABLE categoria (
+    idCategoria   INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+    nomeCategoria VARCHAR(30)   NOT NULL,
+
+    CONSTRAINT pk_categoria             PRIMARY KEY (idCategoria),
+    CONSTRAINT uq_categoria_nome        UNIQUE (nomeCategoria),
+    CONSTRAINT ck_categoria_nome_valido CHECK (CHAR_LENGTH(TRIM(nomeCategoria)) >= 3)
+) ENGINE = InnoDB
+  COMMENT = 'Categorias de receitas exibidas nos filtros do portal';
+
+-- ── 5.2 · usuario ───────────────────────────────────────────────────────────
+--  Contas de acesso. A senha é SEMPRE um hash bcrypt (password_hash do PHP,
+--  60+ caracteres) — nunca texto puro; a CHECK ck_usuario_senha_hash bloqueia
+--  inserções acidentais de senhas curtas em claro.
+CREATE TABLE usuario (
+    idUsuario     INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+    nomeUsuario   VARCHAR(60)   NOT NULL,
+    emailUsuario  VARCHAR(120)  NOT NULL,
+    senhaUsuario  VARCHAR(255)  NOT NULL,
+    idCategoriaFK INT UNSIGNED  NULL,
+    criadoEm      TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    atualizadoEm  TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                ON UPDATE CURRENT_TIMESTAMP,
+
+    CONSTRAINT pk_usuario            PRIMARY KEY (idUsuario),
+    CONSTRAINT uq_usuario_email      UNIQUE (emailUsuario),
+    CONSTRAINT ck_usuario_nome       CHECK (CHAR_LENGTH(TRIM(nomeUsuario)) >= 1),
+    CONSTRAINT ck_usuario_email      CHECK (emailUsuario LIKE '_%@_%.%'),
+    CONSTRAINT ck_usuario_senha_hash CHECK (CHAR_LENGTH(senhaUsuario) >= 60)
+) ENGINE = InnoDB
+  COMMENT = 'Contas de usuários do portal (senhas em hash bcrypt)';
+
+-- ── 5.3 · receita ───────────────────────────────────────────────────────────
+--  Catálogo de receitas. As 15 colunas de ingredientes preservam o contrato
+--  da aplicação (busca parametrizada ingrediente_1..15) — uma modelagem N:N
+--  (receita_ingrediente) fica registrada como evolução futura na seção 11.
+CREATE TABLE receita (
+    idReceita     INT UNSIGNED   NOT NULL AUTO_INCREMENT,
+    nomeReceita   VARCHAR(70)    NOT NULL,
+    porcoes       SMALLINT UNSIGNED NOT NULL,
+    tempoReceita  VARCHAR(10)    NOT NULL,
+    qtdCalorias   DECIMAL(7,2)   NOT NULL,
+    link          VARCHAR(300)   NOT NULL COMMENT 'Embed (iframe) do vídeo no YouTube',
+    ingrediente_1  VARCHAR(60)   NULL,
+    ingrediente_2  VARCHAR(60)   NULL,
+    ingrediente_3  VARCHAR(60)   NULL,
+    ingrediente_4  VARCHAR(60)   NULL,
+    ingrediente_5  VARCHAR(60)   NULL,
+    ingrediente_6  VARCHAR(60)   NULL,
+    ingrediente_7  VARCHAR(60)   NULL,
+    ingrediente_8  VARCHAR(60)   NULL,
+    ingrediente_9  VARCHAR(60)   NULL,
+    ingrediente_10 VARCHAR(60)   NULL,
+    ingrediente_11 VARCHAR(60)   NULL,
+    ingrediente_12 VARCHAR(60)   NULL,
+    ingrediente_13 VARCHAR(60)   NULL,
+    ingrediente_14 VARCHAR(60)   NULL,
+    ingrediente_15 VARCHAR(60)   NULL,
+    modoPreparo   TEXT           NOT NULL,
+    idcategoriaFK INT UNSIGNED   NULL,
+    imagem        VARCHAR(30)    NOT NULL,
+
+    CONSTRAINT pk_receita              PRIMARY KEY (idReceita),
+    CONSTRAINT uq_receita_nome         UNIQUE (nomeReceita),
+    CONSTRAINT uq_receita_link         UNIQUE (link),
+    CONSTRAINT ck_receita_porcoes      CHECK (porcoes > 0),
+    CONSTRAINT ck_receita_calorias     CHECK (qtdCalorias >= 0),
+    CONSTRAINT ck_receita_ingrediente1 CHECK (ingrediente_1 IS NOT NULL)
+) ENGINE = InnoDB
+  COMMENT = 'Catálogo de receitas do portal';
+
+-- ── 5.4 · auditoria_usuario ─────────────────────────────────────────────────
+--  Trilha de auditoria alimentada exclusivamente pelos triggers da seção 12.
+--  Não armazena hash de senha — apenas o fato de ela ter sido alterada.
+CREATE TABLE auditoria_usuario (
+    idAuditoria   BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    idUsuario     INT UNSIGNED    NOT NULL,
+    acao          VARCHAR(10)     NOT NULL,
+    emailUsuario  VARCHAR(120)    NOT NULL,
+    alterouSenha  TINYINT(1)      NOT NULL DEFAULT 0,
+    executadoPor  VARCHAR(100)    NOT NULL,
+    dataEvento    TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT pk_auditoria_usuario PRIMARY KEY (idAuditoria),
+    CONSTRAINT ck_auditoria_acao    CHECK (acao IN ('INSERT', 'UPDATE', 'DELETE'))
+) ENGINE = InnoDB
+  COMMENT = 'Auditoria de INSERT/UPDATE/DELETE na tabela usuario (via triggers)';
+
+
+-- ═══════════════════════════════════════════════════════════════════════════
+--  6. CONSTRAINTS DE INTEGRIDADE REFERENCIAL
+-- ═══════════════════════════════════════════════════════════════════════════
+--  FKs declaradas via ALTER TABLE para manter a seção de relacionamentos
+--  centralizada e legível.
+--    · usuario.idCategoriaFK  → categoria (preferência do usuário; opcional);
+--    · receita.idcategoriaFK  → categoria (classificação da receita).
+--  ON DELETE SET NULL: apagar uma categoria não apaga usuários nem receitas.
+--  ON UPDATE CASCADE : renumerar uma categoria propaga o novo id.
+
+ALTER TABLE usuario
+    ADD CONSTRAINT fk_usuario_categoria
+        FOREIGN KEY (idCategoriaFK) REFERENCES categoria (idCategoria)
+        ON DELETE SET NULL
+        ON UPDATE CASCADE;
+
+ALTER TABLE receita
+    ADD CONSTRAINT fk_receita_categoria
+        FOREIGN KEY (idcategoriaFK) REFERENCES categoria (idCategoria)
+        ON DELETE SET NULL
+        ON UPDATE CASCADE;
+
+
+-- ═══════════════════════════════════════════════════════════════════════════
+--  7. ÍNDICES E OTIMIZAÇÃO
+-- ═══════════════════════════════════════════════════════════════════════════
+--  · PKs e UNIQUEs já criam índices (idUsuario, emailUsuario, nomeReceita,
+--    link, nomeCategoria) — o login busca por emailUsuario via índice único;
+--  · idx_*: aceleram os filtros por categoria da home;
+--  · ftx_receita_ingredientes: índice FULLTEXT para evolução da busca de
+--    ingredientes (MATCH ... AGAINST), mais eficiente que 15 LIKEs em tabelas
+--    grandes — exemplo de uso na seção 14.7.
+
+CREATE INDEX idx_receita_categoria ON receita (idcategoriaFK);
+CREATE INDEX idx_usuario_categoria ON usuario (idCategoriaFK);
+CREATE INDEX idx_auditoria_usuario_evento ON auditoria_usuario (idUsuario, dataEvento);
+
+CREATE FULLTEXT INDEX ftx_receita_ingredientes ON receita (
+    ingrediente_1, ingrediente_2, ingrediente_3, ingrediente_4, ingrediente_5,
+    ingrediente_6, ingrediente_7, ingrediente_8, ingrediente_9, ingrediente_10,
+    ingrediente_11, ingrediente_12, ingrediente_13, ingrediente_14, ingrediente_15
+);
+
+
+-- ═══════════════════════════════════════════════════════════════════════════
+--  8. VIEWS
+-- ═══════════════════════════════════════════════════════════════════════════
+--  Casos de uso: encapsular JOINs repetitivos, expor dados sem colunas
+--  sensíveis e servir de contrato estável para relatórios.
+--  Atualização: vw_usuario_publico é ATUALIZÁVEL (base em uma única tabela,
+--  sem agregação) — exemplo prático na seção 17.3. Views com JOIN/GROUP BY
+--  (vw_receita_card, vw_estatisticas_categoria) são somente leitura.
+
+-- ── 8.1 · Cards da home: receita + nome da categoria ────────────────────────
+CREATE OR REPLACE VIEW vw_receita_card AS
+SELECT r.idReceita,
+       r.nomeReceita,
+       r.tempoReceita,
+       r.porcoes,
+       r.qtdCalorias,
+       r.imagem,
+       r.idcategoriaFK,
+       c.nomeCategoria
+FROM receita r
+LEFT JOIN categoria c ON c.idCategoria = r.idcategoriaFK;
+
+-- ── 8.2 · Estatísticas por categoria (agregação) ────────────────────────────
+CREATE OR REPLACE VIEW vw_estatisticas_categoria AS
+SELECT c.idCategoria,
+       c.nomeCategoria,
+       COUNT(r.idReceita)                     AS totalReceitas,
+       ROUND(AVG(r.qtdCalorias), 2)           AS mediaCalorias,
+       MIN(r.qtdCalorias)                     AS menorCaloria,
+       MAX(r.qtdCalorias)                     AS maiorCaloria
+FROM categoria c
+LEFT JOIN receita r ON r.idcategoriaFK = c.idCategoria
+GROUP BY c.idCategoria, c.nomeCategoria;
+
+-- ── 8.3 · Usuários sem dados sensíveis (view atualizável) ───────────────────
+CREATE OR REPLACE VIEW vw_usuario_publico AS
+SELECT idUsuario,
+       nomeUsuario,
+       emailUsuario,
+       idCategoriaFK,
+       criadoEm
+FROM usuario;
+
+
+-- ═══════════════════════════════════════════════════════════════════════════
+--  9. FUNCTIONS
+-- ═══════════════════════════════════════════════════════════════════════════
+
+DELIMITER $$
+
+-- ── 9.1 · Calorias por porção de uma receita ────────────────────────────────
+CREATE FUNCTION fn_calorias_por_porcao(p_idReceita INT UNSIGNED)
+    RETURNS DECIMAL(7,2)
+    READS SQL DATA
+    DETERMINISTIC
+    COMMENT 'Retorna qtdCalorias/porcoes da receita; NULL se não existir'
+BEGIN
+    DECLARE v_resultado DECIMAL(7,2);
+
+    SELECT ROUND(r.qtdCalorias / r.porcoes, 2)
+      INTO v_resultado
+      FROM receita r
+     WHERE r.idReceita = p_idReceita;
+
+    RETURN v_resultado;
+END$$
+
+-- ── 9.2 · Total de receitas de uma categoria ────────────────────────────────
+CREATE FUNCTION fn_total_receitas_categoria(p_idCategoria INT UNSIGNED)
+    RETURNS INT
+    READS SQL DATA
+    DETERMINISTIC
+    COMMENT 'Quantidade de receitas classificadas na categoria informada'
+BEGIN
+    DECLARE v_total INT DEFAULT 0;
+
+    SELECT COUNT(*)
+      INTO v_total
+      FROM receita
+     WHERE idcategoriaFK = p_idCategoria;
+
+    RETURN v_total;
+END$$
+
+DELIMITER ;
+
+
+-- ═══════════════════════════════════════════════════════════════════════════
+--  10. STORED PROCEDURES
+-- ═══════════════════════════════════════════════════════════════════════════
+
+DELIMITER $$
+
+-- ── 10.1 · Busca de receitas por ingrediente (consulta parametrizada) ───────
+--  Reproduz, no banco, a regra de busca usada pela aplicação (LIKE nas 15
+--  colunas de ingredientes) com parâmetro de entrada.
+CREATE PROCEDURE sp_buscar_receitas_por_ingrediente(IN p_termo VARCHAR(60))
+    READS SQL DATA
+    COMMENT 'Cards das receitas que contêm o ingrediente informado'
+BEGIN
+    DECLARE v_like VARCHAR(62);
+    SET v_like = CONCAT('%', p_termo, '%');
+
+    SELECT idReceita, nomeReceita, tempoReceita, nomeCategoria, imagem
+      FROM vw_receita_card
+     WHERE EXISTS (
+               SELECT 1
+                 FROM receita r
+                WHERE r.idReceita = vw_receita_card.idReceita
+                  AND (r.ingrediente_1  LIKE v_like OR r.ingrediente_2  LIKE v_like
+                    OR r.ingrediente_3  LIKE v_like OR r.ingrediente_4  LIKE v_like
+                    OR r.ingrediente_5  LIKE v_like OR r.ingrediente_6  LIKE v_like
+                    OR r.ingrediente_7  LIKE v_like OR r.ingrediente_8  LIKE v_like
+                    OR r.ingrediente_9  LIKE v_like OR r.ingrediente_10 LIKE v_like
+                    OR r.ingrediente_11 LIKE v_like OR r.ingrediente_12 LIKE v_like
+                    OR r.ingrediente_13 LIKE v_like OR r.ingrediente_14 LIKE v_like
+                    OR r.ingrediente_15 LIKE v_like)
+           )
+     ORDER BY nomeReceita;
+END$$
+
+-- ── 10.2 · Relatório por categoria (cursor + repetição + condicionais) ──────
+--  Demonstra programação procedural completa: DECLARE, cursor, LOOP,
+--  CONTINUE HANDLER (tratamento de exceção NOT FOUND) e IF/ELSE.
+CREATE PROCEDURE sp_relatorio_categorias()
+    READS SQL DATA
+    COMMENT 'Percorre as categorias com cursor e classifica o acervo de cada uma'
+BEGIN
+    DECLARE v_fim        TINYINT(1) DEFAULT 0;
+    DECLARE v_id         INT UNSIGNED;
+    DECLARE v_nome       VARCHAR(30);
+    DECLARE v_total      INT;
+    DECLARE v_diagnostico VARCHAR(30);
+
+    DECLARE cur_categorias CURSOR FOR
+        SELECT idCategoria, nomeCategoria FROM categoria ORDER BY idCategoria;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_fim = 1;
+
+    DROP TEMPORARY TABLE IF EXISTS tmp_relatorio_categorias;
+    CREATE TEMPORARY TABLE tmp_relatorio_categorias (
+        idCategoria INT UNSIGNED,
+        nomeCategoria VARCHAR(30),
+        totalReceitas INT,
+        diagnostico VARCHAR(30)
+    ) ENGINE = MEMORY;
+
+    OPEN cur_categorias;
+
+    laco_categorias: LOOP
+        FETCH cur_categorias INTO v_id, v_nome;
+        IF v_fim = 1 THEN
+            LEAVE laco_categorias;
+        END IF;
+
+        SET v_total = fn_total_receitas_categoria(v_id);  -- reutilização (seção 9.2)
+
+        IF v_total = 0 THEN
+            SET v_diagnostico = 'SEM RECEITAS';
+        ELSEIF v_total < 5 THEN
+            SET v_diagnostico = 'ACERVO PEQUENO';
+        ELSE
+            SET v_diagnostico = 'ACERVO OK';
+        END IF;
+
+        INSERT INTO tmp_relatorio_categorias
+        VALUES (v_id, v_nome, v_total, v_diagnostico);
+    END LOOP;
+
+    CLOSE cur_categorias;
+
+    SELECT * FROM tmp_relatorio_categorias ORDER BY idCategoria;
+    DROP TEMPORARY TABLE IF EXISTS tmp_relatorio_categorias;
+END$$
+
+-- ── 10.3 · Troca de categoria favorita (transação + exceção + RESIGNAL) ─────
+--  Demonstra TCL dentro de rotina: validação com SIGNAL, EXIT HANDLER com
+--  ROLLBACK e repasse do erro original (RESIGNAL) ao chamador.
+CREATE PROCEDURE sp_trocar_categoria_favorita(
+    IN p_idUsuario   INT UNSIGNED,
+    IN p_idCategoria INT UNSIGNED
+)
+    MODIFIES SQL DATA
+    COMMENT 'Atualiza a categoria favorita do usuário com validação transacional'
+BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;  -- devolve o erro original para a aplicação tratar
+    END;
+
+    START TRANSACTION;
+
+    IF NOT EXISTS (SELECT 1 FROM categoria WHERE idCategoria = p_idCategoria) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Categoria inexistente.';
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM usuario WHERE idUsuario = p_idUsuario) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Usuário inexistente.';
+    END IF;
+
+    UPDATE usuario
+       SET idCategoriaFK = p_idCategoria
+     WHERE idUsuario = p_idUsuario;
+
+    COMMIT;
+END$$
+
+DELIMITER ;
+
+
+-- ═══════════════════════════════════════════════════════════════════════════
+--  11. PACKAGES — NOTA DE COMPATIBILIDADE
+-- ═══════════════════════════════════════════════════════════════════════════
+--  MySQL e MariaDB (modo padrão) não suportam PACKAGES (recurso Oracle;
+--  MariaDB oferece apenas em sql_mode=ORACLE). A modularização equivalente é
+--  obtida por convenção de prefixos — fn_ / sp_ / trg_ / vw_ — agrupando as
+--  rotinas por domínio, como feito nas seções 9 e 10.
 --
--- Estrutura da tabela `categoria`
---
+--  Evolução futura registrada: normalizar ingredientes em tabela própria
+--  (receita_ingrediente N:N) mantendo compatibilidade via views.
 
-CREATE TABLE `categoria` (
-  `idCategoria` int(2) NOT NULL,
-  `nomeCategoria` varchar(20) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
---
--- Extraindo dados da tabela `categoria`
---
+-- ═══════════════════════════════════════════════════════════════════════════
+--  12. TRIGGERS — VALIDAÇÃO E AUDITORIA
+-- ═══════════════════════════════════════════════════════════════════════════
+--  · BEFORE: normalização e validação defensiva (complementa as CHECKs);
+--  · AFTER : trilha de auditoria em auditoria_usuario (regra de negócio:
+--            toda alteração em contas fica registrada, sem expor senhas).
 
+DELIMITER $$
+
+-- ── 12.1 · Validação/normalização antes de inserir usuário ──────────────────
+CREATE TRIGGER trg_usuario_before_insert
+BEFORE INSERT ON usuario
+FOR EACH ROW
+BEGIN
+    SET NEW.nomeUsuario  = TRIM(NEW.nomeUsuario);
+    SET NEW.emailUsuario = TRIM(NEW.emailUsuario);
+
+    IF NEW.emailUsuario NOT LIKE '_%@_%.%' THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'E-mail em formato inválido.';
+    END IF;
+END$$
+
+-- ── 12.2 · Restrição de utilização: e-mail não pode mudar de dono ────────────
+--  Regra de negócio de exemplo: impedir a "transferência" de conta alterando
+--  o e-mail para o de outro usuário já existente (o UNIQUE já garante isso;
+--  o trigger devolve uma mensagem de domínio mais clara).
+CREATE TRIGGER trg_usuario_before_update
+BEFORE UPDATE ON usuario
+FOR EACH ROW
+BEGIN
+    SET NEW.nomeUsuario  = TRIM(NEW.nomeUsuario);
+    SET NEW.emailUsuario = TRIM(NEW.emailUsuario);
+
+    IF NEW.emailUsuario NOT LIKE '_%@_%.%' THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'E-mail em formato inválido.';
+    END IF;
+
+    IF NEW.emailUsuario <> OLD.emailUsuario
+       AND EXISTS (SELECT 1 FROM usuario u
+                    WHERE u.emailUsuario = NEW.emailUsuario
+                      AND u.idUsuario <> OLD.idUsuario) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'E-mail já utilizado por outra conta.';
+    END IF;
+END$$
+
+-- ── 12.3 · Auditoria de INSERT ───────────────────────────────────────────────
+CREATE TRIGGER trg_usuario_after_insert
+AFTER INSERT ON usuario
+FOR EACH ROW
+BEGIN
+    INSERT INTO auditoria_usuario (idUsuario, acao, emailUsuario, alterouSenha, executadoPor)
+    VALUES (NEW.idUsuario, 'INSERT', NEW.emailUsuario, 0, CURRENT_USER());
+END$$
+
+-- ── 12.4 · Auditoria de UPDATE (marca se a senha foi trocada) ────────────────
+CREATE TRIGGER trg_usuario_after_update
+AFTER UPDATE ON usuario
+FOR EACH ROW
+BEGIN
+    INSERT INTO auditoria_usuario (idUsuario, acao, emailUsuario, alterouSenha, executadoPor)
+    VALUES (NEW.idUsuario,
+            'UPDATE',
+            NEW.emailUsuario,
+            IF(NEW.senhaUsuario <> OLD.senhaUsuario, 1, 0),
+            CURRENT_USER());
+END$$
+
+-- ── 12.5 · Auditoria de DELETE ───────────────────────────────────────────────
+CREATE TRIGGER trg_usuario_after_delete
+AFTER DELETE ON usuario
+FOR EACH ROW
+BEGIN
+    INSERT INTO auditoria_usuario (idUsuario, acao, emailUsuario, alterouSenha, executadoPor)
+    VALUES (OLD.idUsuario, 'DELETE', OLD.emailUsuario, 0, CURRENT_USER());
+END$$
+
+DELIMITER ;
+
+
+-- ═══════════════════════════════════════════════════════════════════════════
+--  13. SEED — DADOS INICIAIS (DML)
+-- ═══════════════════════════════════════════════════════════════════════════
+--  Carga oficial do portal: 6 categorias, 36 receitas e 2 usuários de
+--  demonstração. Os INSERTs abaixo também disparam os triggers de auditoria
+--  da seção 12 (verificado na seção 17).
+
+-- ── 13.1 · Categorias ────────────────────────────────────────────────────────
 INSERT INTO `categoria` (`idCategoria`, `nomeCategoria`) VALUES
 (1, 'frutos do mar'),
 (2, 'massas'),
@@ -46,43 +541,8 @@ INSERT INTO `categoria` (`idCategoria`, `nomeCategoria`) VALUES
 (5, 'doces'),
 (6, 'carnes');
 
--- --------------------------------------------------------
 
---
--- Estrutura da tabela `receita`
---
-
-CREATE TABLE `receita` (
-  `idReceita` int(3) NOT NULL,
-  `nomeReceita` varchar(70) NOT NULL,
-  `porcoes` int(2) NOT NULL,
-  `tempoReceita` varchar(10) NOT NULL,
-  `qtdCalorias` float(7,2) NOT NULL,
-  `link` varchar(300) NOT NULL,
-  `ingrediente_1` varchar(60) DEFAULT NULL,
-  `ingrediente_2` varchar(60) DEFAULT NULL,
-  `ingrediente_3` varchar(60) DEFAULT NULL,
-  `ingrediente_4` varchar(60) DEFAULT NULL,
-  `ingrediente_5` varchar(60) DEFAULT NULL,
-  `ingrediente_6` varchar(60) DEFAULT NULL,
-  `ingrediente_7` varchar(60) DEFAULT NULL,
-  `ingrediente_8` varchar(60) DEFAULT NULL,
-  `ingrediente_9` varchar(60) DEFAULT NULL,
-  `ingrediente_10` varchar(60) DEFAULT NULL,
-  `ingrediente_11` varchar(60) DEFAULT NULL,
-  `ingrediente_12` varchar(60) DEFAULT NULL,
-  `ingrediente_13` varchar(60) DEFAULT NULL,
-  `ingrediente_14` varchar(60) DEFAULT NULL,
-  `ingrediente_15` varchar(60) DEFAULT NULL,
-  `modoPreparo` varchar(1300) NOT NULL,
-  `idcategoriaFK` int(2) DEFAULT NULL,
-  `imagem` varchar(30) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
---
--- Extraindo dados da tabela `receita`
---
-
+-- ── 13.2 · Receitas (36 registros com vídeo, ingredientes e modo de preparo) ─
 INSERT INTO `receita` (`idReceita`, `nomeReceita`, `porcoes`, `tempoReceita`, `qtdCalorias`, `link`, `ingrediente_1`, `ingrediente_2`, `ingrediente_3`, `ingrediente_4`, `ingrediente_5`, `ingrediente_6`, `ingrediente_7`, `ingrediente_8`, `ingrediente_9`, `ingrediente_10`, `ingrediente_11`, `ingrediente_12`, `ingrediente_13`, `ingrediente_14`, `ingrediente_15`, `modoPreparo`, `idcategoriaFK`, `imagem`) VALUES
 (1, 'Macarrão à carbonara', 6, '15 min', 295.50, '<iframe width=\"962\" height=\"541\" src=\"https://www.youtube.com/embed/pZdnOiH4q2Q\"\ntitle=\"Macarrão à carbonara — Receitas TudoGostoso\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture\" allowfullscreen></iframe>', 'bacon picado gosto', 'queijo ralado a gosto', '3 ovos', 'sal', 'pimenta-do-reino a gosto', 'macarrão de sua escolha (espaguete, fusili,etc.)', 'creme de leite', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Frite bem o bacon, até ficar crocante (pode-se adicionar salame picado).\r\nColoque o macarrão para cozinhar em água e sal. No refratário onde será servido o macarrão, bata bem os ovos com um garfo.\r\nTempere com sal e pimenta a gosto, e junte o queijo ralado, também a gosto.\r\nQuando o macarrão estiver pronto, escorra e coloque (bem quente) sobre a mistura de ovos, misture bem.\r\nO calor da massa cozinha os ovos. Coloque o bacon, ainda quente, sobre o macarrão e sirva.', 2, 'carbonara.png'),
 (2, 'Estrogonofe de Carne', 8, '30 min', 303.27, '<iframe width=\"962\" height=\"541\" src=\"https://www.youtube.com/embed/uTDuchZ7XPE\"\r\n title=\"Estrogonofe de carne — Receitas TudoGostoso\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture\" allowfullscreen></iframe>', '3 colheres (sopa) de azeite', '1 kg de alcatra picada', 'sal a gosto', 'pimenta-do-reino a gosto', '1 cebola picada', '3 tomates picados sem pele e sem sementes', '2 colheres (sopa) de ketchup', '360 g de champignon fatiado', '2 latas de creme de leite sem soro', NULL, NULL, NULL, NULL, NULL, NULL, 'Em uma panela, adicione o óleo, a carne, a cebola, os tomates, o caldo de carne e deixe cozinhar por 20 minutos.\r\nAcrescente o ketchup e o champignon e deixe cozinhar até obter um molho consistente e cremoso. Desligue o fogo e acrescente o creme de leite sem soro.\r\nMexa até incorporar o molho ao creme. Coloque em uma forma refratária e decore com tempero e batata palha.', 6, 'estrogonofe_carne.png'),
@@ -121,98 +581,242 @@ INSERT INTO `receita` (`idReceita`, `nomeReceita`, `porcoes`, `tempoReceita`, `q
 (35, 'Picadinho de carne', 4, '30 min', 53.00, '<iframe width=\"735\" height=\"413\" src=\"https://www.youtube.com/embed/3C517wuWSbA\" title=\"Picadinho de carne — Receitas TudoGostoso\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture\" allowfullscreen></iframe>', '1 kg de patinho em cubos', '4 colheres (sopa) de farinha de trigo', '1 colher (sopa) de óleo', 'sal a gosto', 'pimenta-do-reino a gosto', '1 colher (sopa) de manteiga', '1/2 cebola ralada', '1 dente de alho picado', '1/4 de xícara de vinho tinto', '1/2 lata de tomate', '3 xícaras de água', NULL, NULL, NULL, NULL, '1. Em um recipiente, misture a carne com a farinha de trigo.\r\n2. Em uma panela, aqueça o óleo, acrescente a carne, tempere com sal e pimenta-do-reino e deixe dourar.\r\n3. Retire a carne da panela e reserve.\r\n4. Na mesma panela, adicione a manteiga e refogue a cebola e o alho.\r\n5. Acrescente o vinho tinto e deixe reduzir um pouco.\r\n6. Volte a carne para a panela e misture bem.\r\n7. Adicione o tomate e a água.\r\n8. Tempere com sal a pimenta-do-reino e deixe cozinhar.', 6, 'picadinhocarne.png'),
 (36, 'Rocambole de carne', 8, '15 min', 204.86, '<iframe width=\"735\" height=\"413\" src=\"https://www.youtube.com/embed/NmICuanRLck\" title=\"Rocambole de carne moída — Receitas TudoGostoso\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture\" allowfullscreen></iframe>', '1/2 kg de carne moída', '1 pacote de sopa de cebola', 'presunto fatiado', 'queijo fatiado', 'tempero verde', 'sal a gosto', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '1. Tempere a carne moída com a sopa de cebola, o tempero verde e o sal.\r\n2. Coloque a carne temperada sobre uma folha de papel laminado ou papel manteiga e abra a massa com um rolo, na espessura de 1 cm, mais ou menos.\r\n3. Forre a carne com o presunto e o queijo, pode-se colocar também milho verde, ervilha e requeijão.\r\n4. Enrole a carne, com ajuda da folha de papel laminado ou manteiga, em forma de rocambole.\r\n5. Leve ao forno, em temperatura alta, por mais ou menos 30 minutos, ou no microondas por 15 minutos.\r\n6. Bom apetite!', 6, 'rocambole.png');
 
--- --------------------------------------------------------
-
---
--- Estrutura da tabela `usuario`
---
-
-CREATE TABLE `usuario` (
-  `idUsuario` int(3) NOT NULL,
-  `nomeUsuario` varchar(30) NOT NULL,
-  `emailUsuario` varchar(60) NOT NULL,
-  `senhaUsuario` varchar(255) NOT NULL,
-  `idCategoriaFK` int(2) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
---
--- Extraindo dados da tabela `usuario`
---
--- Usuários de demonstração (senhas armazenadas como hash bcrypt, compatíveis com password_verify):
---   kk.123@gmail.com        → senha em claro: 123456
---   tectutors.123@gmail.com → senha em claro: 271821
---
-
+-- ── 13.3 · Usuários de demonstração ─────────────────────────────────────────
+--  Senhas armazenadas como hash bcrypt (compatíveis com password_verify):
+--    kk.123@gmail.com        → senha em claro: 123456
+--    tectutors.123@gmail.com → senha em claro: 271821
 INSERT INTO `usuario` (`idUsuario`, `nomeUsuario`, `emailUsuario`, `senhaUsuario`, `idCategoriaFK`) VALUES
 (1, 'Nome descente', 'kk.123@gmail.com', '$2y$10$bFuehjBZFt7sbgDjS4dDU.VLMmqrNH/D0Y5qG3uxYYeXF6p4eXUjW', 2),
 (2, 'Pao', 'tectutors.123@gmail.com', '$2y$10$eTiUF8o3aqtvPaqyNNRs7.VwJlvcU0SU7.bt8lVoJ45o4/.f21DSW', 2);
 
---
--- Índices para tabelas despejadas
---
 
---
--- Índices para tabela `categoria`
---
-ALTER TABLE `categoria`
-  ADD PRIMARY KEY (`idCategoria`);
+-- ═══════════════════════════════════════════════════════════════════════════
+--  14. CONSULTAS DE EXEMPLO
+-- ═══════════════════════════════════════════════════════════════════════════
+--  Consultas executáveis de complexidade crescente. Rodam durante a
+--  implantação como autoteste de sintaxe/planos e servem de referência para
+--  relatórios futuros. Na aplicação, TODA consulta é parametrizada via
+--  prepared statements do PDO (ver src/Infrastructure/Repository).
 
---
--- Índices para tabela `receita`
---
-ALTER TABLE `receita`
-  ADD PRIMARY KEY (`idReceita`),
-  ADD UNIQUE KEY `nomeReceita` (`nomeReceita`),
-  ADD UNIQUE KEY `link` (`link`),
-  ADD KEY `idcategoriaFK` (`idcategoriaFK`);
+-- ── 14.1 · JOIN interno: receitas com sua categoria ─────────────────────────
+SELECT r.nomeReceita, c.nomeCategoria
+  FROM receita r
+ INNER JOIN categoria c ON c.idCategoria = r.idcategoriaFK
+ ORDER BY c.nomeCategoria, r.nomeReceita
+ LIMIT 5;
 
---
--- Índices para tabela `usuario`
---
-ALTER TABLE `usuario`
-  ADD PRIMARY KEY (`idUsuario`),
-  ADD UNIQUE KEY `emailUsuario` (`emailUsuario`),
-  ADD KEY `idCategoriaFK` (`idCategoriaFK`);
+-- ── 14.2 · JOIN externo + agregação: categorias mesmo sem receitas ──────────
+SELECT c.nomeCategoria,
+       COUNT(r.idReceita) AS totalReceitas
+  FROM categoria c
+  LEFT JOIN receita r ON r.idcategoriaFK = c.idCategoria
+ GROUP BY c.idCategoria, c.nomeCategoria
+HAVING COUNT(r.idReceita) >= 0
+ ORDER BY totalReceitas DESC;
 
---
--- AUTO_INCREMENT de tabelas despejadas
---
+-- ── 14.3 · Subconsulta: receitas acima da média de calorias do acervo ───────
+SELECT nomeReceita, qtdCalorias
+  FROM receita
+ WHERE qtdCalorias > (SELECT AVG(qtdCalorias) FROM receita)
+ ORDER BY qtdCalorias DESC
+ LIMIT 5;
 
---
--- AUTO_INCREMENT de tabela `categoria`
---
-ALTER TABLE `categoria`
-  MODIFY `idCategoria` int(2) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+-- ── 14.4 · CTE (Common Table Expression): ranking de categorias leves ───────
+WITH calorias_categoria AS (
+    SELECT c.nomeCategoria,
+           AVG(r.qtdCalorias) AS mediaCalorias
+      FROM categoria c
+      JOIN receita r ON r.idcategoriaFK = c.idCategoria
+     GROUP BY c.idCategoria, c.nomeCategoria
+)
+SELECT nomeCategoria, ROUND(mediaCalorias, 2) AS mediaCalorias
+  FROM calorias_categoria
+ ORDER BY mediaCalorias ASC;
 
---
--- AUTO_INCREMENT de tabela `receita`
---
-ALTER TABLE `receita`
-  MODIFY `idReceita` int(3) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=50;
+-- ── 14.5 · Função analítica (janela): receita mais leve de cada categoria ───
+SELECT nomeCategoria, nomeReceita, qtdCalorias
+  FROM (
+        SELECT c.nomeCategoria,
+               r.nomeReceita,
+               r.qtdCalorias,
+               ROW_NUMBER() OVER (PARTITION BY r.idcategoriaFK
+                                  ORDER BY r.qtdCalorias ASC) AS posicao
+          FROM receita r
+          JOIN categoria c ON c.idCategoria = r.idcategoriaFK
+       ) ranking
+ WHERE posicao = 1
+ ORDER BY nomeCategoria;
 
---
--- AUTO_INCREMENT de tabela `usuario`
---
-ALTER TABLE `usuario`
-  MODIFY `idUsuario` int(3) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+-- ── 14.6 · Consulta parametrizada no servidor (PREPARE/EXECUTE) ─────────────
+--  Mesmo mecanismo usado pelo PDO com emulação desligada.
+SET @p_categoria := 5;  -- Doces
+PREPARE stmt_receitas_categoria FROM
+    'SELECT nomeReceita, qtdCalorias FROM receita WHERE idcategoriaFK = ? ORDER BY nomeReceita';
+EXECUTE stmt_receitas_categoria USING @p_categoria;
+DEALLOCATE PREPARE stmt_receitas_categoria;
 
---
--- Restrições para despejos de tabelas
---
+-- ── 14.7 · Otimização: busca por ingrediente via índice FULLTEXT ────────────
+--  Alternativa escalável aos 15 LIKEs (usa ftx_receita_ingredientes).
+SELECT idReceita, nomeReceita
+  FROM receita
+ WHERE MATCH (ingrediente_1, ingrediente_2, ingrediente_3, ingrediente_4,
+              ingrediente_5, ingrediente_6, ingrediente_7, ingrediente_8,
+              ingrediente_9, ingrediente_10, ingrediente_11, ingrediente_12,
+              ingrediente_13, ingrediente_14, ingrediente_15)
+       AGAINST ('bacon' IN NATURAL LANGUAGE MODE);
 
---
--- Limitadores para a tabela `receita`
---
-ALTER TABLE `receita`
-  ADD CONSTRAINT `receita_ibfk_1` FOREIGN KEY (`idcategoriaFK`) REFERENCES `categoria` (`idCategoria`);
+--  Análise de plano de execução (descomentee para inspecionar índices em uso):
+--  EXPLAIN SELECT * FROM receita WHERE idcategoriaFK = 5;
 
---
--- Limitadores para a tabela `usuario`
---
-ALTER TABLE `usuario`
-  ADD CONSTRAINT `usuario_ibfk_1` FOREIGN KEY (`idCategoriaFK`) REFERENCES `categoria` (`idCategoria`);
+
+-- ═══════════════════════════════════════════════════════════════════════════
+--  15. CONTROLE DE ACESSO (DCL) — PRINCÍPIO DO MENOR PRIVILÉGIO
+-- ═══════════════════════════════════════════════════════════════════════════
+--  Papéis (roles) e usuários dedicados. A aplicação NÃO precisa de DDL nem de
+--  DELETE: recebe somente o necessário para operar o portal.
+--    · papel_leitura   → relatórios/BI: apenas SELECT;
+--    · papel_aplicacao → operação do portal: SELECT + INSERT/UPDATE pontuais;
+--    · portal_app      → conta da aplicação (troque a senha em produção e
+--                        aponte DB_USER/DB_PASS para ela);
+--    · portal_relatorios → conta somente leitura para análises.
+--  Obs.: os triggers de auditoria executam como DEFINER, então portal_app não
+--  precisa (e não recebe) INSERT em auditoria_usuario.
+
+DROP USER IF EXISTS 'portal_app'@'%';
+DROP USER IF EXISTS 'portal_relatorios'@'%';
+DROP ROLE IF EXISTS papel_leitura;
+DROP ROLE IF EXISTS papel_aplicacao;
+
+CREATE ROLE papel_leitura;
+CREATE ROLE papel_aplicacao;
+
+-- Permissões dos papéis
+GRANT SELECT ON tcc_receitas.* TO papel_leitura;
+
+GRANT SELECT                 ON tcc_receitas.categoria TO papel_aplicacao;
+GRANT SELECT                 ON tcc_receitas.receita   TO papel_aplicacao;
+GRANT SELECT, INSERT, UPDATE ON tcc_receitas.usuario   TO papel_aplicacao;
+
+-- Exemplo de REVOKE: um privilégio concedido além do necessário é retirado
+GRANT DELETE ON tcc_receitas.usuario TO papel_aplicacao;
+REVOKE DELETE ON tcc_receitas.usuario FROM papel_aplicacao;
+
+-- Usuários e vínculo com os papéis
+CREATE USER 'portal_app'@'%'         IDENTIFIED BY 'TroqueEstaSenha_123';
+CREATE USER 'portal_relatorios'@'%'  IDENTIFIED BY 'TroqueEstaSenha_456';
+
+GRANT papel_aplicacao TO 'portal_app'@'%';
+GRANT papel_leitura   TO 'portal_relatorios'@'%';
+
+--  Ativação do papel por padrão (sintaxe varia entre os SGBDs — execute a do
+--  seu ambiente ao adotar as contas):
+--    MySQL 8 : SET DEFAULT ROLE ALL TO 'portal_app'@'%';
+--    MariaDB : SET DEFAULT ROLE papel_aplicacao FOR 'portal_app'@'%';
+
+
+-- ═══════════════════════════════════════════════════════════════════════════
+--  16. TRANSAÇÕES E CONCORRÊNCIA (TCL / ACID)
+-- ═══════════════════════════════════════════════════════════════════════════
+
+-- ── 16.1 · BEGIN / SAVEPOINT / ROLLBACK — nada abaixo persiste ───────────────
+START TRANSACTION;
+
+INSERT INTO usuario (idUsuario, nomeUsuario, emailUsuario, senhaUsuario, idCategoriaFK)
+VALUES (9001, 'Conta Temporária', 'temp.tcl@example.com',
+        '$2y$10$bFuehjBZFt7sbgDjS4dDU.VLMmqrNH/D0Y5qG3uxYYeXF6p4eXUjW', 1);
+
+SAVEPOINT sp_apos_insert;
+
+UPDATE usuario SET nomeUsuario = 'Conta Renomeada' WHERE idUsuario = 9001;
+
+ROLLBACK TO SAVEPOINT sp_apos_insert;  -- desfaz apenas o UPDATE
+ROLLBACK;                              -- desfaz a transação inteira (atomicidade)
+
+-- ── 16.2 · BEGIN / COMMIT — efeito durável (durabilidade) ────────────────────
+--  Ciclo completo dentro de uma transação confirmada; o estado final do seed
+--  permanece o mesmo, e a auditoria registra INSERT/UPDATE/DELETE.
+START TRANSACTION;
+
+INSERT INTO usuario (idUsuario, nomeUsuario, emailUsuario, senhaUsuario, idCategoriaFK)
+VALUES (9002, 'Conta Demonstração', 'demo.tcl@example.com',
+        '$2y$10$bFuehjBZFt7sbgDjS4dDU.VLMmqrNH/D0Y5qG3uxYYeXF6p4eXUjW', 2);
+
+UPDATE usuario SET nomeUsuario = 'Conta Demonstração ACID' WHERE idUsuario = 9002;
+DELETE FROM usuario WHERE idUsuario = 9002;
+
 COMMIT;
 
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+-- ── 16.3 · Níveis de isolamento ──────────────────────────────────────────────
+--  READ COMMITTED evita leituras sujas; REPEATABLE READ (padrão do InnoDB)
+--  garante leituras estáveis dentro da transação (consistência/isolamento).
+SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;
+START TRANSACTION;
+SELECT COUNT(*) AS usuariosVisiveis FROM usuario;
+COMMIT;
+SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+
+-- ── 16.4 · Bloqueios e acesso simultâneo ─────────────────────────────────────
+--  FOR UPDATE: bloqueio exclusivo de linha até o fim da transação — outra
+--  sessão que tente alterar o mesmo usuário aguarda (prevenção de conflito).
+START TRANSACTION;
+SELECT idUsuario, nomeUsuario
+  FROM usuario
+ WHERE idUsuario = 1
+   FOR UPDATE;
+COMMIT;
+
+--  Bloqueio compartilhado (leitura consistente permitindo outras leituras):
+--    SELECT ... LOCK IN SHARE MODE;   -- MariaDB e MySQL (no MySQL 8: FOR SHARE)
+--  Deadlocks: o InnoDB detecta e aborta a transação mais barata; a aplicação
+--  deve tratar SQLSTATE 40001 (serialization failure) com retry.
+
+
+-- ═══════════════════════════════════════════════════════════════════════════
+--  17. TESTES E VALIDAÇÕES
+-- ═══════════════════════════════════════════════════════════════════════════
+--  Autoverificação da implantação: cada linha deve retornar 'OK'.
+
+-- ── 17.1 · Volumetria do seed ────────────────────────────────────────────────
+SELECT IF(COUNT(*) = 6,  'OK', 'ERRO: categorias')      AS teste_categorias FROM categoria;
+SELECT IF(COUNT(*) = 36, 'OK', 'ERRO: receitas')        AS teste_receitas   FROM receita;
+SELECT IF(COUNT(*) = 2,  'OK', 'ERRO: usuarios')        AS teste_usuarios   FROM usuario;
+
+-- ── 17.2 · Integridade: sem órfãos e senhas sempre em hash ──────────────────
+SELECT IF(COUNT(*) = 0, 'OK', 'ERRO: receita órfã') AS teste_fk_receita
+  FROM receita r
+  LEFT JOIN categoria c ON c.idCategoria = r.idcategoriaFK
+ WHERE r.idcategoriaFK IS NOT NULL AND c.idCategoria IS NULL;
+
+SELECT IF(COUNT(*) = 0, 'OK', 'ERRO: senha fora do padrão hash') AS teste_hash
+  FROM usuario
+ WHERE senhaUsuario NOT LIKE '$2y$%';
+
+-- ── 17.3 · View atualizável (atualiza e reverte pela própria view) ──────────
+UPDATE vw_usuario_publico SET nomeUsuario = 'Nome descente (via view)' WHERE idUsuario = 1;
+UPDATE vw_usuario_publico SET nomeUsuario = 'Nome descente'            WHERE idUsuario = 1;
+SELECT IF(nomeUsuario = 'Nome descente', 'OK', 'ERRO: view atualizável') AS teste_view
+  FROM usuario WHERE idUsuario = 1;
+
+-- ── 17.4 · Rotinas: functions e procedures respondem ────────────────────────
+SELECT IF(fn_calorias_por_porcao(1) > 0, 'OK', 'ERRO: fn_calorias_por_porcao') AS teste_fn_calorias;
+SELECT IF(fn_total_receitas_categoria(5) > 0, 'OK', 'ERRO: fn_total_receitas') AS teste_fn_total;
+
+CALL sp_buscar_receitas_por_ingrediente('bacon');
+CALL sp_relatorio_categorias();
+CALL sp_trocar_categoria_favorita(1, 3);  -- troca…
+CALL sp_trocar_categoria_favorita(1, 2);  -- …e restaura o seed
+
+-- ── 17.5 · Auditoria: triggers registraram os eventos deste script ──────────
+--  Espera-se: 2 INSERTs do seed + INSERT/UPDATE/DELETE da seção 16.2 +
+--  2 UPDATEs da view (17.3) + 2 UPDATEs das procedures (17.4).
+SELECT IF(COUNT(*) >= 9, 'OK', 'ERRO: auditoria incompleta') AS teste_auditoria
+  FROM auditoria_usuario;
+
+SELECT acao, COUNT(*) AS eventos
+  FROM auditoria_usuario
+ GROUP BY acao
+ ORDER BY acao;
+
+-- ═══════════════════════════════════════════════════════════════════════════
+--  FIM DO SCRIPT — banco oficial do Portal Receitas implantado e validado.
+-- ═══════════════════════════════════════════════════════════════════════════

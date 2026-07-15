@@ -14,6 +14,7 @@
 - `config/bootstrap.php`: composição de dependências (lê `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS` do ambiente).
 - `src/`: núcleo arquitetural por camada.
 - `tests/`: testes PHPUnit dos casos de uso e da conexão.
+- `DB_Receitas.sql`: banco de dados oficial — script único e idempotente com DDL (constraints nomeadas, CHECKs, FKs), índices (incl. FULLTEXT), views, functions, procedures, triggers de auditoria, seed, controle de acesso (roles/menor privilégio), transações e autotestes; compatível com MySQL 8 e MariaDB.
 
 ## Regra de dependência
 
