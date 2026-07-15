@@ -67,6 +67,10 @@ docker compose up --build -d
 
 Acesse **http://localhost:8080**. O seed (`DB_Receitas.sql`) é importado automaticamente na primeira subida. Detalhes em [DEPLOY.md](DEPLOY.md).
 
+### ☁️ Na Render
+
+O repositório traz um blueprint pronto (`render.yaml`): **New → Blueprint** no dashboard da Render. O container respeita a variável `PORT` da plataforma e há health check em `/healthz.php`. Passo a passo (incluindo a opção com MySQL externo no plano free) em [DEPLOY.md](DEPLOY.md).
+
 **Usuários de demonstração** (do seed):
 
 | E-mail | Senha |
@@ -104,6 +108,8 @@ Portal-Receitas/
 ├─ tests/                         ← Testes PHPUnit
 ├─ DB_Receitas.sql                ← Seed do banco (schema + dados)
 ├─ Dockerfile / docker-compose.yml
+├─ render.yaml                    ← Blueprint de deploy na Render
+├─ docker/                        ← Entrypoint (porta dinâmica) e imagem do MySQL com seed
 ├─ DEPLOY.md                      ← Guia de deploy
 └─ CHANGELOG.md                   ← Histórico da consolidação
 ```
