@@ -38,7 +38,9 @@ $connectionFactory = new PdoConnectionFactory(
     getenv('DB_NAME') ?: 'tcc_receitas',
     getenv('DB_USER') ?: 'root',
     getenv('DB_PASS') !== false ? (string) getenv('DB_PASS') : '',
-    getenv('DB_PORT') ?: '3306'
+    getenv('DB_PORT') ?: '3306',
+    getenv('DB_SSL_CA') ?: null,
+    getenv('DB_SSL_VERIFY') !== 'false'
 );
 
 $userRepository = new PdoUserRepository($connectionFactory);
