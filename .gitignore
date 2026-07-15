@@ -1,0 +1,9 @@
+# Dependências (geradas no build via composer install)
+/vendor/
+
+# Configuração local
+/.env
+
+# Cache de ferramentas
+/.phpunit.cache/
+/.phpunit.result.cache

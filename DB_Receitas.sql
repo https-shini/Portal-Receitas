@@ -131,17 +131,21 @@ CREATE TABLE `usuario` (
   `idUsuario` int(3) NOT NULL,
   `nomeUsuario` varchar(30) NOT NULL,
   `emailUsuario` varchar(60) NOT NULL,
-  `senhaUsuario` varchar(20) NOT NULL,
+  `senhaUsuario` varchar(255) NOT NULL,
   `idCategoriaFK` int(2) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Extraindo dados da tabela `usuario`
 --
+-- Usuários de demonstração (senhas armazenadas como hash bcrypt, compatíveis com password_verify):
+--   kk.123@gmail.com        → senha em claro: 123456
+--   tectutors.123@gmail.com → senha em claro: 271821
+--
 
 INSERT INTO `usuario` (`idUsuario`, `nomeUsuario`, `emailUsuario`, `senhaUsuario`, `idCategoriaFK`) VALUES
-(1, 'Nome descente', 'kk.123@gmail.com', '123456', 2),
-(2, 'Pao', 'tectutors.123@gmail.com', '271821', 2);
+(1, 'Nome descente', 'kk.123@gmail.com', '$2y$10$bFuehjBZFt7sbgDjS4dDU.VLMmqrNH/D0Y5qG3uxYYeXF6p4eXUjW', 2),
+(2, 'Pao', 'tectutors.123@gmail.com', '$2y$10$eTiUF8o3aqtvPaqyNNRs7.VwJlvcU0SU7.bt8lVoJ45o4/.f21DSW', 2);
 
 --
 -- Índices para tabelas despejadas
