@@ -3,7 +3,14 @@
 declare(strict_types=1);
 
 $services = require __DIR__ . '/../../../config/bootstrap.php';
-$result = $services['authController']->register($_POST);
+
+try {
+    $result = $services['authController']->register($_POST);
+} catch (PDOException) {
+    http_response_code(503);
+    require __DIR__ . '/../../../src/Presentation/View/unavailable.php';
+    exit;
+}
 
 header('Refresh:0;url=' . $result['redirect']);
 

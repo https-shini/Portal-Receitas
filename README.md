@@ -67,9 +67,9 @@ docker compose up --build -d
 
 Acesse **http://localhost:8080**. O seed (`DB_Receitas.sql`) é importado automaticamente na primeira subida. Detalhes em [DEPLOY.md](DEPLOY.md).
 
-### ☁️ Na Render
+### ☁️ Na Render (grátis)
 
-O repositório traz um blueprint pronto (`render.yaml`): **New → Blueprint** no dashboard da Render. O container respeita a variável `PORT` da plataforma e há health check em `/healthz.php`. Passo a passo (incluindo a opção com MySQL externo no plano free) em [DEPLOY.md](DEPLOY.md).
+O repositório traz um blueprint pronto (`render.yaml`) para o **plano free**: **New → Blueprint** no dashboard da Render e pronto — um único container Docker roda o site + MariaDB com o seed importado no boot, custo zero. Atenção: no free não há disco persistente, então cadastros feitos no site são reiniciados quando o serviço hiberna (receitas e demos sempre voltam pelo seed). Alternativas com persistência em [DEPLOY.md](DEPLOY.md).
 
 **Usuários de demonstração** (do seed):
 

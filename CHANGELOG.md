@@ -1,5 +1,15 @@
 # CHANGELOG — Consolidação das branches
 
+## [1.2.0] — 2026-07-15
+
+Deploy 100% gratuito na Render, tudo em Docker:
+
+- `docker/render-free.Dockerfile` + `docker/render-free-entrypoint.sh`: imagem all-in-one (Apache/PHP + MariaDB no mesmo container) com seed importado automaticamente no boot — para o plano free da Render, que não tem disco persistente (dados de runtime são efêmeros; receitas e demos sempre voltam pelo seed).
+- `render.yaml` reescrito para o modo free (um único serviço web, custo zero).
+- Suporte opcional a TLS na conexão MySQL (`DB_SSL_CA`, `DB_SSL_VERIFY`) para a alternativa com MySQL externo gerenciado.
+- Página amigável de indisponibilidade (HTTP 503) quando o banco está fora, em vez de erro 500 seco, nos quatro entrypoints que tocam o banco.
+- `DEPLOY.md` reorganizado: opção A free all-in-one (padrão), opção B free com MySQL externo persistente, opção C paga com serviços separados.
+
 ## [1.1.0] — 2026-07-15
 
 Preparação para hospedagem na Render (e plataformas similares que injetam `PORT`):

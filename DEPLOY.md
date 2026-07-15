@@ -2,30 +2,40 @@
 
 ## Deploy na Render
 
-A Render não usa o `docker-compose.yml` — web e banco são serviços separados. O
-repositório já traz um blueprint pronto (`render.yaml`).
+A Render não usa o `docker-compose.yml`. O repositório traz um blueprint pronto
+(`render.yaml`) configurado para o **plano free**.
 
-### Opção A — Blueprint (web + MySQL na própria Render, plano pago)
-1. No dashboard da Render: **New → Blueprint** e aponte para este repositório.
-2. O blueprint cria dois serviços:
-   - `portal-receitas` (web, Docker): a porta é ajustada automaticamente — o
-     container respeita a variável `PORT` que a Render injeta; health check em `/healthz.php`.
-   - `portal-receitas-db` (serviço privado, `docker/db.Dockerfile`): MySQL 8 com
-     disco persistente em `/var/lib/mysql`; o seed `DB_Receitas.sql` é importado
-     automaticamente no primeiro boot (disco vazio); `MYSQL_ROOT_PASSWORD` é gerada
-     pela Render e injetada no web como `DB_PASS`.
-3. Aplique o blueprint e aguarde os dois deploys. Pronto.
+### Opção A — 100% free, tudo em Docker (padrão do `render.yaml`) ✅
+Um único serviço web roda Apache/PHP **e** o MariaDB no mesmo container
+(`docker/render-free.Dockerfile`). O seed é importado automaticamente no boot.
 
-> Serviços privados e discos exigem plano pago. Para reimportar o seed, apague e
-> recrie o disco do serviço `portal-receitas-db` (equivalente ao `down -v` local).
+1. No dashboard da Render: **New → Blueprint** e aponte para este repositório
+   (ou **New → Web Service → Docker** com *Dockerfile Path* = `docker/render-free.Dockerfile`).
+2. Health check já configurado em `/healthz.php`. Nenhuma variável é necessária.
+3. Aguarde o deploy. Pronto — custo zero.
 
-### Opção B — Web na Render (free) + MySQL externo
-1. Crie um MySQL 8 gerenciado em qualquer provedor (Aiven, Railway, Clever Cloud etc.)
-   e importe o seed: `mysql -h HOST -P PORTA -u USUARIO -p BANCO < DB_Receitas.sql`.
-2. Na Render: **New → Web Service → Docker**, aponte para este repositório.
+> ⚠️ **Limitação do plano free (sem disco persistente):** dados criados em runtime
+> (novos cadastros, edições de perfil) são perdidos quando o serviço hiberna
+> (~15 min sem tráfego) ou redeploya. Receitas e usuários-demo sempre voltam,
+> pois vêm do seed. O free também "dorme": a primeira visita após a hibernação
+> demora ~30-60s. Para persistência real, use as opções B ou C.
+
+### Opção B — Web free na Render + MySQL externo (free com persistência)
+1. Crie um MySQL 8 gerenciado em um provedor com plano grátis (Aiven, Clever Cloud,
+   filess.io etc.) e importe o seed: `mysql -h HOST -P PORTA -u USUARIO -p BANCO < DB_Receitas.sql`.
+2. Na Render: **New → Web Service → Docker** (Dockerfile padrão `./Dockerfile`).
 3. Em *Environment*, defina: `DB_HOST`, `DB_PORT` (provedores externos costumam usar
    porta diferente de 3306), `DB_NAME`, `DB_USER`, `DB_PASS`.
+   Se o provedor exigir TLS (ex.: Aiven), suba o CA como *Secret File* e defina
+   `DB_SSL_CA=/etc/secrets/ca.pem` (e `DB_SSL_VERIFY=false` apenas para certificado
+   autoassinado).
 4. Defina o *Health Check Path* como `/healthz.php` e faça o deploy.
+
+### Opção C — Web + MySQL como serviços separados na Render (plano pago)
+Use `docker/db.Dockerfile` num serviço privado com disco em `/var/lib/mysql`
+(MySQL 8 com seed automático) e aponte o web com `DB_HOST` = host interno do
+serviço, `DB_PASS` = `MYSQL_ROOT_PASSWORD`. Serviços privados e discos exigem
+plano pago. Para reimportar o seed, recrie o disco (equivalente ao `down -v`).
 
 ---
 
