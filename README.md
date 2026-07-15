@@ -26,7 +26,7 @@ O que o site faz hoje, exatamente como está no código:
 - **Detalhe de cada receita** com vídeo do YouTube incorporado (iframe), lista de até 15 ingredientes, porções, calorias e modo de preparo dividido em passos.
 - **Busca por ingrediente**: o termo é comparado (`LIKE`) contra as 15 colunas de ingredientes de cada receita.
 - **Filtro por categoria**, com seis categorias fixas: Frutos do Mar, Massas, Veganas, Salgados, Doces e Carnes.
-- **Cadastro e login de usuários** com senha protegida por `password_hash`/`password_verify` (bcrypt, `PASSWORD_DEFAULT`).
+- **Cadastro e login de usuários** com senha protegida por `password_hash`/`password_verify` (bcrypt, `PASSWORD_DEFAULT`) — tela unificada com painel deslizante, medidor de força de senha e validação no servidor (mín. 8 caracteres com letra e número), UX inspirada no [AuthService](https://github.com/https-shini/AuthService), com API JSON própria (`/api/login.php`, `/api/register.php`, `/api/me.php`, `/api/logout.php`).
 - **Perfil do usuário** com edição de nome, e-mail e senha, protegido por guard de sessão.
 - **Logout** com encerramento de sessão.
 - **Resiliência de deploy**: página amigável de indisponibilidade (HTTP 503) quando o banco está fora, e endpoint `healthz.php` (HTTP 200, sem tocar o banco) para health check das plataformas.
@@ -62,7 +62,7 @@ Portal-Receitas/
 │  ├─ index.php                         ← Home: listagem, busca e filtro
 │  ├─ login.php · register.php · profile.php
 │  ├─ healthz.php                       ← Health check (200, não toca o banco)
-│  └─ assets/                           ← css/, js/, img/ e php/ (logout, emailExists)
+│  ├─ api/                              ← Endpoints JSON de auth (login, register, logout, me)\n│  └─ assets/                           ← css/, js/, img/ e php/ (logout)
 │
 ├─ src/                                 ← Núcleo por camada (regra: Presentation → Application → Domain)
 │  ├─ Domain/

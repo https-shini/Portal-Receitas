@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\UseCase;
 
+use App\Application\Validation\PasswordPolicy;
 use App\Domain\Exception\ValidationException;
 use App\Domain\Repository\UserRepositoryInterface;
 
@@ -27,7 +28,11 @@ class UpdateUserProfileUseCase
             throw new ValidationException('Formato de e-mail inválido.');
         }
 
-        $passwordHash = ($newPassword ?? '') !== '' ? password_hash((string) $newPassword, PASSWORD_DEFAULT) : null;
+        $passwordHash = null;
+        if (($newPassword ?? '') !== '') {
+            PasswordPolicy::validate((string) $newPassword);
+            $passwordHash = password_hash((string) $newPassword, PASSWORD_DEFAULT);
+        }
 
         return $this->userRepository->updateProfile($userId, $name, $email, $passwordHash);
     }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\UseCase;
 
+use App\Application\Validation\PasswordPolicy;
 use App\Domain\Exception\ValidationException;
 use App\Domain\Repository\UserRepositoryInterface;
 
@@ -27,6 +28,8 @@ class RegisterUserUseCase
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             throw new ValidationException('Formato de e-mail inválido.');
         }
+
+        PasswordPolicy::validate($password);
 
         if ($this->userRepository->findByEmail($email) !== null) {
             throw new ValidationException('E-mail já existente, por favor digite outro!');
