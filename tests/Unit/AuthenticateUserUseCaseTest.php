@@ -10,6 +10,10 @@ use App\Domain\Exception\ValidationException;
 use App\Tests\Support\InMemoryUserRepository;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Regras de autenticação: verificação bcrypt, erro idêntico para usuário
+ * inexistente e senha errada (anti-enumeração) e validação de entrada.
+ */
 class AuthenticateUserUseCaseTest extends TestCase
 {
     private InMemoryUserRepository $repository;
@@ -31,9 +35,13 @@ class AuthenticateUserUseCaseTest extends TestCase
         $this->assertSame('demo@example.com', $user['emailUsuario']);
     }
 
+    /**
+     * Compatibilidade com o seed oficial: o hash abaixo é o mesmo gravado em
+     * DB_Receitas.sql para kk.123@gmail.com (senha em claro: 123456) — se o
+     * seed mudar de formato, este teste acusa.
+     */
     public function testAuthenticatesSeedDemoUserHash(): void
     {
-        // Mesmo hash usado no seed DB_Receitas.sql para kk.123@gmail.com (senha em claro: 123456)
         $this->repository->seed(
             'Nome descente',
             'kk.123@gmail.com',

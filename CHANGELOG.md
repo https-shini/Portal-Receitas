@@ -1,5 +1,12 @@
 # CHANGELOG — Consolidação das branches
 
+## [2.1.0] — 2026-07-15
+
+- `docs/auditoria-conformidade.md`: auditoria técnica oficial de conformidade com a LGPD e a ISO/IEC 25010 — inventário de dados pessoais com ciclo de vida, bases legais recomendadas, avaliação dos direitos do titular, segurança (art. 46) evidência por evidência, notas por característica ISO (média 3,9/5), 6 não conformidades e 8 riscos classificados em matriz, plano de adequação em 3 ondas, roadmaps, checklists, KPIs e critérios objetivos de aceitação.
+- `docs/frontend.md`: documento técnico oficial da camada de apresentação — princípios, arquitetura em camadas do CSS/JS com diagramas, estrutura de diretórios, Design System (tokens, componentes, motion), temas, responsividade mobile-first, UX aplicada (Hick/Fitts/Nielsen/Gestalt com exemplos do produto), acessibilidade WCAG 2.2 AA, navegação MPA justificada, inventário de estado e fluxo de dados, integração com a API, validação em dupla camada, segurança do front, performance (lazy de iframes/imagens, code splitting natural), SEO/PWA, testes, compatibilidade de navegadores, 6 ADRs e roadmap priorizado.
+- `docs/backend.md`: documento técnico oficial da camada backend — requisitos funcionais/não funcionais, arquitetura em camadas com diagramas (componentes e sequência), estrutura de módulos, regras de negócio e onde vivem, SOLID/patterns aplicados, contrato da API (+decisões sobre versionamento, OpenAPI e GraphQL), autenticação/RBAC, mapeamento OWASP, erros/logs/auditoria, observabilidade, dados (cache/filas quando aplicável), escalabilidade e tolerância a falhas, estratégia de testes, containers/CI-CD, configuração por ambiente, governança, 7 ADRs e roadmap técnico priorizado.
+- `docs/architecture.md` e `README.md` passam a apontar para a nova referência.
+
 ## [2.0.0] — 2026-07-15
 
 Frontend integralmente refatorado com Design System próprio (conceito Liquid Glass), preservando 100% das funcionalidades:

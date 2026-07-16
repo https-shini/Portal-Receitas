@@ -62,7 +62,8 @@ Portal-Receitas/
 │  ├─ index.php                         ← Home: listagem, busca e filtro
 │  ├─ login.php · register.php · profile.php
 │  ├─ healthz.php                       ← Health check (200, não toca o banco)
-│  ├─ api/                              ← Endpoints JSON de auth (login, register, logout, me)\n│  └─ assets/                           ← css/, js/, img/ e php/ (logout)
+│  ├─ api/                              ← Endpoints JSON de auth (login, register, logout, me)
+│  └─ assets/                           ← css/, js/, img/ e php/ (logout)
 │
 ├─ src/                                 ← Núcleo por camada (regra: Presentation → Application → Domain)
 │  ├─ Domain/
@@ -75,7 +76,7 @@ Portal-Receitas/
 │  └─ Presentation/
 │     ├─ Controller/                    ← Auth · Profile · Recipe
 │     ├─ Http/SessionManager.php
-│     └─ View/                          ← index · login · register · profile · unavailable
+│     └─ View/                          ← index · auth (login/cadastro) · profile · unavailable
 │
 ├─ config/bootstrap.php                 ← Composição de dependências + leitura do ambiente
 ├─ tests/                               ← Unit/ (use cases + conexão PDO) e Support/ (fakes in-memory)
@@ -88,7 +89,7 @@ Portal-Receitas/
 └─ composer.json · phpunit.xml
 ```
 
-A regra de dependência e o papel de cada camada estão detalhados em [docs/architecture.md](docs/architecture.md).
+A regra de dependência e o papel de cada camada estão resumidos em [docs/architecture.md](docs/architecture.md). As **referências técnicas oficiais** do projeto: [docs/backend.md](docs/backend.md) (serviços, regras de negócio, API, segurança, escalabilidade, ADRs), [docs/frontend.md](docs/frontend.md) (Design System, UX/UI, acessibilidade, performance, ADRs) e [docs/auditoria-conformidade.md](docs/auditoria-conformidade.md) (auditoria LGPD + ISO/IEC 25010 com plano de adequação).
 
 ---
 

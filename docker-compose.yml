@@ -1,3 +1,8 @@
+# ════════════════════════════════════════════════════════════════
+# Ambiente local/VPS: aplicação (web) + MySQL 8 (db) com persistência.
+# Variáveis WEB_PORT e DB_PASS podem vir de um arquivo .env (ver .env.example).
+# Deploy na Render NÃO usa este arquivo — ver render.yaml e DEPLOY.md.
+# ════════════════════════════════════════════════════════════════
 services:
   web:
     build: .
@@ -9,6 +14,8 @@ services:
       DB_USER: root
       DB_PASS: ${DB_PASS:-rootpass}
     depends_on:
+      # A aplicação só sobe depois do MySQL responder ao healthcheck,
+      # evitando 503 na primeira carga.
       db:
         condition: service_healthy
     restart: unless-stopped
@@ -19,7 +26,8 @@ services:
       MYSQL_ROOT_PASSWORD: ${DB_PASS:-rootpass}
       MYSQL_DATABASE: tcc_receitas
     volumes:
-      # Importa o seed automaticamente na PRIMEIRA subida (banco vazio)
+      # O seed só é importado quando o volume dbdata está vazio (primeira
+      # subida). Para reimportar após mudar o SQL: docker compose down -v.
       - ./DB_Receitas.sql:/docker-entrypoint-initdb.d/DB_Receitas.sql:ro
       - dbdata:/var/lib/mysql
     healthcheck:

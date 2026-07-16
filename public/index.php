@@ -2,6 +2,12 @@
 
 declare(strict_types=1);
 
+/**
+ * Entrypoint da home (página pública): catálogo, busca e filtro de receitas.
+ * Banco indisponível → responde 503 com a página autocontida de
+ * indisponibilidade em vez de erro bruto.
+ */
+
 $services = require __DIR__ . '/../config/bootstrap.php';
 
 try {

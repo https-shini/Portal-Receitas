@@ -1,5 +1,9 @@
 # Arquitetura Clean adotada
 
+> Este é o resumo executivo. As referências técnicas completas estão em
+> [backend.md](backend.md) (serviços e regras de negócio) e
+> [frontend.md](frontend.md) (camada de apresentação e Design System).
+
 ## Camadas
 
 - **Domain**: contratos e exceções de negócio (`src/Domain`).

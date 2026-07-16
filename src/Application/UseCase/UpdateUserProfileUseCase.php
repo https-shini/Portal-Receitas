@@ -8,12 +8,25 @@ use App\Application\Validation\PasswordPolicy;
 use App\Domain\Exception\ValidationException;
 use App\Domain\Repository\UserRepositoryInterface;
 
+/**
+ * Caso de uso: atualizar o perfil do usuário autenticado.
+ *
+ * Atualização parcial: campo null ou vazio significa "manter valor atual".
+ * A nova senha, quando informada, passa pela PasswordPolicy e é armazenada
+ * como hash bcrypt — nunca em texto puro.
+ */
 class UpdateUserProfileUseCase
 {
     public function __construct(private readonly UserRepositoryInterface $userRepository)
     {
     }
 
+    /**
+     * @param int $userId Id vindo da sessão autenticada (não do formulário).
+     * @return bool false quando nenhum campo foi informado para atualizar.
+     * @throws ValidationException Usuário inválido, e-mail malformado ou
+     *                             nova senha fora da política.
+     */
     public function execute(int $userId, ?string $name, ?string $email, ?string $newPassword): bool
     {
         if ($userId <= 0) {

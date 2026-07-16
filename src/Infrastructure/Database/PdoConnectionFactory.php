@@ -6,15 +6,31 @@ namespace App\Infrastructure\Database;
 
 use PDO;
 
+/**
+ * Fábrica da conexão PDO com o MySQL/MariaDB.
+ *
+ * Uma única conexão por request (lazy singleton): criada no primeiro
+ * create() e reutilizada nas chamadas seguintes — modelo adequado ao ciclo
+ * share-nothing do PHP.
+ *
+ * Decisões de configuração:
+ *  - ERRMODE_EXCEPTION: falhas viram PDOException (capturadas nos entrypoints
+ *    e convertidas em resposta 503 amigável);
+ *  - EMULATE_PREPARES=false: prepared statements nativos do servidor —
+ *    parâmetros nunca são interpolados na string SQL;
+ *  - charset utf8mb4 no DSN, alinhado ao schema.
+ */
 class PdoConnectionFactory
 {
     private ?PDO $connection = null;
 
     /**
-     * @param string|null $sslCa      Caminho para o certificado CA (PEM) quando o provedor
-     *                                de MySQL exige TLS (ex.: Aiven). Null = sem TLS.
-     * @param bool        $sslVerify  Verificação do certificado do servidor (desligar apenas
-     *                                para servidores com certificado autoassinado).
+     * @param string|null $sslCa     Caminho do certificado CA (PEM) quando o
+     *                               provedor exige TLS (ex.: MySQL gerenciado);
+     *                               null desliga o TLS.
+     * @param bool        $sslVerify Verificação do certificado do servidor;
+     *                               desligar apenas para certificado
+     *                               autoassinado.
      */
     public function __construct(
         private readonly string $host,
@@ -27,6 +43,12 @@ class PdoConnectionFactory
     ) {
     }
 
+    /**
+     * Devolve a conexão ativa, criando-a na primeira chamada.
+     *
+     * @throws \PDOException Quando o servidor está inacessível ou as
+     *                       credenciais são inválidas.
+     */
     public function create(): PDO
     {
         if ($this->connection instanceof PDO) {
