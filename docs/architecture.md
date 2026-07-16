@@ -1,8 +1,8 @@
 # Arquitetura Clean adotada
 
-> Este é o resumo executivo. A referência técnica completa do backend
-> (requisitos, diagramas, API, segurança, observabilidade, escalabilidade,
-> testes, ADRs e roadmap) está em [backend.md](backend.md).
+> Este é o resumo executivo. As referências técnicas completas estão em
+> [backend.md](backend.md) (serviços e regras de negócio) e
+> [frontend.md](frontend.md) (camada de apresentação e Design System).
 
 ## Camadas
 
