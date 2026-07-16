@@ -1,5 +1,10 @@
 # CHANGELOG — Consolidação das branches
 
+## [2.1.0] — 2026-07-15
+
+- `docs/backend.md`: documento técnico oficial da camada backend — requisitos funcionais/não funcionais, arquitetura em camadas com diagramas (componentes e sequência), estrutura de módulos, regras de negócio e onde vivem, SOLID/patterns aplicados, contrato da API (+decisões sobre versionamento, OpenAPI e GraphQL), autenticação/RBAC, mapeamento OWASP, erros/logs/auditoria, observabilidade, dados (cache/filas quando aplicável), escalabilidade e tolerância a falhas, estratégia de testes, containers/CI-CD, configuração por ambiente, governança, 7 ADRs e roadmap técnico priorizado.
+- `docs/architecture.md` e `README.md` passam a apontar para a nova referência.
+
 ## [2.0.0] — 2026-07-15
 
 Frontend integralmente refatorado com Design System próprio (conceito Liquid Glass), preservando 100% das funcionalidades:

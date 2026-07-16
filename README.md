@@ -88,7 +88,7 @@ Portal-Receitas/
 └─ composer.json · phpunit.xml
 ```
 
-A regra de dependência e o papel de cada camada estão detalhados em [docs/architecture.md](docs/architecture.md).
+A regra de dependência e o papel de cada camada estão resumidos em [docs/architecture.md](docs/architecture.md). A **referência técnica oficial do backend** — requisitos, diagramas, API, segurança, observabilidade, escalabilidade, testes, decisões arquiteturais (ADRs) e roadmap — está em [docs/backend.md](docs/backend.md).
 
 ---
 

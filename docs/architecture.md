@@ -1,5 +1,9 @@
 # Arquitetura Clean adotada
 
+> Este é o resumo executivo. A referência técnica completa do backend
+> (requisitos, diagramas, API, segurança, observabilidade, escalabilidade,
+> testes, ADRs e roadmap) está em [backend.md](backend.md).
+
 ## Camadas
 
 - **Domain**: contratos e exceções de negócio (`src/Domain`).
