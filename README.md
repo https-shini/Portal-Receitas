@@ -88,7 +88,7 @@ Portal-Receitas/
 └─ composer.json · phpunit.xml
 ```
 
-A regra de dependência e o papel de cada camada estão resumidos em [docs/architecture.md](docs/architecture.md). As **referências técnicas oficiais** do projeto: [docs/backend.md](docs/backend.md) (serviços, regras de negócio, API, segurança, escalabilidade, ADRs) e [docs/frontend.md](docs/frontend.md) (Design System, UX/UI, acessibilidade, performance, ADRs).
+A regra de dependência e o papel de cada camada estão resumidos em [docs/architecture.md](docs/architecture.md). As **referências técnicas oficiais** do projeto: [docs/backend.md](docs/backend.md) (serviços, regras de negócio, API, segurança, escalabilidade, ADRs), [docs/frontend.md](docs/frontend.md) (Design System, UX/UI, acessibilidade, performance, ADRs) e [docs/auditoria-conformidade.md](docs/auditoria-conformidade.md) (auditoria LGPD + ISO/IEC 25010 com plano de adequação).
 
 ---
 
