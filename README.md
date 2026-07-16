@@ -62,7 +62,8 @@ Portal-Receitas/
 │  ├─ index.php                         ← Home: listagem, busca e filtro
 │  ├─ login.php · register.php · profile.php
 │  ├─ healthz.php                       ← Health check (200, não toca o banco)
-│  ├─ api/                              ← Endpoints JSON de auth (login, register, logout, me)\n│  └─ assets/                           ← css/, js/, img/ e php/ (logout)
+│  ├─ api/                              ← Endpoints JSON de auth (login, register, logout, me)
+│  └─ assets/                           ← css/, js/, img/ e php/ (logout)
 │
 ├─ src/                                 ← Núcleo por camada (regra: Presentation → Application → Domain)
 │  ├─ Domain/
@@ -75,7 +76,7 @@ Portal-Receitas/
 │  └─ Presentation/
 │     ├─ Controller/                    ← Auth · Profile · Recipe
 │     ├─ Http/SessionManager.php
-│     └─ View/                          ← index · login · register · profile · unavailable
+│     └─ View/                          ← index · auth (login/cadastro) · profile · unavailable
 │
 ├─ config/bootstrap.php                 ← Composição de dependências + leitura do ambiente
 ├─ tests/                               ← Unit/ (use cases + conexão PDO) e Support/ (fakes in-memory)
