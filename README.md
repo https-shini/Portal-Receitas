@@ -43,7 +43,7 @@ Ideias da concepção original do TCC que **não existem** no código atual e fi
 
 | Camada | Tecnologia |
 |--------|-----------|
-| **Interface** | HTML5, CSS3, JavaScript (vanilla) |
+| **Interface** | HTML5 semântico, CSS3 e JavaScript (vanilla) · Design System próprio (Liquid Glass, tokens, 8pt grid, temas claro/escuro, WCAG 2.2 AA) |
 | **Backend** | PHP 8.2+ · Clean Architecture · PSR-4 (`App\ → src/`) · Composer |
 | **Dados** | MySQL 8 / MariaDB · PDO com prepared statements (`EMULATE_PREPARES = false`, `utf8mb4`) |
 | **Segurança** | bcrypt (`password_hash`/`password_verify`) · queries 100% parametrizadas · TLS opcional na conexão |

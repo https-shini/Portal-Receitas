@@ -3,162 +3,235 @@
 $cards = $viewData['cards'] ?? [];
 $details = $viewData['details'] ?? [];
 $errorMessage = $viewData['errorMessage'] ?? null;
+
+$pesquisaAtual = isset($_GET['pesquisa']) ? trim((string) $_GET['pesquisa']) : '';
+$categoriaAtual = isset($_GET['categoriaReceita']) && $_GET['categoriaReceita'] !== '' ? (int) $_GET['categoriaReceita'] : null;
+$filtrando = isset($_GET['buscar']);
+
+$categorias = [
+    1 => ['sushiIcone.png', 'Frutos do Mar'],
+    2 => ['massaIcone.png', 'Massas'],
+    3 => ['veganoIcone.png', 'Veganas'],
+    4 => ['croassaIcone.png', 'Salgados'],
+    5 => ['boloIcone.png', 'Doces'],
+    6 => ['carneIcone.png', 'Carnes'],
+];
+
+// iframes do YouTube ganham lazy loading sem alterar o conteúdo vindo do banco
+$lazyIframe = static fn (string $html): string => str_ireplace('<iframe ', '<iframe loading="lazy" ', $html);
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
-
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HomeMadeGourmet</title>
-    <link rel="stylesheet" href="./assets/css/index.css">
-    <link href='https://fonts.googleapis.com/css?family=Inter' rel='stylesheet'>
-    <link rel="stylesheet" href="https://maxst.icons8.com/vue-static/landings/line-awesome/font-awesome-line-awesome/css/all.min.css">
+    <title>HomeMadeGourmet — Receitas caseiras para o seu gosto</title>
+    <meta name="description" content="Portal de receitas caseiras: busque por ingrediente, filtre por categoria e siga o passo a passo com vídeo. Frutos do mar, massas, veganas, salgados, doces e carnes.">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="HomeMadeGourmet — Receitas caseiras para o seu gosto">
+    <meta property="og:description" content="Busque receitas por ingrediente, filtre por categoria e cozinhe com vídeo passo a passo.">
+    <meta property="og:image" content="./assets/img/Logo.png">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="HomeMadeGourmet">
+    <meta name="twitter:description" content="Receitas caseiras com busca por ingrediente e vídeo passo a passo.">
+    <meta name="theme-color" content="#C2410C">
+    <link rel="icon" href="./assets/img/logoIcon.png">
+    <script>
+        (function () {
+            var t;
+            try { t = localStorage.getItem("hmg_theme"); } catch (e) {}
+            if (!t) t = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+            document.documentElement.setAttribute("data-theme", t);
+        })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&display=swap">
     <link rel="stylesheet" href="https://maxst.icons8.com/vue-static/landings/line-awesome/line-awesome/1.3.0/css/line-awesome.min.css">
-    <link rel="stylesheet" href="https://maxst.icons8.com/vue-static/landings/line-awesome/font-awesome-line-awesome/css/all.min.css">
+    <link rel="stylesheet" href="./assets/css/tokens.css">
+    <link rel="stylesheet" href="./assets/css/base.css">
+    <link rel="stylesheet" href="./assets/css/components.css">
+    <link rel="stylesheet" href="./assets/css/pages/home.css">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "HomeMadeGourmet",
+        "description": "Portal de receitas caseiras com busca por ingrediente e filtro por categoria.",
+        "inLanguage": "pt-BR"
+    }
+    </script>
 </head>
-
 <body>
-    <?php if (!empty($errorMessage)): ?>
-        <script>alert(<?= json_encode($errorMessage, JSON_UNESCAPED_UNICODE) ?>)</script>
-    <?php endif; ?>
-    <div class="container">
-        <nav class="recipeSearch">
-            <form action="index.php" name="formSearch" method="GET" class="formSearch">
-                <div class="navBar">
-                    <div class="modal-perfil" id="btnModal">
-                        <div class="IconeUsuario">
-                            <a href="#" class="menuIcon"><img src="./assets/img/iconUser.png" alt="Icone de usuario"></a>
-                        </div>
-                        <div class="modal" id="modal">
-                            <a href="profile.php">
-                                <span>Alterar Informações</span>
-                                <div class="img">
-                                    <img src="./assets/img/iconUserModal.png" alt="">
-                                </div>
-                            </a>
-                            <a href="./assets/php/logout.php">
-                                <span>Sair da conta</span>
-                                <div class="img">
-                                    <img src="./assets/img/iconClose.png" alt="">
-                                </div>
-                            </a>
-                        </div>
-                    </div>
+    <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
 
-                    <div class="searchBar">
-                        <input class="searchControl" name="pesquisa" type="search" placeholder="Digite o ingrediente da sua receita ou selecione a categoria pra filtrar">
-                        <button class="searchBtn" type="submit" name="buscar">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="main-container" id="main-container">
-                    <div class="radio-buttons">
-                        <?php foreach ([1 => ['sushiIcone.png', 'Frutos do Mar', 'col-a'], 2 => ['massaIcone.png', 'Massas', 'col-b'], 3 => ['veganoIcone.png', 'Veganas', 'col-c'], 4 => ['croassaIcone.png', 'Salgados', 'col-d'], 5 => ['boloIcone.png', 'Doces', 'col-f'], 6 => ['carneIcone.png', 'Carnes', 'col-g']] as $id => $category): ?>
-                            <label class="custom-radio <?= htmlspecialchars($category[2]) ?>">
-                                <input type="radio" name="categoriaReceita" value="<?= $id ?>">
-                                <span class="radio-btn"><i class="las la-check-circle"></i>
-                                    <div class="recipe-icon">
-                                        <img src="./assets/img/<?= htmlspecialchars($category[0]) ?>" />
-                                        <h3><?= htmlspecialchars($category[1]) ?></h3>
-                                    </div>
-                                </span>
-                            </label>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
-            </form>
-        </nav>
+    <header class="site-header" role="banner">
+        <div class="container site-header__row">
+            <a class="brand" href="index.php" aria-label="HomeMadeGourmet — início">
+                <img src="./assets/img/logoIcon.png" alt="" width="36" height="36">
+                <span class="brand__name">HomeMadeGourmet</span>
+            </a>
 
-        <div class="recipeResults">
-            <h2>SUA PESQUISA</h2>
-            <div class="receitasCentro">
-                <div class="receitas" id="receitas">
-                    <?php foreach ($cards as $recipe): ?>
-                        <div class="itemReceita">
-                            <div class="btnAbrirReceita" id="<?= (int) $recipe['id'] ?>">
-                                <div class="imgReceita" id="<?= (int) $recipe['id'] ?>">
-                                    <img src="./assets/img/<?= htmlspecialchars($recipe['image']) ?>" id="<?= (int) $recipe['id'] ?>">
-                                </div>
-                                <div class="alignItems" id="<?= (int) $recipe['id'] ?>">
-                                    <div class="nomeReceita" id="<?= (int) $recipe['id'] ?>">
-                                        <h3 id="<?= (int) $recipe['id'] ?>"><?= htmlspecialchars($recipe['name']) ?></h3>
-                                    </div>
-                                    <div class="infoAdicionaisReceita" id="<?= (int) $recipe['id'] ?>">
-                                        <div class="tempoPreparoReceita" id="<?= (int) $recipe['id'] ?>">
-                                            <img src="./assets/img/garfoFaca.png" alt="IconeGarfoFaca" id="<?= (int) $recipe['id'] ?>">
-                                            <p id="<?= (int) $recipe['id'] ?>"><?= htmlspecialchars($recipe['time']) ?></p>
-                                        </div>
-                                        <div class="categoriaReceita">
-                                            <img src="./assets/img/categoriaIcone.png" alt="iconeCategoria" id="<?= (int) $recipe['id'] ?>">
-                                            <p id="<?= (int) $recipe['id'] ?>"><?= htmlspecialchars($recipe['category']) ?></p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-            </div>
+            <details class="user-menu" id="userMenu">
+                <summary aria-label="Abrir menu do usuário">
+                    <span class="btn btn--ghost btn--icon" aria-hidden="true"><i class="las la-user"></i></span>
+                </summary>
+                <nav class="user-menu__panel" aria-label="Menu do usuário">
+                    <a class="user-menu__item" href="profile.php">
+                        <i class="las la-user-cog" aria-hidden="true"></i> Alterar Informações
+                    </a>
+                    <a class="user-menu__item" href="./assets/php/logout.php">
+                        <i class="las la-sign-out-alt" aria-hidden="true"></i> Sair da conta
+                    </a>
+                </nav>
+            </details>
+
+            <button type="button" class="btn btn--ghost btn--icon js-theme-toggle" aria-label="Alternar tema claro/escuro" aria-pressed="false">
+                <i class="las la-moon" aria-hidden="true"></i>
+            </button>
         </div>
+    </header>
 
-        <?php foreach ($details as $recipe): ?>
-            <div class="detalhesReceita" id="detalhesReceita<?= (int) $recipe['id'] ?>">
-                <div class="col-left">
-                    <div class="videoReceita"><?= $recipe['video'] ?></div>
-                    <div class="ingredientesReceita">
-                        <h2>Ingredientes</h2>
-                        <p>
-                            <?php foreach ($recipe['ingredients'] as $ingredient): ?>
-                                -> <?= htmlspecialchars($ingredient) ?><br>
-                            <?php endforeach; ?>
-                        </p>
+    <main id="conteudo" role="main">
+        <!-- ── Busca e filtros ── -->
+        <section class="search-hero container" aria-labelledby="tituloBusca">
+            <h1 id="tituloBusca">O que vamos cozinhar hoje?</h1>
+            <p>Digite o ingrediente da sua receita ou selecione a categoria pra filtrar.</p>
+
+            <form action="index.php" method="GET" id="formSearch" role="search" aria-label="Buscar receitas">
+                <div class="search-bar glass">
+                    <div class="field__control">
+                        <i class="las la-search" aria-hidden="true"></i>
+                        <label class="visually-hidden" for="campoPesquisa">Ingrediente da receita</label>
+                        <input class="field__input" id="campoPesquisa" name="pesquisa" type="search"
+                               placeholder="Ex.: bacon, leite, chocolate…"
+                               value="<?= htmlspecialchars($pesquisaAtual) ?>">
+                    </div>
+                    <button class="btn btn--primary" type="submit" name="buscar" id="btnBuscar">
+                        Buscar<span class="visually-hidden"> receitas</span>
+                    </button>
+                </div>
+
+                <fieldset class="cat-filter">
+                    <legend class="visually-hidden">Filtrar por categoria</legend>
+                    <?php foreach ($categorias as $id => $categoria): ?>
+                        <label class="chip">
+                            <input type="radio" name="categoriaReceita" value="<?= $id ?>"
+                                   <?= $categoriaAtual === $id ? 'checked' : '' ?>>
+                            <span class="chip__body">
+                                <img src="./assets/img/<?= htmlspecialchars($categoria[0]) ?>" alt="" width="28" height="28">
+                                <?= htmlspecialchars($categoria[1]) ?>
+                            </span>
+                        </label>
+                    <?php endforeach; ?>
+                </fieldset>
+            </form>
+        </section>
+
+        <!-- ── Resultados ── -->
+        <section class="results container" aria-labelledby="tituloResultados">
+            <div class="results__head">
+                <h2 id="tituloResultados"><?= $filtrando ? 'Sua pesquisa' : 'Receitas' ?></h2>
+                <span class="results__count" role="status"><?= count($cards) ?> receita<?= count($cards) === 1 ? '' : 's' ?></span>
+                <?php if ($filtrando): ?>
+                    <a class="results__clear" href="index.php">Limpar filtros</a>
+                <?php endif; ?>
+            </div>
+
+            <?php if (!empty($errorMessage)): ?>
+                <div class="empty glass" role="status">
+                    <i class="las la-utensils" aria-hidden="true"></i>
+                    <h3><?= htmlspecialchars($errorMessage) ?></h3>
+                    <p style="margin-inline:auto;">Experimente outro ingrediente ou escolha uma categoria acima.</p>
+                    <a class="btn btn--soft" href="index.php">Ver todas as receitas</a>
+                </div>
+            <?php elseif ($cards === []): ?>
+                <div class="empty glass" role="status">
+                    <i class="las la-utensils" aria-hidden="true"></i>
+                    <h3>Não foi possível encontrar receitas :(</h3>
+                    <a class="btn btn--soft" href="index.php">Ver todas as receitas</a>
+                </div>
+            <?php else: ?>
+                <ul class="recipe-grid" id="gradeReceitas" role="list" style="list-style:none; padding:0;">
+                    <?php foreach ($cards as $i => $recipe): ?>
+                        <li class="card recipe-card reveal" style="animation-delay: <?= min($i * 40, 400) ?>ms">
+                            <button type="button" class="recipe-card__btn js-abrir-receita"
+                                    data-receita="<?= (int) $recipe['id'] ?>"
+                                    aria-haspopup="dialog"
+                                    aria-label="Abrir receita: <?= htmlspecialchars($recipe['name']) ?>">
+                                <span class="recipe-card__media">
+                                    <img src="./assets/img/<?= htmlspecialchars($recipe['image']) ?>"
+                                         alt="" loading="lazy" width="400" height="300">
+                                </span>
+                                <span class="recipe-card__body">
+                                    <span class="recipe-card__title"><?= htmlspecialchars($recipe['name']) ?></span>
+                                    <span class="recipe-card__meta">
+                                        <span><i class="las la-clock" aria-hidden="true"></i><?= htmlspecialchars($recipe['time']) ?></span>
+                                        <span><i class="las la-tag" aria-hidden="true"></i><?= htmlspecialchars($recipe['category']) ?></span>
+                                    </span>
+                                </span>
+                            </button>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            <?php endif; ?>
+        </section>
+    </main>
+
+    <!-- ── Modal de receita (conteúdo vem dos <template>, iframes só carregam ao abrir) ── -->
+    <div class="modal-backdrop" id="modalReceita" role="dialog" aria-modal="true" aria-labelledby="modalTitulo" hidden>
+        <article class="modal" id="modalConteudo"></article>
+    </div>
+
+    <?php foreach ($details as $recipe): ?>
+        <template id="tplReceita<?= (int) $recipe['id'] ?>">
+            <header class="recipe-modal__head">
+                <h2 id="modalTitulo"><?= htmlspecialchars($recipe['name']) ?></h2>
+                <button type="button" class="btn btn--ghost btn--icon js-fechar-receita" aria-label="Fechar receita">
+                    <i class="las la-times" aria-hidden="true"></i>
+                </button>
+            </header>
+            <div class="recipe-modal__grid">
+                <div>
+                    <div class="recipe-modal__video"><?= $lazyIframe((string) $recipe['video']) ?></div>
+                    <div class="recipe-modal__facts">
+                        <span class="badge"><i class="las la-tag" aria-hidden="true"></i><?= htmlspecialchars($recipe['category']) ?></span>
+                        <span class="badge"><i class="las la-clock" aria-hidden="true"></i><?= htmlspecialchars($recipe['time']) ?></span>
+                        <span class="badge"><i class="las la-utensils" aria-hidden="true"></i><?= (int) $recipe['servings'] ?> Porções</span>
+                        <span class="badge"><i class="las la-fire" aria-hidden="true"></i><?= htmlspecialchars((string) $recipe['calories']) ?> cal</span>
                     </div>
                 </div>
-                <div class="col-right">
-                    <div class="btnCloseAndHeader">
-                        <h1><?= htmlspecialchars($recipe['name']) ?></h1>
-                        <a href="#"><i class="las la-times btnClose" id="<?= (int) $recipe['id'] ?>"></i></a>
-                    </div>
-                    <div class="informacoesReceita">
-                        <div class="divInfo">
-                            <img src="./assets/img/categoriaIcon.png" alt="">
-                            <label><?= htmlspecialchars($recipe['category']) ?></label>
-                        </div>
-                        <div class="divInfo">
-                            <img src="./assets/img/tempoPreparoIcon.png" alt="">
-                            <label><?= htmlspecialchars($recipe['time']) ?></label>
-                        </div>
-                        <div class="divInfoExclusiva">
-                            <img src="./assets/img/porcoesIcon.png" alt="">
-                            <label><?= (int) $recipe['servings'] ?> Porções</label>
-                        </div>
-                        <div class="divInfo">
-                            <img src="./assets/img/gastoCaloricoIcon.png" alt="">
-                            <label><?= htmlspecialchars((string) $recipe['calories']) ?> cal</label>
-                        </div>
-                    </div>
-                    <div class="modoPreparoReceita">
-                        <div class="modoPreparoTitulo">
-                            <div class="imgModoPreparo">
-                                <img src="./assets/img/modoPreparoIcon.png" alt="">
-                            </div>
-                            <h2>Modo de Preparo</h2>
-                        </div>
-                        <p>
-                            <?php foreach ($recipe['preparation'] as $step): ?>
-                                <?= htmlspecialchars($step) ?><br>
+                <div>
+                    <section class="recipe-section" aria-label="Ingredientes">
+                        <h3><i class="las la-shopping-basket" aria-hidden="true"></i>Ingredientes</h3>
+                        <ul>
+                            <?php foreach ($recipe['ingredients'] as $ingredient): ?>
+                                <?php if ($ingredient !== 'Não há mais ingredientes'): ?>
+                                    <li><?= htmlspecialchars($ingredient) ?></li>
+                                <?php endif; ?>
                             <?php endforeach; ?>
-                        </p>
-                    </div>
+                        </ul>
+                    </section>
+                    <section class="recipe-section" aria-label="Modo de preparo" style="margin-top: var(--space-4);">
+                        <h3><i class="las la-mortar-pestle" aria-hidden="true"></i>Modo de Preparo</h3>
+                        <ol>
+                            <?php foreach ($recipe['preparation'] as $step): ?>
+                                <li><?= htmlspecialchars(preg_replace('/^\d+\.\s*/', '', $step)) ?></li>
+                            <?php endforeach; ?>
+                        </ol>
+                    </section>
                 </div>
             </div>
-        <?php endforeach; ?>
+        </template>
+    <?php endforeach; ?>
 
-        <script src="./assets/js/script-index.js"></script>
-    </div>
+    <footer class="site-footer" role="contentinfo">
+        <div class="container">
+            <p style="margin-inline:auto;">HomeMadeGourmet — TCC ETEC de Vila Formosa · Feito com receitas de família.</p>
+        </div>
+    </footer>
+
+    <script src="./assets/js/theme.js" defer></script>
+    <script src="./assets/js/home.js" defer></script>
 </body>
-
 </html>

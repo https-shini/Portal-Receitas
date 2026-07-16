@@ -1,5 +1,19 @@
 # CHANGELOG — Consolidação das branches
 
+## [2.0.0] — 2026-07-15
+
+Frontend integralmente refatorado com Design System próprio (conceito Liquid Glass), preservando 100% das funcionalidades:
+
+- **Design System** em `public/assets/css/`: `tokens.css` (paleta completa light/dark com primary/secondary/accent/feedback/superfícies/texto/estados, espaçamento em 8pt grid, escala tipográfica Inter+Sora, raios, 4 níveis de elevação, blur de glass, durações/easings), `base.css` (reset, hierarquia H1-H6, foco visível, skip link, `prefers-reduced-motion`) e `components.css` (botões com hover/focus/active/disabled/loading, campos, chips, cards, badges, alerts, modal, skeleton, estados vazios).
+- **Tema claro/escuro** com toggle persistido (`localStorage`) e detecção de `prefers-color-scheme`, aplicado antes do paint (sem FOUC).
+- **Home reprojetada**: header glass fixo com menu do usuário (details nativo), hero de busca, chips de categoria, grid responsivo de cards, estados vazios desenhados, skeleton de feedback ao buscar e contagem de resultados.
+- **Modal de receita acessível** (`role="dialog"`, Esc, clique no backdrop, foco gerenciado e devolvido): o conteúdo vem de `<template>` inerte — **os 36 iframes do YouTube saíram do carregamento inicial** e o vídeo só carrega ao abrir a receita (e para ao fechar).
+- **Acessibilidade (WCAG 2.2 AA)**: landmarks (`header/main/footer` + roles), skip link, navegação 100% por teclado (cards são botões), labels/ARIA em formulários e alertas `aria-live`, contraste recalculado na paleta.
+- **SEO**: HTML semântico, meta description, Open Graph, Twitter Card, `theme-color`, favicon, JSON-LD (WebSite), `robots.txt` e `sitemap.xml`.
+- **Telas de acesso e perfil** reconstruídas no DS (mesmos fluxos, IDs e API); perfil ganhou prevenção de envio acidental (Salvar só habilita após Editar) e mensagens de erro claras inline.
+- Página de indisponibilidade autocontida redesenhada (dark/light automático).
+- Removidos os CSS/JS antigos por página (`index.css`, `auth.css`, `profile.css`, `script-index.js`, `script-profile.js`).
+
 ## [1.4.0] — 2026-07-15
 
 Banco de dados único e oficial — `ReceitasAntigo.sql` removido definitivamente:

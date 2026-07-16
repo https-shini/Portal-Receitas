@@ -21,7 +21,7 @@ const AuthPage = (() => {
         const box = el(id);
         if (!box) return;
         box.textContent = msg;
-        box.className = `alert show ${type}`;
+        box.className = `alert show alert--${type}`;
     }
 
     function clearAlert(id) {
