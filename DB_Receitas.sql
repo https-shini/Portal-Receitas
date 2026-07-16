@@ -1,8 +1,8 @@
 -- ═══════════════════════════════════════════════════════════════════════════
 --  PORTAL RECEITAS · HOMEMADE GOURMET — BANCO DE DADOS OFICIAL
 -- ═══════════════════════════════════════════════════════════════════════════
---  Script único, autocontido e idempotente. Substitui integralmente as
---  implementações anteriores (DB_Receitas.sql legado e ReceitasAntigo.sql).
+--  Script único, autocontido e idempotente — fonte única do banco de dados
+--  do projeto (schema, rotinas, seed, controle de acesso e autotestes).
 --
 --  SGBDs suportados : MySQL 8.x e MariaDB 10.5+ (strict mode habilitado)
 --  Charset/Collation: utf8mb4 / utf8mb4_unicode_ci

@@ -8,6 +8,12 @@ use App\Domain\Repository\UserRepositoryInterface;
 use App\Infrastructure\Database\PdoConnectionFactory;
 use PDO;
 
+/**
+ * Implementação MySQL/MariaDB do repositório de usuários.
+ *
+ * Toda consulta usa prepared statements com placeholders nomeados — entrada
+ * do usuário jamais é concatenada em SQL.
+ */
 class PdoUserRepository implements UserRepositoryInterface
 {
     public function __construct(private readonly PdoConnectionFactory $connectionFactory)
@@ -40,6 +46,11 @@ class PdoUserRepository implements UserRepositoryInterface
         ]);
     }
 
+    /**
+     * Monta o UPDATE dinamicamente apenas com os campos informados; o SQL é
+     * composto de fragmentos fixos e placeholders — os valores continuam
+     * parametrizados. Sem nenhum campo, devolve false sem tocar o banco.
+     */
     public function updateProfile(int $userId, ?string $name, ?string $email, ?string $passwordHash): bool
     {
         $fields = [];

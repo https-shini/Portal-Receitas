@@ -6,6 +6,14 @@ namespace App\Tests\Support;
 
 use App\Domain\Repository\UserRepositoryInterface;
 
+/**
+ * Fake em memória do repositório de usuários para os testes unitários.
+ *
+ * Reproduz o contrato observável da implementação PDO (mesmas linhas
+ * associativas, mesma semântica de atualização parcial), permitindo testar
+ * os casos de uso sem banco — e comprovando a substituibilidade (LSP) da
+ * abstração do Domain.
+ */
 class InMemoryUserRepository implements UserRepositoryInterface
 {
     /** @var array<int, array<string, mixed>> */
@@ -13,6 +21,10 @@ class InMemoryUserRepository implements UserRepositoryInterface
 
     private int $nextId = 1;
 
+    /**
+     * Pré-carrega um usuário (arrange dos testes) e devolve o id gerado —
+     * equivalente ao AUTO_INCREMENT do banco.
+     */
     public function seed(string $name, string $email, string $passwordHash, int $favoriteCategoryId): int
     {
         $id = $this->nextId++;

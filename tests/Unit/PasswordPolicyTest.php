@@ -9,6 +9,7 @@ use App\Domain\Exception\ValidationException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
+/** Limites da política de senha: mínimo 8 caracteres, com letra e número. */
 class PasswordPolicyTest extends TestCase
 {
     public function testAcceptsPasswordWithMinLengthLetterAndNumber(): void

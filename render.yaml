@@ -1,12 +1,13 @@
-# Blueprint da Render (https://render.com/docs/blueprint-spec)
-# Deploy: Dashboard → New → Blueprint → aponte para este repositório.
+# ════════════════════════════════════════════════════════════════
+# Blueprint da Render (https://render.com/docs/blueprint-spec).
+# Deploy: Dashboard → New → Blueprint → apontar para este repositório.
 #
-# Modo FREE (padrão abaixo): um único serviço web com Apache/PHP + MariaDB no
-# mesmo container (docker/render-free.Dockerfile). Custo zero.
-# ATENÇÃO: o plano free não tem disco persistente — cadastros feitos no site são
-# perdidos quando o serviço hiberna/redeploya; receitas e usuários-demo sempre
-# voltam pelo seed. Alternativas com persistência em DEPLOY.md.
-
+# Modo FREE (padrão): um único serviço web com Apache/PHP + MariaDB no
+# mesmo container (docker/render-free.Dockerfile), custo zero e sem
+# variáveis obrigatórias. Limitação do plano free (sem disco): dados de
+# runtime são efêmeros — receitas e demos sempre voltam pelo seed.
+# Alternativas com persistência: DEPLOY.md.
+# ════════════════════════════════════════════════════════════════
 services:
   - type: web
     name: portal-receitas

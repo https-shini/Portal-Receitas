@@ -8,6 +8,12 @@ use App\Application\UseCase\FindRecipesUseCase;
 use App\Domain\Exception\ValidationException;
 use App\Presentation\Http\SessionManager;
 
+/**
+ * Controller da home: catálogo de receitas com busca e filtro.
+ *
+ * A home é pública (paridade com o site original); a sessão é iniciada
+ * apenas para preservar o estado de login na navegação.
+ */
 class RecipeController
 {
     public function __construct(
@@ -16,6 +22,18 @@ class RecipeController
     ) {
     }
 
+    /**
+     * Monta os dados da home a partir da query string.
+     *
+     * Parâmetros reconhecidos: 'pesquisa' (termo), 'categoriaReceita' (id) e
+     * 'buscar' (presente somente quando o formulário foi submetido).
+     *
+     * Fluxo: sem 'buscar', lista o catálogo completo — os filtros só valem em
+     * busca explícita. Busca vazia gera mensagem de orientação; busca sem
+     * resultados gera a mensagem legada "Não foi possível encontrar receitas".
+     *
+     * @return array{cards: list<array<string, mixed>>, details: list<array<string, mixed>>, errorMessage: string|null}
+     */
     public function list(array $query): array
     {
         $this->sessionManager->start();

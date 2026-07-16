@@ -1,6 +1,10 @@
 #!/bin/sh
-# Ajusta o Apache para a porta injetada pelo ambiente (ex.: Render define PORT).
-# Sem PORT definido, mantém a porta 80 (docker compose local).
+# ════════════════════════════════════════════════════════════════
+# Entrypoint da imagem principal: adapta o Apache à porta dinâmica.
+# Plataformas como a Render injetam a variável PORT; quando presente e
+# diferente de 80, o Listen e o VirtualHost são reescritos antes do boot.
+# Sem PORT (compose local), nada muda.
+# ════════════════════════════════════════════════════════════════
 set -e
 
 if [ -n "${PORT}" ] && [ "${PORT}" != "80" ]; then

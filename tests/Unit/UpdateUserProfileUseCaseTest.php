@@ -9,6 +9,10 @@ use App\Domain\Exception\ValidationException;
 use App\Tests\Support\InMemoryUserRepository;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Regras da edição de perfil: atualização parcial, senha nova sempre em
+ * hash e sujeita à política, senha em branco preservada.
+ */
 class UpdateUserProfileUseCaseTest extends TestCase
 {
     private InMemoryUserRepository $repository;
@@ -37,6 +41,7 @@ class UpdateUserProfileUseCaseTest extends TestCase
         $this->assertTrue(password_verify('novaSenha1!', $user['senhaUsuario']));
     }
 
+    /** Campo de senha em branco significa "não alterar" — a senha antiga permanece válida. */
     public function testKeepsPasswordWhenNewPasswordIsBlank(): void
     {
         $this->useCase->execute($this->userId, 'Novo Nome', null, '');

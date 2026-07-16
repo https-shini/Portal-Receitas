@@ -9,6 +9,10 @@ use App\Domain\Exception\ValidationException;
 use App\Tests\Support\InMemoryUserRepository;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Regras de negócio do cadastro: hash obrigatório, unicidade de e-mail,
+ * formato de e-mail, categoria obrigatória e política de senha.
+ */
 class RegisterUserUseCaseTest extends TestCase
 {
     private InMemoryUserRepository $repository;
@@ -21,6 +25,7 @@ class RegisterUserUseCaseTest extends TestCase
         $this->useCase = new RegisterUserUseCase($this->repository);
     }
 
+    /** Garantia central de segurança: a senha persiste como bcrypt, nunca em claro. */
     public function testRegistersUserWithBcryptCompatibleHash(): void
     {
         $created = $this->useCase->execute('Maria', 'maria@example.com', 'segredo123', 5);

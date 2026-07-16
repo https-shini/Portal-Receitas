@@ -14,6 +14,19 @@ use App\Presentation\Controller\ProfileController;
 use App\Presentation\Controller\RecipeController;
 use App\Presentation\Http\SessionManager;
 
+/**
+ * Composition root — único ponto do sistema que conhece as implementações
+ * concretas e monta o grafo de dependências (injeção manual, sem contêiner).
+ *
+ * Retorna o mapa de serviços consumido pelos entrypoints em public/:
+ * authController, profileController, recipeController e sessionManager.
+ */
+
+/*
+ * Autoload: usa o vendor/autoload.php do Composer (gerado no build Docker).
+ * O fallback PSR-4 manual cobre ambientes sem Composer (ex.: XAMPP com o
+ * repositório copiado direto para o htdocs).
+ */
 $vendorAutoload = __DIR__ . '/../vendor/autoload.php';
 if (file_exists($vendorAutoload)) {
     require_once $vendorAutoload;
@@ -33,6 +46,12 @@ if (file_exists($vendorAutoload)) {
     });
 }
 
+/*
+ * Configuração 12-factor: tudo vem de variáveis de ambiente (compose e
+ * render.yaml as definem). Os padrões apontam para um XAMPP local
+ * (localhost/root/senha vazia), preservando o fluxo de desenvolvimento
+ * do TCC original sem nenhum arquivo de configuração.
+ */
 $connectionFactory = new PdoConnectionFactory(
     getenv('DB_HOST') ?: 'localhost',
     getenv('DB_NAME') ?: 'tcc_receitas',

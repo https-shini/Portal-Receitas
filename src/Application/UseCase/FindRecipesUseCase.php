@@ -7,8 +7,21 @@ namespace App\Application\UseCase;
 use App\Domain\Exception\ValidationException;
 use App\Domain\Repository\RecipeRepositoryInterface;
 
+/**
+ * Caso de uso: montar o catálogo de receitas da home, com ou sem filtros.
+ *
+ * Produz duas projeções da mesma consulta:
+ *  - 'cards'   → resumo exibido na grade de resultados;
+ *  - 'details' → detalhe completo (modal), com ingredientes e preparo já
+ *                normalizados para a view.
+ */
 class FindRecipesUseCase
 {
+    /**
+     * Rótulos exibidos para idcategoriaFK. Os ids espelham a tabela categoria
+     * do seed; alterações lá devem refletir aqui (e nas views que listam as
+     * seis categorias fixas).
+     */
     private const CATEGORY_LABELS = [
         1 => 'Frutos do Mar',
         2 => 'Massas',
@@ -22,6 +35,11 @@ class FindRecipesUseCase
     {
     }
 
+    /**
+     * Busca receitas aplicando os filtros informados (null = sem filtro).
+     *
+     * @return array{cards: list<array<string, mixed>>, details: list<array<string, mixed>>}
+     */
     public function execute(?string $search, ?int $categoryId): array
     {
         $search = $search !== null ? trim($search) : null;
@@ -42,6 +60,13 @@ class FindRecipesUseCase
         ];
     }
 
+    /**
+     * Regra de negócio da busca explícita: o usuário precisa informar um
+     * termo OU selecionar uma categoria — submissão vazia é orientada, não
+     * silenciosamente ignorada.
+     *
+     * @throws ValidationException Mensagem de orientação exibida na home.
+     */
     public function validateSearchRequest(?string $search, ?int $categoryId): void
     {
         if (($search === null || trim($search) === '') && $categoryId === null) {
@@ -49,6 +74,7 @@ class FindRecipesUseCase
         }
     }
 
+    /** Projeção de card: renomeia colunas do banco para o vocabulário da view. */
     private function mapSummary(array $recipe): array
     {
         return [
@@ -60,6 +86,18 @@ class FindRecipesUseCase
         ];
     }
 
+    /**
+     * Projeção de detalhe.
+     *
+     * Ingredientes: as 15 colunas ingrediente_N viram lista posicional; vagas
+     * vazias recebem o texto legado "Não há mais ingredientes" (a view decide
+     * exibi-las ou não).
+     *
+     * Modo de preparo: o texto é quebrado em passos por ponto final —
+     * comportamento herdado do site original. Limitação conhecida: pontos em
+     * abreviações/números também quebram; aceito para manter paridade com o
+     * conteúdo do seed, escrito para esse formato.
+     */
     private function mapDetail(array $recipe): array
     {
         $ingredients = [];

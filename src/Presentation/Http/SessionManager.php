@@ -4,8 +4,22 @@ declare(strict_types=1);
 
 namespace App\Presentation\Http;
 
+/**
+ * Mecanismo único de sessão da aplicação — nenhum outro código chama
+ * session_* diretamente.
+ *
+ * Chaves usadas: 'logado' (flag de autenticação), 'idUsuario', 'nomeSessao'
+ * e 'emailSessao'.
+ */
 class SessionManager
 {
+    /**
+     * Inicia a sessão com cookie endurecido (idempotente).
+     *
+     * HttpOnly nega acesso do JavaScript ao cookie (anti-XSS); SameSite=Lax
+     * bloqueia envio em POSTs cross-site (anti-CSRF); Secure é ligado quando
+     * a requisição chega por HTTPS.
+     */
     public function start(): void
     {
         if (session_status() === PHP_SESSION_ACTIVE) {
@@ -23,7 +37,8 @@ class SessionManager
     }
 
     /**
-     * Gera um novo ID de sessão (chamar após autenticar — evita session fixation).
+     * Troca o id da sessão descartando o anterior — chamado imediatamente
+     * após autenticar, para impedir session fixation.
      */
     public function regenerate(): void
     {
@@ -42,6 +57,7 @@ class SessionManager
         $_SESSION[$key] = $value;
     }
 
+    /** Encerra a sessão e limpa o estado em memória (logout). */
     public function destroy(): void
     {
         if (session_status() === PHP_SESSION_ACTIVE) {
@@ -50,13 +66,16 @@ class SessionManager
         $_SESSION = [];
     }
 
+    /**
+     * Detecta HTTPS mesmo atrás de proxy reverso: na Render o TLS termina
+     * antes do Apache, e a origem segura chega em X-Forwarded-Proto.
+     */
     private function isHttps(): bool
     {
         if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
             return true;
         }
 
-        // Atrás de proxy reverso (ex.: Render) o TLS termina antes do Apache
         return ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https';
     }
 }

@@ -8,12 +8,27 @@ use App\Domain\Exception\AuthenticationException;
 use App\Domain\Exception\ValidationException;
 use App\Domain\Repository\UserRepositoryInterface;
 
+/**
+ * Caso de uso: autenticar um usuário por e-mail e senha.
+ *
+ * A comparação usa password_verify contra o hash bcrypt armazenado.
+ * Regra de negócio: "usuário inexistente" e "senha errada" produzem a MESMA
+ * exceção, impedindo enumeração de contas cadastradas.
+ */
 class AuthenticateUserUseCase
 {
     public function __construct(private readonly UserRepositoryInterface $userRepository)
     {
     }
 
+    /**
+     * @return array<string, mixed> Linha do usuário autenticado (inclui o
+     *                              hash em senhaUsuario — o chamador decide o
+     *                              que expor; a sessão guarda apenas id, nome
+     *                              e e-mail).
+     * @throws ValidationException     Campos vazios ou e-mail malformado.
+     * @throws AuthenticationException Credenciais não conferem.
+     */
     public function execute(string $email, string $password): array
     {
         $email = trim($email);

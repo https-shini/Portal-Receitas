@@ -9,6 +9,10 @@ use PDO;
 use PDOException;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Fluxo de conexão PDO: falha rápida com host inacessível e, quando um banco
+ * real está disponível (TEST_DB_HOST), conexão efetiva com reuso da instância.
+ */
 class PdoConnectionFactoryTest extends TestCase
 {
     public function testThrowsPdoExceptionForUnreachableHost(): void
@@ -19,6 +23,11 @@ class PdoConnectionFactoryTest extends TestCase
         $factory->create();
     }
 
+    /**
+     * Teste de integração opcional: roda somente com TEST_DB_HOST definido
+     * (nos demais ambientes é marcado como skipped, mantendo a suíte verde
+     * sem banco).
+     */
     public function testConnectsAndReusesConnectionWhenDatabaseIsAvailable(): void
     {
         $host = getenv('TEST_DB_HOST');

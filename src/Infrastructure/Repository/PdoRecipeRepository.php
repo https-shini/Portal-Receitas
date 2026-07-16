@@ -8,6 +8,14 @@ use App\Domain\Repository\RecipeRepositoryInterface;
 use App\Infrastructure\Database\PdoConnectionFactory;
 use PDO;
 
+/**
+ * Implementação MySQL/MariaDB do repositório de receitas.
+ *
+ * A busca por ingrediente percorre as 15 colunas ingrediente_N com LIKE
+ * (modelo de dados herdado do TCC original — ver ADR-003 em docs/backend.md).
+ * Cada coluna recebe seu próprio placeholder (:s0..:s14); o termo nunca é
+ * interpolado no SQL.
+ */
 class PdoRecipeRepository implements RecipeRepositoryInterface
 {
     private const INGREDIENT_COLUMNS = [
@@ -42,6 +50,16 @@ class PdoRecipeRepository implements RecipeRepositoryInterface
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    /**
+     * Constrói a cláusula WHERE comum às duas consultas.
+     *
+     * Filtros são combináveis com AND: categoria exata e/ou termo presente em
+     * QUALQUER uma das 15 colunas de ingrediente (grupo de ORs). A cláusula é
+     * montada apenas com fragmentos fixos; valores ficam em $params.
+     *
+     * @return array{0: string, 1: array<string, mixed>} SQL do WHERE (ou '')
+     *                                                    e parâmetros do bind.
+     */
     private function buildFilters(?string $search, ?int $categoryId): array
     {
         $conditions = [];

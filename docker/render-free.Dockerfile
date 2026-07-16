@@ -1,11 +1,13 @@
-# Imagem "all-in-one" para o PLANO FREE da Render: Apache/PHP + MariaDB no MESMO
-# container, com o seed importado automaticamente no boot.
+# ════════════════════════════════════════════════════════════════
+# Imagem "all-in-one" para o PLANO FREE da Render: Apache/PHP 8.2 e
+# MariaDB no MESMO container, com o seed importado no boot.
 #
-# ATENÇÃO: o plano free da Render não tem disco persistente. Os dados criados em
-# runtime (novos cadastros, edições de perfil) são PERDIDOS quando o serviço
-# hiberna ou faz redeploy — as receitas e os usuários-demo sempre voltam, pois
-# vêm do seed (DB_Receitas.sql). Para dados persistentes, use o docker-compose
-# local/VPS ou um MySQL externo (veja DEPLOY.md).
+# Trade-off deliberado (ADR-004 em docs/backend.md): o plano free não
+# oferece disco persistente nem serviço privado, então os dados criados
+# em runtime (cadastros, edições) são perdidos quando o serviço hiberna
+# ou redeploya — receitas e usuários-demo sempre voltam pelo seed.
+# Alternativas com persistência: DEPLOY.md.
+# ════════════════════════════════════════════════════════════════
 FROM php:8.2-apache
 
 RUN apt-get update \
@@ -14,10 +16,11 @@ RUN apt-get update \
     && docker-php-ext-install pdo_mysql \
     && mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
-# Apache serve apenas o docroot public/
+# Restringe o Apache ao docroot public/ — nada fora dele é servido.
 RUN sed -ri -e 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf
 
-# MariaDB enxuto para caber nos 512 MB do plano free (uso interno apenas: 127.0.0.1)
+# MariaDB dimensionado para os 512 MB do plano free; escuta apenas em
+# 127.0.0.1 — o banco nunca é exposto para fora do container.
 RUN printf '[mysqld]\nbind-address = 127.0.0.1\nperformance_schema = OFF\ninnodb_buffer_pool_size = 64M\nmax_connections = 30\n' \
     > /etc/mysql/mariadb.conf.d/99-render-free.cnf
 
@@ -25,6 +28,7 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
+# Dependências antes do código-fonte para aproveitar o cache de camadas.
 COPY composer.json composer.lock* ./
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
@@ -37,7 +41,8 @@ RUN composer dump-autoload --optimize --no-dev \
 
 EXPOSE 80
 
-# 127.0.0.1 (e não "localhost") força TCP no PDO — o socket unix do MariaDB fica em outro caminho
+# 127.0.0.1 (e não "localhost") força o PDO a usar TCP — com "localhost" o
+# driver tentaria o socket unix, que fica em caminho diferente do padrão.
 ENV DB_HOST=127.0.0.1 \
     DB_NAME=tcc_receitas \
     DB_USER=root \

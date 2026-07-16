@@ -2,6 +2,12 @@
 
 declare(strict_types=1);
 
+/**
+ * Entrypoint do perfil (rota protegida — o guard vive no ProfileController).
+ * GET exibe os dados; POST com 'salvar' aplica a atualização e encerra a
+ * sessão em caso de sucesso. Banco indisponível → 503 amigável.
+ */
+
 $services = require __DIR__ . '/../config/bootstrap.php';
 
 try {
