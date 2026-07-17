@@ -1,0 +1,57 @@
+# ════════════════════════════════════════════════════════════════
+# CI — validação contínua a cada push/PR na main:
+#   1) sintaxe PHP e JS de todo o código;
+#   2) composer validado + suíte PHPUnit;
+#   3) build das duas imagens Docker (garante deploy íntegro).
+# ════════════════════════════════════════════════════════════════
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  testes:
+    name: Lint + PHPUnit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_mysql, mbstring
+          coverage: none
+
+      - name: Lint PHP
+        run: |
+          find src public config tests -name '*.php' -print0 | xargs -0 -n1 php -l > /dev/null
+          echo "Sintaxe PHP OK"
+
+      - name: Lint JavaScript
+        run: |
+          for f in public/assets/js/*.js; do node --check "$f"; done
+          echo "Sintaxe JS OK"
+
+      - name: Composer
+        run: |
+          composer validate --strict
+          composer install --no-interaction --prefer-dist
+
+      - name: PHPUnit
+        run: vendor/bin/phpunit
+
+  imagens:
+    name: Build das imagens Docker
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Imagem principal
+        run: docker build -t portal-receitas:ci .
+
+      - name: Imagem all-in-one (Render free)
+        run: docker build -f docker/render-free.Dockerfile -t portal-receitas-free:ci .

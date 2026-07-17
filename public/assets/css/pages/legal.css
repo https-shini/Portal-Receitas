@@ -1,0 +1,43 @@
+/* ════════════════════════════════════════════════════════════════
+   legal.css — Páginas de Política de Privacidade e Termos de Uso
+   ════════════════════════════════════════════════════════════════ */
+
+.legal-main { padding: var(--space-7) 0 var(--space-9); }
+
+.legal-card {
+    width: min(100%, 46rem);
+    margin-inline: auto;
+    padding: var(--space-6);
+    display: grid;
+    gap: var(--space-5);
+}
+
+.legal-card h1 { font-size: var(--text-2xl); }
+
+.legal-meta {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    margin-top: calc(-1 * var(--space-4));
+}
+
+.legal-card h2 { font-size: var(--text-lg); margin-bottom: var(--space-2); }
+
+.legal-card p, .legal-card li { color: var(--color-text-secondary); font-size: var(--text-sm); }
+
+.legal-card ul { padding-left: var(--space-5); display: grid; gap: var(--space-2); }
+
+.legal-card table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--text-xs);
+    margin-bottom: var(--space-3);
+}
+
+.legal-card th, .legal-card td {
+    text-align: left;
+    padding: var(--space-2);
+    border-bottom: 1px solid var(--color-border);
+    vertical-align: top;
+}
+
+.legal-card th { color: var(--color-text-primary); }

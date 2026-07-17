@@ -273,3 +273,75 @@
     font-size: var(--text-sm);
     text-align: center;
 }
+
+/* ── Consentimento antes de carregar o vídeo (LGPD/terceiros) ───── */
+.video-consent {
+    display: grid;
+    place-items: center;
+    background:
+        radial-gradient(20rem 12rem at 50% 0%, rgba(255, 255, 255, 0.06), transparent),
+        #1a120b;
+}
+
+.video-consent__box {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-2);
+    text-align: center;
+    padding: var(--space-5);
+    color: #EDE3D7;
+}
+
+.video-consent__box .las { font-size: 3rem; color: var(--color-primary); }
+.video-consent__box p { font-size: var(--text-xs); max-width: 30rem; }
+.video-consent__box a { color: #FDBA74; }
+
+/* ── Navegação do header (link Receitas) ────────────────────────── */
+.site-nav {
+    display: none;
+    margin-left: var(--space-2);
+}
+
+.site-nav__link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    color: var(--color-text-secondary);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+}
+
+.site-nav__link:hover { background: var(--color-hover); color: var(--color-text-primary); }
+
+.site-header__row .btn--soft,
+.site-header__row .js-theme-toggle { margin-left: var(--space-1); }
+
+.site-header__row > .brand { margin-right: auto; }
+
+@media (min-width: 40rem) {
+    .site-nav { display: block; }
+    .site-header__row > .brand { margin-right: 0; }
+    .site-nav { margin-right: auto; }
+}
+
+/* ── Rodapé: layout com links ───────────────────────────────────── */
+.site-footer__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    text-align: center;
+}
+
+.site-footer__links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-2);
+}
+
+.site-footer__links a { color: var(--color-text-secondary); text-decoration: none; }
+.site-footer__links a:hover { color: var(--color-primary); text-decoration: underline; }

@@ -288,3 +288,10 @@
 @keyframes scale-in { from { opacity: 0; transform: scale(0.96); } }
 
 .reveal { animation: fade-up var(--dur-slow) var(--ease-out) backwards; }
+
+/* ── Botão de ação destrutiva ───────────────────────────────────── */
+.btn--danger {
+    background: var(--color-error);
+    color: #fff;
+}
+.btn--danger:hover:not(:disabled) { background: color-mix(in srgb, var(--color-error) 85%, black); }

@@ -1,5 +1,28 @@
 # CHANGELOG — Consolidação das branches
 
+## [2.3.0] — 2026-07-17
+
+Refatoração das telas de Login e Cadastro e do layout global, sem regressões (24 testes verdes):
+
+- **Header e Footer globais:** extraídos para partials reutilizáveis (`src/Presentation/View/partials/head.php`, `header.php`, `footer.php`) e aplicados em **todas** as páginas (home, login, cadastro, perfil, privacidade, termos) — antes as telas de autenticação não tinham header/footer.
+- **Login e Cadastro independentes:** eliminado o card duplo deslizante que causava **sobreposição** entre as telas. Agora são páginas separadas de card único (`login.php` ⇄ `register.php`), sem conflitos de posicionamento nem elementos sobrepostos.
+- **Fluxo de cadastro:** ao concluir o cadastro, o usuário é redirecionado para `login.php?cadastro=ok`, que exibe banner de sucesso — sem alternância por JavaScript.
+- **Catálogo público reforçado:** o header reflete o estado de autenticação — botão **"Entrar"** para visitantes e menu do usuário (Meu perfil / Sair) para autenticados; as receitas continuam acessíveis sem login.
+- **Responsividade e temas:** ambas as telas validadas em desktop/mobile e claro/escuro, com navegação "Receitas" no header e links (Receitas · Privacidade · Termos) no footer.
+
+## [2.2.0] — 2026-07-17
+
+Correção das não conformidades da auditoria (docs/auditoria-conformidade.md), sem regressões:
+
+- **NC-01 (Política/Termos):** páginas `privacidade.php` e `termos.php` versionadas e linkadas nos rodapés; checkbox de aceite obrigatório no cadastro (versão em `AuthController::LEGAL_VERSION`).
+- **NC-02 (Exclusão de conta — art. 18, VI):** fluxo completo na área do usuário com reautenticação por senha e confirmação; `DeleteUserAccountUseCase` por **anonimização irreversível** (preserva o menor privilégio do banco — a aplicação não recebe DELETE); auditada por trigger.
+- **NC-03 (Terceiros):** fontes (Inter/Sora) e ícones (Line Awesome) **self-hosted** — zero requisições a Google/Icons8; vídeos por `youtube-nocookie.com` com **consentimento por clique** (o iframe só carrega após ação do usuário).
+- **NC-04 (Seeds):** usuários-demo com dados fictícios (`demo1@example.com`, `demo2@example.com` — RFC 2606).
+- **Segurança:** rate limiting (login 5/min, cadastro 10/min → 429), token **CSRF** no perfil, `password_needs_rehash` no login, cabeçalhos **CSP/HSTS/X-Frame-Options/X-Content-Type-Options/Referrer-Policy/Permissions-Policy** (Apache).
+- **Governança:** pipeline **CI** (GitHub Actions: lint PHP/JS + PHPUnit + build das imagens); documentos de privacidade em `docs/privacidade/` (registro de tratamento, LIA, DPIA simplificado, política de retenção com `sp_expurgar_auditoria`, runbook de incidentes).
+- **Testes:** 24 (novos: exclusão por anonimização, rate limiter).
+- Coluna `receita.link` ampliada para `varchar(400)` (acomoda o domínio youtube-nocookie).
+
 ## [2.1.0] — 2026-07-15
 
 - `docs/auditoria-conformidade.md`: auditoria técnica oficial de conformidade com a LGPD e a ISO/IEC 25010 — inventário de dados pessoais com ciclo de vida, bases legais recomendadas, avaliação dos direitos do titular, segurança (art. 46) evidência por evidência, notas por característica ISO (média 3,9/5), 6 não conformidades e 8 riscos classificados em matriz, plano de adequação em 3 ondas, roadmaps, checklists, KPIs e critérios objetivos de aceitação.

@@ -1,7 +1,7 @@
 # Auditoria Técnica de Conformidade — LGPD e ISO/IEC 25010
 
 **Projeto auditado:** Portal Receitas · HomeMadeGourmet (repositório `https-shini/Portal-Receitas`)
-**Versão auditada:** `main` v2.1 (commit da série 2.x — Clean Architecture PHP 8.2, frontend Design System, banco oficial único)
+**Versão auditada:** `main` v2.1 (série 2.x — Clean Architecture PHP 8.2, frontend Design System, banco oficial único) · **Correções aplicadas:** v2.2 (ver CHANGELOG e checklist da §16)
 **Tipo de documento:** Relatório oficial de auditoria técnica de conformidade
 **Normas de referência primárias:** Lei nº 13.709/2018 (LGPD) · ISO/IEC 25010:2011
 **Referências complementares:** OWASP Top 10 / ASVS · ISO/IEC 27001/27701 · NIST CSF · CIS Controls
@@ -291,26 +291,26 @@ Além das correções: cache de catálogo (APCu) e headers de cache de assets (d
 ## 16. Checklists de Conformidade
 
 ### LGPD (estado atual → alvo pós-plano)
-- [ ] Política de Privacidade publicada → ✅ Onda 1
-- [ ] Termos de Uso publicados → ✅ Onda 1
-- [ ] Exclusão de conta pelo titular → ✅ Onda 1
+- [x] Política de Privacidade publicada (`privacidade.php`)
+- [x] Termos de Uso publicados (`termos.php`)
+- [x] Exclusão de conta pelo titular (anonimização, `DeleteUserAccountUseCase`)
 - [x] Correção/atualização pelo titular
 - [x] Minimização de dados na coleta
 - [x] Credenciais protegidas (bcrypt + defesa em profundidade)
 - [x] Controle de acesso com menor privilégio (banco)
 - [x] Auditoria de alterações de contas
-- [ ] Transparência sobre terceiros → ✅ Onda 1/2
-- [ ] Registro de tratamento / LIA / DPIA → ✅ Onda 3
-- [ ] Política de retenção e expurgo → ✅ Onda 3
-- [ ] Runbook de incidentes (art. 48) → ✅ Onda 3
+- [x] Transparência sobre terceiros (self-host + consentimento de vídeo)
+- [x] Registro de tratamento / LIA / DPIA (`docs/privacidade/`)
+- [x] Política de retenção e expurgo (`sp_expurgar_auditoria`)
+- [x] Runbook de incidentes (`docs/privacidade/runbook-incidentes.md`)
 
 ### ISO/IEC 25010 (síntese)
 - [x] Funcional: requisitos rastreáveis e testados
 - [x] Usabilidade + acessibilidade AA
 - [x] Manutenibilidade: camadas, docs, testes
 - [x] Portabilidade: 12-factor, dois SGBDs, um comando
-- [ ] Confiabilidade: backups + alertas → Onda 3
-- [ ] Segurança: rate limiting + CSP → Onda 2
+- [ ] Confiabilidade: backups automáticos + alertas (pendente — ambiente persistente)
+- [x] Segurança: rate limiting + CSP/HSTS + CSRF
 - [ ] Desempenho: teste de carga + cache → roadmap técnico
 
 ## 17. Métricas e Indicadores (propostos)

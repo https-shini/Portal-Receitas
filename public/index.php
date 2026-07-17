@@ -18,4 +18,9 @@ try {
     exit;
 }
 
+// O catálogo é público; a sessão só reflete o estado do header (menu do
+// usuário para autenticados, botão "Entrar" para visitantes).
+$services['sessionManager']->start();
+$isLogged = !empty($services['sessionManager']->get('logado'));
+
 require __DIR__ . '/../src/Presentation/View/index.php';

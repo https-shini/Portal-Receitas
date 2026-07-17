@@ -17,7 +17,8 @@ RUN apt-get update \
     && mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
 # Restringe o Apache ao docroot public/ — nada fora dele é servido.
-RUN sed -ri -e 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf
+RUN sed -ri -e 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf \
+    && a2enmod headers
 
 # MariaDB dimensionado para os 512 MB do plano free; escuta apenas em
 # 127.0.0.1 — o banco nunca é exposto para fora do container.
@@ -34,6 +35,7 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction --no-script
 
 COPY . /var/www/html/
 RUN composer dump-autoload --optimize --no-dev \
+    && cp docker/security-headers.conf /etc/apache2/conf-enabled/security-headers.conf \
     && chown -R www-data:www-data /var/www/html \
     && cp docker/render-free-entrypoint.sh /usr/local/bin/render-free-entrypoint.sh \
     && cp docker/apache-entrypoint.sh /usr/local/bin/apache-entrypoint.sh \
@@ -46,6 +48,7 @@ EXPOSE 80
 ENV DB_HOST=127.0.0.1 \
     DB_NAME=tcc_receitas \
     DB_USER=root \
-    DB_PASS=""
+    DB_PASS="" \
+    APP_DEMO_MODE=1
 
 ENTRYPOINT ["render-free-entrypoint.sh"]

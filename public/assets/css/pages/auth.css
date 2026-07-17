@@ -1,88 +1,57 @@
 /* ════════════════════════════════════════════════════════════════
-   auth.css — Tela de acesso (login ⇄ cadastro) · HomeMadeGourmet DS
-   Card duplo com painel deslizante · mobile-first · liquid glass
+   auth.css — Login e Cadastro (páginas independentes, card único)
+   Sem card duplo deslizante: nada de sobreposição. Mobile-first.
+   Reutiliza o header/footer globais (home.css) e componentes do DS.
    ════════════════════════════════════════════════════════════════ */
 
-.main-auth {
-    min-height: 100dvh;
+.auth-main {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
-    padding: var(--space-5) var(--space-4);
+    padding: var(--space-7) var(--space-4) var(--space-9);
+    min-height: 60vh;
 }
 
-.auth-theme-toggle {
-    position: fixed;
-    top: var(--space-4);
-    right: var(--space-4);
-    z-index: var(--layer-nav);
+.auth-card {
+    width: min(100%, 30rem);
+    padding: var(--space-6);
+    display: grid;
+    gap: var(--space-4);
 }
 
-/* ── Card duplo ─────────────────────────────────────────────────── */
-.auth-container {
-    position: relative;
-    overflow: hidden;
-    width: 60rem;
-    max-width: 100%;
-    min-height: 40rem;
-    background: var(--glass-bg-strong);
-    -webkit-backdrop-filter: var(--glass-blur);
-    backdrop-filter: var(--glass-blur);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-xl);
-    box-shadow: var(--shadow-4), var(--glass-inner-light);
+.auth-card__head {
+    display: grid;
+    gap: var(--space-1);
+    text-align: center;
 }
 
-.form-container {
-    position: absolute;
-    top: 0;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    transition: transform var(--dur-slow) var(--ease-out),
-                opacity var(--dur-slow) var(--ease-out);
-}
+.auth-card__head h1 { font-size: var(--text-2xl); }
 
-.sign-in { left: 0; width: 50%; z-index: 2; }
-.auth-container.active .sign-in { transform: translateX(100%); }
-
-.sign-up { left: 0; width: 50%; opacity: 0; z-index: 1; }
-.auth-container.active .sign-up {
-    transform: translateX(100%);
-    opacity: 1;
-    z-index: 5;
-    animation: slide-reveal var(--dur-slow);
-}
-
-@keyframes slide-reveal {
-    0%, 49.99% { opacity: 0; z-index: 1; }
-    50%, 100%  { opacity: 1; z-index: 5; }
+.auth-card__head p {
+    color: var(--color-text-secondary);
+    font-size: var(--text-sm);
+    margin-inline: auto;
 }
 
 /* ── Formulário ─────────────────────────────────────────────────── */
 .auth-form {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+    display: grid;
     gap: var(--space-3);
-    padding: var(--space-5) var(--space-6);
-    height: 100%;
-    width: 100%;
-    overflow-y: auto;
 }
 
-.auth-form h1 {
-    font-size: var(--text-2xl);
-    text-align: center;
-    margin-bottom: var(--space-1);
-}
-
-.auth-form__sub {
-    text-align: center;
+.auth-form__note {
+    font-size: var(--text-xs);
     color: var(--color-text-muted);
+    margin: 0;
+}
+
+.btn--block { width: 100%; }
+
+.auth-switch {
+    text-align: center;
     font-size: var(--text-sm);
-    margin-inline: auto;
-    margin-bottom: var(--space-2);
+    color: var(--color-text-secondary);
+    margin: 0;
 }
 
 /* ── Medidor de força de senha ──────────────────────────────────── */
@@ -91,7 +60,7 @@
     align-items: center;
     gap: var(--space-2);
     min-height: 0.875rem;
-    margin-top: calc(-1 * var(--space-2));
+    margin-top: calc(-1 * var(--space-1));
 }
 
 .strength-bar {
@@ -123,6 +92,7 @@
     font-size: var(--text-sm);
     color: var(--color-text-secondary);
     font-weight: var(--weight-medium);
+    margin-bottom: var(--space-2);
 }
 
 .cat-grid {
@@ -130,96 +100,28 @@
     grid-template-columns: repeat(3, 1fr);
     gap: var(--space-2);
     border: 0;
+    padding: 0;
+    margin: 0;
 }
 
-/* ── Painel deslizante ──────────────────────────────────────────── */
-.toggle-container {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    width: 50%;
-    height: 100%;
-    overflow: hidden;
-    z-index: 10;
-    border-radius: var(--radius-xl) 0 0 var(--radius-xl);
-    transition: transform var(--dur-slow) var(--ease-out),
-                border-radius var(--dur-slow) var(--ease-out);
-}
-
-.auth-container.active .toggle-container {
-    transform: translateX(-100%);
-    border-radius: 0 var(--radius-xl) var(--radius-xl) 0;
-}
-
-.toggle-panel-wrap {
-    position: relative;
-    left: -100%;
-    height: 100%;
-    width: 200%;
-    background:
-        radial-gradient(30rem 22rem at 20% 0%, rgba(255, 255, 255, 0.22) 0%, transparent 60%),
-        linear-gradient(135deg, #F59E5B 0%, var(--color-primary) 55%, var(--color-primary-strong) 100%);
-    color: #FFF8F1;
-    transition: transform var(--dur-slow) var(--ease-out);
-}
-
-[data-theme="dark"] .toggle-panel-wrap {
-    background:
-        radial-gradient(30rem 22rem at 20% 0%, rgba(255, 255, 255, 0.12) 0%, transparent 60%),
-        linear-gradient(135deg, #7C2D12 0%, #9A3412 55%, #C2410C 100%);
-}
-
-.auth-container.active .toggle-panel-wrap { transform: translateX(50%); }
-
-.toggle-panel {
-    position: absolute;
-    top: 0;
-    width: 50%;
-    height: 100%;
+/* ── Aceite dos Termos/Política ─────────────────────────────────── */
+.legal-accept {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: var(--space-3);
-    padding: 0 var(--space-6);
-    text-align: center;
-    transition: transform var(--dur-slow) var(--ease-out);
-}
-
-.toggle-panel h2 { font-size: var(--text-2xl); color: inherit; }
-.toggle-panel p { font-size: var(--text-sm); opacity: 0.92; }
-
-.toggle-left { transform: translateX(-200%); }
-.auth-container.active .toggle-left { transform: translateX(0); }
-.toggle-right { right: 0; transform: translateX(0); }
-.auth-container.active .toggle-right { transform: translateX(200%); }
-
-.btn-toggle {
-    background: rgba(255, 255, 255, 0.14);
-    border: 1px solid rgba(255, 255, 255, 0.7);
-    color: inherit;
-}
-.btn-toggle:hover:not(:disabled) { background: rgba(255, 255, 255, 0.26); }
-
-/* ── Alternância no mobile ──────────────────────────────────────── */
-.mob-switch {
-    display: none;
-    font-size: var(--text-sm);
+    gap: var(--space-2);
+    align-items: flex-start;
+    font-size: var(--text-xs);
     color: var(--color-text-secondary);
-    text-align: center;
-    margin-inline: auto;
+    cursor: pointer;
 }
 
-@media (max-width: 48rem) {
-    .auth-container { min-height: 0; }
-    .toggle-container { display: none; }
-    .mob-switch { display: block; }
+.legal-accept input {
+    width: 1rem;
+    height: 1rem;
+    margin-top: 0.125rem;
+    accent-color: var(--color-primary);
+    flex-shrink: 0;
+}
 
-    .form-container { position: relative; width: 100%; height: auto; }
-    .sign-in, .sign-up { transition: none; }
-    .auth-container.active .sign-in { display: none; transform: none; }
-    .auth-container:not(.active) .sign-up { display: none; }
-    .auth-container.active .sign-up { transform: none; opacity: 1; animation: fade-up var(--dur-base) var(--ease-out); }
-
-    .auth-form { padding: var(--space-5) var(--space-4); }
+@media (min-width: 30rem) {
+    .cat-grid { grid-template-columns: repeat(3, 1fr); }
 }

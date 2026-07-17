@@ -45,21 +45,6 @@ const AuthPage = (() => {
         return String(data.detail);
     }
 
-    /* ── Toggle login ⇄ cadastro ─────────────────────────────── */
-
-    function _initToggle() {
-        const container = el("auth-container");
-        if (!container) return;
-
-        const showRegister = (e) => { if (e) e.preventDefault(); container.classList.add("active"); };
-        const showLogin = (e) => { if (e) e.preventDefault(); container.classList.remove("active"); };
-
-        el("btn-show-register")?.addEventListener("click", showRegister);
-        el("btn-show-login")?.addEventListener("click", showLogin);
-        el("btnR-mob")?.addEventListener("click", showRegister);
-        el("btnL-mob")?.addEventListener("click", showLogin);
-    }
-
     /* ── Medidor de força de senha (5 níveis) ────────────────── */
 
     function _initPasswordStrength() {
@@ -105,12 +90,14 @@ const AuthPage = (() => {
         const senha = el("reg-senha")?.value || "";
         const senha2 = el("reg-senha2")?.value || "";
         const categoria = document.querySelector('input[name="categoria"]:checked')?.value || "";
+        const aceite = el("reg-aceite")?.checked || false;
 
         if (!nome) return showAlert("reg-alert", "Informe seu nome de usuário.", "error");
         if (!email) return showAlert("reg-alert", "Informe seu email.", "error");
         if (!senha) return showAlert("reg-alert", "Informe sua senha.", "error");
         if (senha !== senha2) return showAlert("reg-alert", "As senhas não coincidem.", "error");
         if (!categoria) return showAlert("reg-alert", "Selecione sua categoria favorita.", "error");
+        if (!aceite) return showAlert("reg-alert", "É necessário aceitar os Termos de Uso e a Política de Privacidade.", "error");
 
         setBtn("btn-reg", true, "AGUARDE...");
 
@@ -118,14 +105,14 @@ const AuthPage = (() => {
             const res = await fetch("./api/register.php", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ nome, email, senha, categoria }),
+                body: JSON.stringify({ nome, email, senha, categoria, aceite }),
             });
             const data = await res.json();
 
             if (res.ok) {
-                showAlert("log-alert", "Cadastro realizado com sucesso! Faça login.", "success");
+                showAlert("reg-alert", "Cadastro realizado! Redirecionando para o login…", "success");
                 _clearRegisterForm();
-                el("auth-container")?.classList.remove("active");
+                setTimeout(() => { location.href = "login.php?cadastro=ok"; }, 900);
             } else {
                 showAlert("reg-alert", parseApiError(data), "error");
             }
@@ -141,6 +128,8 @@ const AuthPage = (() => {
             const input = el(id);
             if (input) input.value = "";
         });
+        const aceite = el("reg-aceite");
+        if (aceite) aceite.checked = false;
         const checked = document.querySelector('input[name="categoria"]:checked');
         if (checked) checked.checked = false;
         _updateStrength();
@@ -172,18 +161,17 @@ const AuthPage = (() => {
                 setTimeout(() => { location.href = "index.php"; }, 700);
             } else {
                 showAlert("log-alert", parseApiError(data), "error");
-                setBtn("btn-log", false, "CONECTAR");
+                setBtn("btn-log", false, "ENTRAR");
             }
         } catch (err) {
             showAlert("log-alert", "Falha de conexão. Tente novamente.", "error");
-            setBtn("btn-log", false, "CONECTAR");
+            setBtn("btn-log", false, "ENTRAR");
         }
     }
 
     /* ── Boot ────────────────────────────────────────────────── */
 
     function init() {
-        _initToggle();
         _initPasswordStrength();
         bindEnter("log-senha", login);
         bindEnter("reg-senha2", register);

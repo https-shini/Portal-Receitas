@@ -17,16 +17,25 @@ $categorias = [
     6 => ['carneIcone.png', 'Carnes'],
 ];
 
-// iframes do YouTube ganham lazy loading sem alterar o conteúdo vindo do banco
-$lazyIframe = static fn (string $html): string => str_ireplace('<iframe ', '<iframe loading="lazy" ', $html);
+/*
+ * Preparação do embed vindo do banco: força o domínio de privacidade
+ * reforçada (youtube-nocookie.com — cobre bancos semeados por versões
+ * antigas do seed) e adiciona lazy loading, sem alterar o restante do HTML.
+ */
+$prepararEmbed = static function (string $html): string {
+    $html = str_ireplace(['www.youtube.com/embed', 'youtube.com/embed'], ['www.youtube-nocookie.com/embed', 'youtube-nocookie.com/embed'], $html);
+
+    return str_ireplace('<iframe ', '<iframe loading="lazy" ', $html);
+};
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HomeMadeGourmet — Receitas caseiras para o seu gosto</title>
-    <meta name="description" content="Portal de receitas caseiras: busque por ingrediente, filtre por categoria e siga o passo a passo com vídeo. Frutos do mar, massas, veganas, salgados, doces e carnes.">
+<?php
+$pageTitle = 'HomeMadeGourmet — Receitas caseiras para o seu gosto';
+$pageDescription = 'Portal de receitas caseiras: busque por ingrediente, filtre por categoria e siga o passo a passo com vídeo. Acesso livre, sem login.';
+$pageCss = ['pages/home.css'];
+$extraHead = <<<'HTML'
     <meta property="og:type" content="website">
     <meta property="og:title" content="HomeMadeGourmet — Receitas caseiras para o seu gosto">
     <meta property="og:description" content="Busque receitas por ingrediente, filtre por categoria e cozinhe com vídeo passo a passo.">
@@ -34,63 +43,15 @@ $lazyIframe = static fn (string $html): string => str_ireplace('<iframe ', '<ifr
     <meta name="twitter:card" content="summary">
     <meta name="twitter:title" content="HomeMadeGourmet">
     <meta name="twitter:description" content="Receitas caseiras com busca por ingrediente e vídeo passo a passo.">
-    <meta name="theme-color" content="#C2410C">
-    <link rel="icon" href="./assets/img/logoIcon.png">
-    <script>
-        (function () {
-            var t;
-            try { t = localStorage.getItem("hmg_theme"); } catch (e) {}
-            if (!t) t = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-            document.documentElement.setAttribute("data-theme", t);
-        })();
-    </script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&display=swap">
-    <link rel="stylesheet" href="https://maxst.icons8.com/vue-static/landings/line-awesome/line-awesome/1.3.0/css/line-awesome.min.css">
-    <link rel="stylesheet" href="./assets/css/tokens.css">
-    <link rel="stylesheet" href="./assets/css/base.css">
-    <link rel="stylesheet" href="./assets/css/components.css">
-    <link rel="stylesheet" href="./assets/css/pages/home.css">
     <script type="application/ld+json">
-    {
-        "@context": "https://schema.org",
-        "@type": "WebSite",
-        "name": "HomeMadeGourmet",
-        "description": "Portal de receitas caseiras com busca por ingrediente e filtro por categoria.",
-        "inLanguage": "pt-BR"
-    }
+    {"@context":"https://schema.org","@type":"WebSite","name":"HomeMadeGourmet","description":"Portal de receitas caseiras com busca por ingrediente e filtro por categoria.","inLanguage":"pt-BR"}
     </script>
+HTML;
+require __DIR__ . '/partials/head.php';
+?>
 </head>
 <body>
-    <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
-
-    <header class="site-header" role="banner">
-        <div class="container site-header__row">
-            <a class="brand" href="index.php" aria-label="HomeMadeGourmet — início">
-                <img src="./assets/img/logoIcon.png" alt="" width="36" height="36">
-                <span class="brand__name">HomeMadeGourmet</span>
-            </a>
-
-            <details class="user-menu" id="userMenu">
-                <summary aria-label="Abrir menu do usuário">
-                    <span class="btn btn--ghost btn--icon" aria-hidden="true"><i class="las la-user"></i></span>
-                </summary>
-                <nav class="user-menu__panel" aria-label="Menu do usuário">
-                    <a class="user-menu__item" href="profile.php">
-                        <i class="las la-user-cog" aria-hidden="true"></i> Alterar Informações
-                    </a>
-                    <a class="user-menu__item" href="./assets/php/logout.php">
-                        <i class="las la-sign-out-alt" aria-hidden="true"></i> Sair da conta
-                    </a>
-                </nav>
-            </details>
-
-            <button type="button" class="btn btn--ghost btn--icon js-theme-toggle" aria-label="Alternar tema claro/escuro" aria-pressed="false">
-                <i class="las la-moon" aria-hidden="true"></i>
-            </button>
-        </div>
-    </header>
+<?php require __DIR__ . '/partials/header.php'; ?>
 
     <main id="conteudo" role="main">
         <!-- ── Busca e filtros ── -->
@@ -193,7 +154,14 @@ $lazyIframe = static fn (string $html): string => str_ireplace('<iframe ', '<ifr
             </header>
             <div class="recipe-modal__grid">
                 <div>
-                    <div class="recipe-modal__video"><?= $lazyIframe((string) $recipe['video']) ?></div>
+                    <div class="recipe-modal__video video-consent js-video-consent">
+                        <div class="video-consent__box">
+                            <i class="las la-play-circle" aria-hidden="true"></i>
+                            <p>O vídeo é exibido pelo YouTube (youtube-nocookie.com). Ao carregar, seu IP será compartilhado com o Google — <a href="privacidade.php" target="_blank" rel="noopener">saiba mais</a>.</p>
+                            <button type="button" class="btn btn--primary js-carregar-video">Carregar vídeo</button>
+                        </div>
+                        <template class="js-video-tpl"><?= $prepararEmbed((string) $recipe['video']) ?></template>
+                    </div>
                     <div class="recipe-modal__facts">
                         <span class="badge"><i class="las la-tag" aria-hidden="true"></i><?= htmlspecialchars($recipe['category']) ?></span>
                         <span class="badge"><i class="las la-clock" aria-hidden="true"></i><?= htmlspecialchars($recipe['time']) ?></span>
@@ -225,11 +193,7 @@ $lazyIframe = static fn (string $html): string => str_ireplace('<iframe ', '<ifr
         </template>
     <?php endforeach; ?>
 
-    <footer class="site-footer" role="contentinfo">
-        <div class="container">
-            <p style="margin-inline:auto;">HomeMadeGourmet — TCC ETEC de Vila Formosa · Feito com receitas de família.</p>
-        </div>
-    </footer>
+<?php require __DIR__ . '/partials/footer.php'; ?>
 
     <script src="./assets/js/theme.js" defer></script>
     <script src="./assets/js/home.js" defer></script>

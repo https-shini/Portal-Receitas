@@ -2,13 +2,16 @@
 
 declare(strict_types=1);
 
+use App\Application\Security\RateLimiterInterface;
 use App\Application\UseCase\AuthenticateUserUseCase;
+use App\Application\UseCase\DeleteUserAccountUseCase;
 use App\Application\UseCase\FindRecipesUseCase;
 use App\Application\UseCase\RegisterUserUseCase;
 use App\Application\UseCase\UpdateUserProfileUseCase;
 use App\Infrastructure\Database\PdoConnectionFactory;
 use App\Infrastructure\Repository\PdoRecipeRepository;
 use App\Infrastructure\Repository\PdoUserRepository;
+use App\Infrastructure\Security\FileRateLimiter;
 use App\Presentation\Controller\AuthController;
 use App\Presentation\Controller\ProfileController;
 use App\Presentation\Controller\RecipeController;
@@ -68,12 +71,16 @@ $recipeRepository = new PdoRecipeRepository($connectionFactory);
 $authenticateUserUseCase = new AuthenticateUserUseCase($userRepository);
 $registerUserUseCase = new RegisterUserUseCase($userRepository);
 $updateUserProfileUseCase = new UpdateUserProfileUseCase($userRepository);
+$deleteUserAccountUseCase = new DeleteUserAccountUseCase($userRepository);
 $findRecipesUseCase = new FindRecipesUseCase($recipeRepository);
 
 $sessionManager = new SessionManager();
 
+/** @var RateLimiterInterface $rateLimiter Proteção contra força bruta (por instância). */
+$rateLimiter = new FileRateLimiter();
+
 return [
-    'authController' => new AuthController($registerUserUseCase, $authenticateUserUseCase, $sessionManager),
+    'authController' => new AuthController($registerUserUseCase, $authenticateUserUseCase, $deleteUserAccountUseCase, $sessionManager, $rateLimiter),
     'profileController' => new ProfileController($updateUserProfileUseCase, $sessionManager),
     'recipeController' => new RecipeController($findRecipesUseCase, $sessionManager),
     'sessionManager' => $sessionManager,

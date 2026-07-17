@@ -48,6 +48,18 @@ class AuthenticateUserUseCase
             throw new AuthenticationException('Senha ou e-mail incorretos.');
         }
 
+        // Migração transparente de custo do bcrypt: se o hash armazenado foi
+        // gerado com parâmetros antigos, regrava com os atuais aproveitando a
+        // única ocasião em que a senha em claro está disponível.
+        if (password_needs_rehash($user['senhaUsuario'], PASSWORD_DEFAULT)) {
+            $this->userRepository->updateProfile(
+                (int) $user['idUsuario'],
+                null,
+                null,
+                password_hash($password, PASSWORD_DEFAULT)
+            );
+        }
+
         return $user;
     }
 }
