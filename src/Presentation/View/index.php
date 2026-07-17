@@ -17,8 +17,16 @@ $categorias = [
     6 => ['carneIcone.png', 'Carnes'],
 ];
 
-// iframes do YouTube ganham lazy loading sem alterar o conteúdo vindo do banco
-$lazyIframe = static fn (string $html): string => str_ireplace('<iframe ', '<iframe loading="lazy" ', $html);
+/*
+ * Preparação do embed vindo do banco: força o domínio de privacidade
+ * reforçada (youtube-nocookie.com — cobre bancos semeados por versões
+ * antigas do seed) e adiciona lazy loading, sem alterar o restante do HTML.
+ */
+$prepararEmbed = static function (string $html): string {
+    $html = str_ireplace(['www.youtube.com/embed', 'youtube.com/embed'], ['www.youtube-nocookie.com/embed', 'youtube-nocookie.com/embed'], $html);
+
+    return str_ireplace('<iframe ', '<iframe loading="lazy" ', $html);
+};
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -44,10 +52,8 @@ $lazyIframe = static fn (string $html): string => str_ireplace('<iframe ', '<ifr
             document.documentElement.setAttribute("data-theme", t);
         })();
     </script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&display=swap">
-    <link rel="stylesheet" href="https://maxst.icons8.com/vue-static/landings/line-awesome/line-awesome/1.3.0/css/line-awesome.min.css">
+    <link rel="stylesheet" href="./assets/css/fonts.css">
+    <link rel="stylesheet" href="./assets/vendor/line-awesome/css/line-awesome.min.css">
     <link rel="stylesheet" href="./assets/css/tokens.css">
     <link rel="stylesheet" href="./assets/css/base.css">
     <link rel="stylesheet" href="./assets/css/components.css">
@@ -193,7 +199,14 @@ $lazyIframe = static fn (string $html): string => str_ireplace('<iframe ', '<ifr
             </header>
             <div class="recipe-modal__grid">
                 <div>
-                    <div class="recipe-modal__video"><?= $lazyIframe((string) $recipe['video']) ?></div>
+                    <div class="recipe-modal__video video-consent js-video-consent">
+                        <div class="video-consent__box">
+                            <i class="las la-play-circle" aria-hidden="true"></i>
+                            <p>O vídeo é exibido pelo YouTube (youtube-nocookie.com). Ao carregar, seu IP será compartilhado com o Google — <a href="privacidade.php" target="_blank" rel="noopener">saiba mais</a>.</p>
+                            <button type="button" class="btn btn--primary js-carregar-video">Carregar vídeo</button>
+                        </div>
+                        <template class="js-video-tpl"><?= $prepararEmbed((string) $recipe['video']) ?></template>
+                    </div>
                     <div class="recipe-modal__facts">
                         <span class="badge"><i class="las la-tag" aria-hidden="true"></i><?= htmlspecialchars($recipe['category']) ?></span>
                         <span class="badge"><i class="las la-clock" aria-hidden="true"></i><?= htmlspecialchars($recipe['time']) ?></span>
@@ -227,7 +240,8 @@ $lazyIframe = static fn (string $html): string => str_ireplace('<iframe ', '<ifr
 
     <footer class="site-footer" role="contentinfo">
         <div class="container">
-            <p style="margin-inline:auto;">HomeMadeGourmet — TCC ETEC de Vila Formosa · Feito com receitas de família.</p>
+            <p style="margin-inline:auto;">HomeMadeGourmet — TCC ETEC de Vila Formosa · Feito com receitas de família.<br>
+            <a href="privacidade.php">Política de Privacidade</a> · <a href="termos.php">Termos de Uso</a></p>
         </div>
     </footer>
 

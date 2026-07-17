@@ -46,9 +46,18 @@ class ProfileController
             'nome' => (string) $this->sessionManager->get('nomeSessao', ''),
             'email' => (string) $this->sessionManager->get('emailSessao', ''),
             'erroAtualizacao' => false,
+            'csrf' => $this->sessionManager->csrfToken(),
         ];
 
         if (!isset($post['salvar'])) {
+            return $viewData;
+        }
+
+        // Anti-CSRF: o POST precisa devolver o token emitido para esta sessão
+        // (defesa adicional ao SameSite=Lax do cookie).
+        if (!$this->sessionManager->validateCsrf($post['_csrf'] ?? null)) {
+            $viewData['erroAtualizacao'] = true;
+
             return $viewData;
         }
 

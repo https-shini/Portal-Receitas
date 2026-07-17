@@ -57,6 +57,29 @@ class SessionManager
         $_SESSION[$key] = $value;
     }
 
+    /**
+     * Token anti-CSRF da sessão: gerado uma única vez por sessão e comparado
+     * em tempo constante. Usado pelo formulário POST tradicional do perfil.
+     */
+    public function csrfToken(): string
+    {
+        $token = $this->get('csrf');
+        if (!is_string($token) || $token === '') {
+            $token = bin2hex(random_bytes(32));
+            $this->set('csrf', $token);
+        }
+
+        return $token;
+    }
+
+    /** Valida um token recebido contra o da sessão (hash_equals: sem timing leak). */
+    public function validateCsrf(?string $token): bool
+    {
+        $expected = $this->get('csrf');
+
+        return is_string($expected) && is_string($token) && hash_equals($expected, $token);
+    }
+
     /** Encerra a sessão e limpa o estado em memória (logout). */
     public function destroy(): void
     {

@@ -273,3 +273,25 @@
     font-size: var(--text-sm);
     text-align: center;
 }
+
+/* ── Consentimento antes de carregar o vídeo (LGPD/terceiros) ───── */
+.video-consent {
+    display: grid;
+    place-items: center;
+    background:
+        radial-gradient(20rem 12rem at 50% 0%, rgba(255, 255, 255, 0.06), transparent),
+        #1a120b;
+}
+
+.video-consent__box {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-2);
+    text-align: center;
+    padding: var(--space-5);
+    color: #EDE3D7;
+}
+
+.video-consent__box .las { font-size: 3rem; color: var(--color-primary); }
+.video-consent__box p { font-size: var(--text-xs); max-width: 30rem; }
+.video-consent__box a { color: #FDBA74; }

@@ -3,6 +3,7 @@
 $nome = $viewData['nome'] ?? '';
 $email = $viewData['email'] ?? '';
 $erroAtualizacao = $viewData['erroAtualizacao'] ?? false;
+$csrf = $viewData['csrf'] ?? '';
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -22,10 +23,8 @@ $erroAtualizacao = $viewData['erroAtualizacao'] ?? false;
             document.documentElement.setAttribute("data-theme", t);
         })();
     </script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&display=swap">
-    <link rel="stylesheet" href="https://maxst.icons8.com/vue-static/landings/line-awesome/line-awesome/1.3.0/css/line-awesome.min.css">
+    <link rel="stylesheet" href="./assets/css/fonts.css">
+    <link rel="stylesheet" href="./assets/vendor/line-awesome/css/line-awesome.min.css">
     <link rel="stylesheet" href="./assets/css/tokens.css">
     <link rel="stylesheet" href="./assets/css/base.css">
     <link rel="stylesheet" href="./assets/css/components.css">
@@ -63,6 +62,7 @@ $erroAtualizacao = $viewData['erroAtualizacao'] ?? false;
             <div class="alert<?= $erroAtualizacao ? ' show alert--error' : '' ?>" id="alertaPerfil" role="alert" aria-live="polite"><?= $erroAtualizacao ? 'Ocorreu um erro ao tentar atualizar. Confira os dados (senha nova: mín. 8 caracteres com letra e número).' : '' ?></div>
 
             <form action="profile.php" method="POST" id="formPerfil">
+                <input type="hidden" name="_csrf" value="<?= htmlspecialchars((string) $csrf) ?>">
                 <div class="field" style="margin-bottom: var(--space-3);">
                     <label class="field__label" for="nome">Nome</label>
                     <div class="field__control">
@@ -101,12 +101,32 @@ $erroAtualizacao = $viewData['erroAtualizacao'] ?? false;
                     </button>
                 </div>
             </form>
+
+            <!-- ── Exclusão de conta (LGPD art. 18, VI) ── -->
+            <details class="danger-zone">
+                <summary><i class="las la-user-slash" aria-hidden="true"></i> Excluir minha conta</summary>
+                <div class="danger-zone__body">
+                    <p>A exclusão é <strong>permanente</strong>: seus dados são anonimizados de forma irreversível e você não poderá mais entrar com esta conta. Para confirmar, digite sua senha atual.</p>
+                    <div class="field">
+                        <label class="field__label" for="senhaExclusao">Senha atual</label>
+                        <div class="field__control">
+                            <i class="las la-lock" aria-hidden="true"></i>
+                            <input class="field__input" type="password" id="senhaExclusao" autocomplete="current-password">
+                        </div>
+                    </div>
+                    <div class="alert" id="alertaExclusao" role="alert" aria-live="polite"></div>
+                    <button type="button" class="btn btn--danger" id="btnExcluirConta">
+                        <i class="las la-trash" aria-hidden="true"></i> EXCLUIR CONTA DEFINITIVAMENTE
+                    </button>
+                </div>
+            </details>
         </section>
     </main>
 
     <footer class="site-footer" role="contentinfo">
         <div class="container">
-            <p style="margin-inline:auto;">HomeMadeGourmet — TCC ETEC de Vila Formosa.</p>
+            <p style="margin-inline:auto;">HomeMadeGourmet — TCC ETEC de Vila Formosa.<br>
+            <a href="privacidade.php">Política de Privacidade</a> · <a href="termos.php">Termos de Uso</a></p>
         </div>
     </footer>
 

@@ -46,3 +46,32 @@
 }
 
 .profile-card__actions .btn { flex: 1; min-width: 10rem; }
+
+/* ── Zona de exclusão de conta (LGPD art. 18, VI) ───────────────── */
+.danger-zone {
+    border: 1px solid color-mix(in srgb, var(--color-error) 35%, transparent);
+    border-radius: var(--radius-md);
+    background: var(--color-error-soft);
+}
+
+.danger-zone summary {
+    list-style: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    color: var(--color-error);
+    font-weight: var(--weight-semibold);
+    font-size: var(--text-sm);
+}
+
+.danger-zone summary::-webkit-details-marker { display: none; }
+
+.danger-zone__body {
+    display: grid;
+    gap: var(--space-3);
+    padding: 0 var(--space-4) var(--space-4);
+}
+
+.danger-zone__body p { font-size: var(--text-sm); color: var(--color-text-secondary); }

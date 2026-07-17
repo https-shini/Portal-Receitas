@@ -30,10 +30,8 @@ $categorias = [
             document.documentElement.setAttribute("data-theme", t);
         })();
     </script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&display=swap">
-    <link rel="stylesheet" href="https://maxst.icons8.com/vue-static/landings/line-awesome/line-awesome/1.3.0/css/line-awesome.min.css">
+    <link rel="stylesheet" href="./assets/css/fonts.css">
+    <link rel="stylesheet" href="./assets/vendor/line-awesome/css/line-awesome.min.css">
     <link rel="stylesheet" href="./assets/css/tokens.css">
     <link rel="stylesheet" href="./assets/css/base.css">
     <link rel="stylesheet" href="./assets/css/components.css">
@@ -112,6 +110,14 @@ $categorias = [
                             </label>
                         <?php endforeach; ?>
                     </fieldset>
+
+                    <label class="legal-accept">
+                        <input type="checkbox" id="reg-aceite">
+                        <span>Li e aceito os <a href="termos.php" target="_blank" rel="noopener">Termos de Uso</a> e a <a href="privacidade.php" target="_blank" rel="noopener">Política de Privacidade</a>.</span>
+                    </label>
+                    <?php if (getenv('APP_DEMO_MODE')): ?>
+                        <p class="auth-form__sub" style="margin:0;">Ambiente de demonstração: os dados podem ser reiniciados periodicamente.</p>
+                    <?php endif; ?>
 
                     <div class="alert" id="reg-alert" role="alert" aria-live="polite"></div>
 

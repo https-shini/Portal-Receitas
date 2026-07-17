@@ -27,6 +27,25 @@ const HomePage = (() => {
         conteudo.querySelector(".js-fechar-receita")?.focus();
         conteudo.querySelector(".js-fechar-receita")
             ?.addEventListener("click", fecharReceita);
+
+        _initVideoConsent(conteudo);
+    }
+
+    /*
+     * Consentimento de terceiros (LGPD): o iframe do YouTube fica num
+     * <template> aninhado e só entra no DOM quando o usuário clica em
+     * "Carregar vídeo" — antes disso nenhum dado é enviado ao Google.
+     */
+    function _initVideoConsent(conteudo) {
+        const consent = conteudo.querySelector(".js-video-consent");
+        const botao = consent?.querySelector(".js-carregar-video");
+        const tpl = consent?.querySelector(".js-video-tpl");
+        if (!consent || !botao || !tpl) return;
+
+        botao.addEventListener("click", () => {
+            consent.replaceChildren(tpl.content.cloneNode(true));
+            consent.classList.remove("video-consent");
+        });
     }
 
     function fecharReceita() {

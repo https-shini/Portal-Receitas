@@ -37,21 +37,21 @@ class AuthenticateUserUseCaseTest extends TestCase
 
     /**
      * Compatibilidade com o seed oficial: o hash abaixo é o mesmo gravado em
-     * DB_Receitas.sql para kk.123@gmail.com (senha em claro: 123456) — se o
+     * DB_Receitas.sql para demo1@example.com (senha em claro: 123456) — se o
      * seed mudar de formato, este teste acusa.
      */
     public function testAuthenticatesSeedDemoUserHash(): void
     {
         $this->repository->seed(
-            'Nome descente',
-            'kk.123@gmail.com',
+            'Ana Exemplo',
+            'demo1@example.com',
             '$2y$10$bFuehjBZFt7sbgDjS4dDU.VLMmqrNH/D0Y5qG3uxYYeXF6p4eXUjW',
             2
         );
 
-        $user = $this->useCase->execute('kk.123@gmail.com', '123456');
+        $user = $this->useCase->execute('demo1@example.com', '123456');
 
-        $this->assertSame('kk.123@gmail.com', $user['emailUsuario']);
+        $this->assertSame('demo1@example.com', $user['emailUsuario']);
     }
 
     public function testRejectsWrongPassword(): void

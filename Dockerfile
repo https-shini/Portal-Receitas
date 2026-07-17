@@ -11,7 +11,8 @@ RUN docker-php-ext-install pdo_mysql \
     && mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
 # Restringe o Apache ao docroot public/ — nada fora dele é servido.
-RUN sed -ri -e 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf
+RUN sed -ri -e 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf \
+    && a2enmod headers
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
@@ -24,6 +25,7 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction --no-script
 
 COPY . /var/www/html/
 RUN composer dump-autoload --optimize --no-dev \
+    && cp docker/security-headers.conf /etc/apache2/conf-enabled/security-headers.conf \
     && chown -R www-data:www-data /var/www/html \
     && cp docker/apache-entrypoint.sh /usr/local/bin/apache-entrypoint.sh \
     && chmod +x /usr/local/bin/apache-entrypoint.sh

@@ -1,5 +1,18 @@
 # CHANGELOG — Consolidação das branches
 
+## [2.2.0] — 2026-07-17
+
+Correção das não conformidades da auditoria (docs/auditoria-conformidade.md), sem regressões:
+
+- **NC-01 (Política/Termos):** páginas `privacidade.php` e `termos.php` versionadas e linkadas nos rodapés; checkbox de aceite obrigatório no cadastro (versão em `AuthController::LEGAL_VERSION`).
+- **NC-02 (Exclusão de conta — art. 18, VI):** fluxo completo na área do usuário com reautenticação por senha e confirmação; `DeleteUserAccountUseCase` por **anonimização irreversível** (preserva o menor privilégio do banco — a aplicação não recebe DELETE); auditada por trigger.
+- **NC-03 (Terceiros):** fontes (Inter/Sora) e ícones (Line Awesome) **self-hosted** — zero requisições a Google/Icons8; vídeos por `youtube-nocookie.com` com **consentimento por clique** (o iframe só carrega após ação do usuário).
+- **NC-04 (Seeds):** usuários-demo com dados fictícios (`demo1@example.com`, `demo2@example.com` — RFC 2606).
+- **Segurança:** rate limiting (login 5/min, cadastro 10/min → 429), token **CSRF** no perfil, `password_needs_rehash` no login, cabeçalhos **CSP/HSTS/X-Frame-Options/X-Content-Type-Options/Referrer-Policy/Permissions-Policy** (Apache).
+- **Governança:** pipeline **CI** (GitHub Actions: lint PHP/JS + PHPUnit + build das imagens); documentos de privacidade em `docs/privacidade/` (registro de tratamento, LIA, DPIA simplificado, política de retenção com `sp_expurgar_auditoria`, runbook de incidentes).
+- **Testes:** 24 (novos: exclusão por anonimização, rate limiter).
+- Coluna `receita.link` ampliada para `varchar(400)` (acomoda o domínio youtube-nocookie).
+
 ## [2.1.0] — 2026-07-15
 
 - `docs/auditoria-conformidade.md`: auditoria técnica oficial de conformidade com a LGPD e a ISO/IEC 25010 — inventário de dados pessoais com ciclo de vida, bases legais recomendadas, avaliação dos direitos do titular, segurança (art. 46) evidência por evidência, notas por característica ISO (média 3,9/5), 6 não conformidades e 8 riscos classificados em matriz, plano de adequação em 3 ondas, roadmaps, checklists, KPIs e critérios objetivos de aceitação.

@@ -46,7 +46,8 @@ Ideias da concepção original do TCC que **não existem** no código atual e fi
 | **Interface** | HTML5 semântico, CSS3 e JavaScript (vanilla) · Design System próprio (Liquid Glass, tokens, 8pt grid, temas claro/escuro, WCAG 2.2 AA) |
 | **Backend** | PHP 8.2+ · Clean Architecture · PSR-4 (`App\ → src/`) · Composer |
 | **Dados** | MySQL 8 / MariaDB · PDO com prepared statements (`EMULATE_PREPARES = false`, `utf8mb4`) |
-| **Segurança** | bcrypt (`password_hash`/`password_verify`) · queries 100% parametrizadas · TLS opcional na conexão |
+| **Segurança** | bcrypt · queries 100% parametrizadas · sessão HttpOnly/SameSite + CSRF · rate limiting · headers CSP/HSTS · TLS opcional |
+| **Privacidade** | LGPD: Política/Termos, exclusão de conta por anonimização, fontes/ícones self-hosted, vídeo com consentimento · docs em `docs/privacidade/` |
 | **Deploy** | Docker + Docker Compose (`php:8.2-apache`) · blueprint Render (`render.yaml`) |
 | **Testes** | PHPUnit 11 |
 
@@ -62,8 +63,9 @@ Portal-Receitas/
 │  ├─ index.php                         ← Home: listagem, busca e filtro
 │  ├─ login.php · register.php · profile.php
 │  ├─ healthz.php                       ← Health check (200, não toca o banco)
-│  ├─ api/                              ← Endpoints JSON de auth (login, register, logout, me)
-│  └─ assets/                           ← css/, js/, img/ e php/ (logout)
+│  ├─ api/                              ← Endpoints JSON de auth (login, register, logout, me, delete-account)
+│  ├─ privacidade.php · termos.php      ← Política de Privacidade e Termos de Uso (LGPD)
+│  └─ assets/                           ← css/, js/, img/, fonts/, vendor/ (self-hosted) e php/ (logout)
 │
 ├─ src/                                 ← Núcleo por camada (regra: Presentation → Application → Domain)
 │  ├─ Domain/
@@ -89,7 +91,7 @@ Portal-Receitas/
 └─ composer.json · phpunit.xml
 ```
 
-A regra de dependência e o papel de cada camada estão resumidos em [docs/architecture.md](docs/architecture.md). As **referências técnicas oficiais** do projeto: [docs/backend.md](docs/backend.md) (serviços, regras de negócio, API, segurança, escalabilidade, ADRs), [docs/frontend.md](docs/frontend.md) (Design System, UX/UI, acessibilidade, performance, ADRs) e [docs/auditoria-conformidade.md](docs/auditoria-conformidade.md) (auditoria LGPD + ISO/IEC 25010 com plano de adequação).
+A regra de dependência e o papel de cada camada estão resumidos em [docs/architecture.md](docs/architecture.md). As **referências técnicas oficiais** do projeto: [docs/backend.md](docs/backend.md) (serviços, regras de negócio, API, segurança, escalabilidade, ADRs), [docs/frontend.md](docs/frontend.md) (Design System, UX/UI, acessibilidade, performance, ADRs) e [docs/auditoria-conformidade.md](docs/auditoria-conformidade.md) (auditoria LGPD + ISO/IEC 25010, com correções aplicadas na v2.2).
 
 ---
 
@@ -141,8 +143,8 @@ O repositório traz o blueprint `render.yaml` (**New → Blueprint** no dashboar
 
 | E-mail | Senha |
 |--------|-------|
-| `kk.123@gmail.com` | `123456` |
-| `tectutors.123@gmail.com` | `271821` |
+| `demo1@example.com` | `123456` |
+| `demo2@example.com` | `271821` |
 
 ---
 

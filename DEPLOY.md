@@ -89,5 +89,5 @@ docker compose down -v         # para e APAGA o banco (reimporta o seed na próx
 ## Observações
 - O banco só importa o seed quando o volume `dbdata` está vazio (primeira subida).
   Se alterar o `DB_Receitas.sql` e quiser reimportar: `docker compose down -v` e suba de novo.
-- Usuários de demonstração do seed: `kk.123@gmail.com` (senha `123456`) e
-  `tectutors.123@gmail.com` (senha `271821`) — as senhas no banco ficam em hash bcrypt.
+- Usuários de demonstração do seed: `demo1@example.com` (senha `123456`) e
+  `demo2@example.com` (senha `271821`) — as senhas no banco ficam em hash bcrypt.
