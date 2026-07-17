@@ -10,45 +10,15 @@ $atualizadoEm = '15/07/2026';
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Política de Privacidade · HomeMadeGourmet</title>
-    <meta name="description" content="Como o HomeMadeGourmet coleta, usa, protege e elimina seus dados pessoais, em conformidade com a LGPD.">
-    <meta name="theme-color" content="#C2410C">
-    <link rel="icon" href="./assets/img/logoIcon.png">
-    <script>
-        (function () {
-            var t;
-            try { t = localStorage.getItem("hmg_theme"); } catch (e) {}
-            if (!t) t = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-            document.documentElement.setAttribute("data-theme", t);
-        })();
-    </script>
-    <link rel="stylesheet" href="./assets/css/fonts.css">
-    <link rel="stylesheet" href="./assets/vendor/line-awesome/css/line-awesome.min.css">
-    <link rel="stylesheet" href="./assets/css/tokens.css">
-    <link rel="stylesheet" href="./assets/css/base.css">
-    <link rel="stylesheet" href="./assets/css/components.css">
-    <link rel="stylesheet" href="./assets/css/pages/home.css">
-    <link rel="stylesheet" href="./assets/css/pages/legal.css">
+<?php
+$pageTitle = 'Política de Privacidade · HomeMadeGourmet';
+$pageDescription = 'Como o HomeMadeGourmet coleta, usa, protege e elimina seus dados pessoais, em conformidade com a LGPD.';
+$pageCss = ['pages/home.css', 'pages/legal.css'];
+require __DIR__ . '/partials/head.php';
+?>
 </head>
 <body>
-    <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
-
-    <header class="site-header" role="banner">
-        <div class="container site-header__row">
-            <a class="brand" href="index.php" aria-label="HomeMadeGourmet — início">
-                <img src="./assets/img/logoIcon.png" alt="" width="36" height="36">
-                <span class="brand__name">HomeMadeGourmet</span>
-            </a>
-            <a class="btn btn--ghost" href="index.php" style="margin-left:auto;">
-                <i class="las la-home" aria-hidden="true"></i> Início
-            </a>
-            <button type="button" class="btn btn--ghost btn--icon js-theme-toggle" aria-label="Alternar tema claro/escuro" aria-pressed="false">
-                <i class="las la-moon" aria-hidden="true"></i>
-            </button>
-        </div>
-    </header>
+<?php require __DIR__ . '/partials/header.php'; ?>
 
     <main id="conteudo" class="legal-main container" role="main">
         <article class="glass glass--strong legal-card">
@@ -112,11 +82,7 @@ $atualizadoEm = '15/07/2026';
         </article>
     </main>
 
-    <footer class="site-footer" role="contentinfo">
-        <div class="container">
-            <p style="margin-inline:auto;">HomeMadeGourmet — TCC ETEC de Vila Formosa · <a href="privacidade.php">Privacidade</a> · <a href="termos.php">Termos de Uso</a></p>
-        </div>
-    </footer>
+<?php require __DIR__ . '/partials/footer.php'; ?>
 
     <script src="./assets/js/theme.js" defer></script>
 </body>

@@ -45,21 +45,6 @@ const AuthPage = (() => {
         return String(data.detail);
     }
 
-    /* ── Toggle login ⇄ cadastro ─────────────────────────────── */
-
-    function _initToggle() {
-        const container = el("auth-container");
-        if (!container) return;
-
-        const showRegister = (e) => { if (e) e.preventDefault(); container.classList.add("active"); };
-        const showLogin = (e) => { if (e) e.preventDefault(); container.classList.remove("active"); };
-
-        el("btn-show-register")?.addEventListener("click", showRegister);
-        el("btn-show-login")?.addEventListener("click", showLogin);
-        el("btnR-mob")?.addEventListener("click", showRegister);
-        el("btnL-mob")?.addEventListener("click", showLogin);
-    }
-
     /* ── Medidor de força de senha (5 níveis) ────────────────── */
 
     function _initPasswordStrength() {
@@ -125,9 +110,9 @@ const AuthPage = (() => {
             const data = await res.json();
 
             if (res.ok) {
-                showAlert("log-alert", "Cadastro realizado com sucesso! Faça login.", "success");
+                showAlert("reg-alert", "Cadastro realizado! Redirecionando para o login…", "success");
                 _clearRegisterForm();
-                el("auth-container")?.classList.remove("active");
+                setTimeout(() => { location.href = "login.php?cadastro=ok"; }, 900);
             } else {
                 showAlert("reg-alert", parseApiError(data), "error");
             }
@@ -176,18 +161,17 @@ const AuthPage = (() => {
                 setTimeout(() => { location.href = "index.php"; }, 700);
             } else {
                 showAlert("log-alert", parseApiError(data), "error");
-                setBtn("btn-log", false, "CONECTAR");
+                setBtn("btn-log", false, "ENTRAR");
             }
         } catch (err) {
             showAlert("log-alert", "Falha de conexão. Tente novamente.", "error");
-            setBtn("btn-log", false, "CONECTAR");
+            setBtn("btn-log", false, "ENTRAR");
         }
     }
 
     /* ── Boot ────────────────────────────────────────────────── */
 
     function init() {
-        _initToggle();
         _initPasswordStrength();
         bindEnter("log-senha", login);
         bindEnter("reg-senha2", register);

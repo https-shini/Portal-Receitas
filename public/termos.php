@@ -2,6 +2,10 @@
 
 declare(strict_types=1);
 
-/** Entrypoint dos Termos de Uso (página pública e estática). */
+/** Entrypoint dos Termos de Uso (página pública). */
+
+$services = require __DIR__ . '/../config/bootstrap.php';
+$services['sessionManager']->start();
+$isLogged = !empty($services['sessionManager']->get('logado'));
 
 require __DIR__ . '/../src/Presentation/View/terms.php';

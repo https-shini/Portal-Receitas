@@ -1,8 +1,18 @@
 <?php
-/** @var string $initialPanel 'login' | 'register' */
-/** @var bool $erroLogin Exibe aviso de acesso restrito (redirecionado do guard) */
+/**
+ * Tela de acesso — Login e Cadastro são páginas INDEPENDENTES (sem card duplo
+ * sobreposto). $initialPanel decide qual formulário esta página renderiza;
+ * a alternância é feita por navegação real (login.php ⇄ register.php).
+ *
+ * @var string $initialPanel  'login' | 'register'
+ * @var bool   $erroLogin     Aviso de acesso restrito (redirecionado do guard)
+ * @var bool   $cadastroOk    Sucesso de cadastro recém-realizado
+ */
 $initialPanel = $initialPanel ?? 'login';
 $erroLogin = $erroLogin ?? false;
+$cadastroOk = $cadastroOk ?? false;
+$isRegister = $initialPanel === 'register';
+
 $categorias = [
     1 => ['sushiIcone.png', 'Frutos do Mar'],
     2 => ['massaIcone.png', 'Massas'],
@@ -11,48 +21,34 @@ $categorias = [
     5 => ['boloIcone.png', 'Doces'],
     6 => ['carneIcone.png', 'Carnes'],
 ];
+
+$pageTitle = ($isRegister ? 'Cadastro' : 'Login') . ' · HomeMadeGourmet';
+$pageDescription = 'Acesse o HomeMadeGourmet para gerenciar seu perfil e recursos personalizados. As receitas são públicas.';
+$pageCss = ['pages/home.css', 'pages/auth.css'];
+$robotsNoindex = true;
+$isLogged = false;
+$showLoginCta = false;
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $initialPanel === 'register' ? 'Registro' : 'Login' ?> · HomeMadeGourmet</title>
-    <meta name="description" content="Acesse o HomeMadeGourmet: faça login ou crie sua conta para explorar receitas caseiras por ingrediente e categoria.">
-    <meta name="robots" content="noindex">
-    <meta name="theme-color" content="#C2410C">
-    <link rel="icon" href="./assets/img/logoIcon.png">
-    <script>
-        (function () {
-            var t;
-            try { t = localStorage.getItem("hmg_theme"); } catch (e) {}
-            if (!t) t = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-            document.documentElement.setAttribute("data-theme", t);
-        })();
-    </script>
-    <link rel="stylesheet" href="./assets/css/fonts.css">
-    <link rel="stylesheet" href="./assets/vendor/line-awesome/css/line-awesome.min.css">
-    <link rel="stylesheet" href="./assets/css/tokens.css">
-    <link rel="stylesheet" href="./assets/css/base.css">
-    <link rel="stylesheet" href="./assets/css/components.css">
-    <link rel="stylesheet" href="./assets/css/pages/auth.css">
+<?php require __DIR__ . '/partials/head.php'; ?>
 </head>
 <body>
-    <a class="skip-link" href="#acesso">Pular para o formulário</a>
+<?php require __DIR__ . '/partials/header.php'; ?>
 
-    <button type="button" class="btn btn--ghost btn--icon js-theme-toggle auth-theme-toggle glass" aria-label="Alternar tema claro/escuro" aria-pressed="false">
-        <i class="las la-moon" aria-hidden="true"></i>
-    </button>
+    <main id="conteudo" class="auth-main container" role="main">
+        <section class="glass glass--strong auth-card" aria-labelledby="authTitulo">
+            <div class="auth-card__head">
+                <h1 id="authTitulo"><?= $isRegister ? 'Criar conta' : 'Entrar' ?></h1>
+                <p><?= $isRegister
+                        ? 'Crie sua conta para salvar favoritos e personalizar seu perfil.'
+                        : 'Bem-vindo de volta! As receitas são públicas — entre para acessar seu perfil.' ?></p>
+            </div>
 
-    <main class="main-auth" id="acesso" role="main">
-        <div class="auth-container<?= $initialPanel === 'register' ? ' active' : '' ?>" id="auth-container">
-
-            <!-- ── Cadastro ── -->
-            <section class="form-container sign-up" aria-label="Formulário de cadastro">
+            <?php if ($isRegister): ?>
+                <!-- ══════════════ CADASTRO ══════════════ -->
                 <form class="auth-form" onsubmit="return false;" novalidate>
-                    <h1>Cadastro</h1>
-                    <p class="auth-form__sub">Crie sua conta para descobrir novas receitas.</p>
-
                     <div class="field">
                         <label class="field__label" for="reg-nome">Nome de usuário</label>
                         <div class="field__control">
@@ -116,22 +112,21 @@ $categorias = [
                         <span>Li e aceito os <a href="termos.php" target="_blank" rel="noopener">Termos de Uso</a> e a <a href="privacidade.php" target="_blank" rel="noopener">Política de Privacidade</a>.</span>
                     </label>
                     <?php if (getenv('APP_DEMO_MODE')): ?>
-                        <p class="auth-form__sub" style="margin:0;">Ambiente de demonstração: os dados podem ser reiniciados periodicamente.</p>
+                        <p class="auth-form__note">Ambiente de demonstração: os dados podem ser reiniciados periodicamente.</p>
                     <?php endif; ?>
 
                     <div class="alert" id="reg-alert" role="alert" aria-live="polite"></div>
 
-                    <button type="button" class="btn btn--primary" id="btn-reg" onclick="registerUser()">CADASTRAR</button>
+                    <button type="button" class="btn btn--primary btn--block" id="btn-reg" onclick="registerUser()">CADASTRAR</button>
 
-                    <p class="mob-switch">Já tem conta? <a href="#" id="btnL-mob">Faça Login</a></p>
+                    <p class="auth-switch">Já tem conta? <a href="login.php">Faça login</a></p>
                 </form>
-            </section>
-
-            <!-- ── Login ── -->
-            <section class="form-container sign-in" aria-label="Formulário de login">
+            <?php else: ?>
+                <!-- ══════════════ LOGIN ══════════════ -->
                 <form class="auth-form" onsubmit="return false;" novalidate>
-                    <h1>Login</h1>
-                    <p class="auth-form__sub">Bem-vindo de volta! Entre para continuar.</p>
+                    <?php if ($cadastroOk): ?>
+                        <div class="alert show alert--success" role="status">Cadastro realizado com sucesso! Faça login para continuar.</div>
+                    <?php endif; ?>
 
                     <div class="field">
                         <label class="field__label" for="log-email">Email</label>
@@ -152,32 +147,18 @@ $categorias = [
                         </div>
                     </div>
 
-                    <div class="alert<?= $erroLogin ? ' show alert--error' : '' ?>" id="log-alert" role="alert" aria-live="polite"><?= $erroLogin ? 'Você precisa logar para entrar no site' : '' ?></div>
+                    <div class="alert<?= $erroLogin ? ' show alert--error' : '' ?>" id="log-alert" role="alert" aria-live="polite"><?= $erroLogin ? 'Você precisa entrar para acessar essa área.' : '' ?></div>
 
-                    <button type="button" class="btn btn--primary" id="btn-log" onclick="loginUser()">CONECTAR</button>
+                    <button type="button" class="btn btn--primary btn--block" id="btn-log" onclick="loginUser()">ENTRAR</button>
 
-                    <p class="mob-switch">Não tem conta? <a href="#" id="btnR-mob">Inscreva-se</a></p>
+                    <p class="auth-switch">Não tem conta? <a href="register.php">Inscreva-se</a></p>
+                    <p class="auth-switch"><a href="index.php">← Voltar às receitas</a></p>
                 </form>
-            </section>
-
-            <!-- ── Painel deslizante (desktop) ── -->
-            <div class="toggle-container" aria-hidden="true">
-                <div class="toggle-panel-wrap">
-                    <div class="toggle-panel toggle-left">
-                        <h2>Já tem conta?</h2>
-                        <p>Faça login para continuar sua jornada culinária no HomeMadeGourmet.</p>
-                        <button class="btn btn-toggle" id="btn-show-login" tabindex="-1">FAÇA LOGIN</button>
-                    </div>
-                    <div class="toggle-panel toggle-right">
-                        <h2>Novo por aqui?</h2>
-                        <p>Inscreva-se para descobrir receitas feitas para o seu gosto.</p>
-                        <button class="btn btn-toggle" id="btn-show-register" tabindex="-1">INSCREVA-SE</button>
-                    </div>
-                </div>
-            </div>
-
-        </div>
+            <?php endif; ?>
+        </section>
     </main>
+
+<?php require __DIR__ . '/partials/footer.php'; ?>
 
     <script src="./assets/js/theme.js" defer></script>
     <script src="./assets/js/script-auth.js" defer></script>

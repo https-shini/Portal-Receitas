@@ -1,5 +1,15 @@
 # CHANGELOG — Consolidação das branches
 
+## [2.3.0] — 2026-07-17
+
+Refatoração das telas de Login e Cadastro e do layout global, sem regressões (24 testes verdes):
+
+- **Header e Footer globais:** extraídos para partials reutilizáveis (`src/Presentation/View/partials/head.php`, `header.php`, `footer.php`) e aplicados em **todas** as páginas (home, login, cadastro, perfil, privacidade, termos) — antes as telas de autenticação não tinham header/footer.
+- **Login e Cadastro independentes:** eliminado o card duplo deslizante que causava **sobreposição** entre as telas. Agora são páginas separadas de card único (`login.php` ⇄ `register.php`), sem conflitos de posicionamento nem elementos sobrepostos.
+- **Fluxo de cadastro:** ao concluir o cadastro, o usuário é redirecionado para `login.php?cadastro=ok`, que exibe banner de sucesso — sem alternância por JavaScript.
+- **Catálogo público reforçado:** o header reflete o estado de autenticação — botão **"Entrar"** para visitantes e menu do usuário (Meu perfil / Sair) para autenticados; as receitas continuam acessíveis sem login.
+- **Responsividade e temas:** ambas as telas validadas em desktop/mobile e claro/escuro, com navegação "Receitas" no header e links (Receitas · Privacidade · Termos) no footer.
+
 ## [2.2.0] — 2026-07-17
 
 Correção das não conformidades da auditoria (docs/auditoria-conformidade.md), sem regressões:

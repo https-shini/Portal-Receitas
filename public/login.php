@@ -22,5 +22,6 @@ if (!empty($sessionManager->get('logado'))) {
 
 $initialPanel = 'login';
 $erroLogin = !empty($_GET['erro']);
+$cadastroOk = ($_GET['cadastro'] ?? '') === 'ok';
 
 require __DIR__ . '/../src/Presentation/View/auth.php';

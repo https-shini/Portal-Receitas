@@ -8,48 +8,16 @@ $csrf = $viewData['csrf'] ?? '';
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Perfil · HomeMadeGourmet</title>
-    <meta name="description" content="Gerencie seus dados no HomeMadeGourmet: nome, e-mail e senha.">
-    <meta name="robots" content="noindex">
-    <meta name="theme-color" content="#C2410C">
-    <link rel="icon" href="./assets/img/logoIcon.png">
-    <script>
-        (function () {
-            var t;
-            try { t = localStorage.getItem("hmg_theme"); } catch (e) {}
-            if (!t) t = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-            document.documentElement.setAttribute("data-theme", t);
-        })();
-    </script>
-    <link rel="stylesheet" href="./assets/css/fonts.css">
-    <link rel="stylesheet" href="./assets/vendor/line-awesome/css/line-awesome.min.css">
-    <link rel="stylesheet" href="./assets/css/tokens.css">
-    <link rel="stylesheet" href="./assets/css/base.css">
-    <link rel="stylesheet" href="./assets/css/components.css">
-    <link rel="stylesheet" href="./assets/css/pages/home.css">
-    <link rel="stylesheet" href="./assets/css/pages/profile.css">
+<?php
+$pageTitle = 'Meu perfil · HomeMadeGourmet';
+$pageDescription = 'Gerencie seus dados no HomeMadeGourmet: nome, e-mail e senha.';
+$pageCss = ['pages/home.css', 'pages/profile.css'];
+$robotsNoindex = true;
+require __DIR__ . '/partials/head.php';
+?>
 </head>
 <body>
-    <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
-
-    <header class="site-header" role="banner">
-        <div class="container site-header__row">
-            <a class="brand" href="index.php" aria-label="HomeMadeGourmet — início">
-                <img src="./assets/img/logoIcon.png" alt="" width="36" height="36">
-                <span class="brand__name">HomeMadeGourmet</span>
-            </a>
-
-            <a class="btn btn--ghost" href="index.php" style="margin-left:auto;">
-                <i class="las la-home" aria-hidden="true"></i> Início
-            </a>
-
-            <button type="button" class="btn btn--ghost btn--icon js-theme-toggle" aria-label="Alternar tema claro/escuro" aria-pressed="false">
-                <i class="las la-moon" aria-hidden="true"></i>
-            </button>
-        </div>
-    </header>
+<?php $isLogged = true; require __DIR__ . '/partials/header.php'; ?>
 
     <main id="conteudo" class="profile-main container" role="main">
         <section class="glass glass--strong profile-card" aria-labelledby="tituloPerfil">
@@ -123,12 +91,7 @@ $csrf = $viewData['csrf'] ?? '';
         </section>
     </main>
 
-    <footer class="site-footer" role="contentinfo">
-        <div class="container">
-            <p style="margin-inline:auto;">HomeMadeGourmet — TCC ETEC de Vila Formosa.<br>
-            <a href="privacidade.php">Política de Privacidade</a> · <a href="termos.php">Termos de Uso</a></p>
-        </div>
-    </footer>
+<?php require __DIR__ . '/partials/footer.php'; ?>
 
     <script src="./assets/js/theme.js" defer></script>
     <script src="./assets/js/profile.js" defer></script>
