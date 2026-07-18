@@ -52,7 +52,7 @@ class RecipeController
      * @return array{
      *     cards: list<array<string, mixed>>,
      *     categories: list<array<string, mixed>>,
-     *     filters: array{search: string|null, categoryIds: list<int>, sort: string},
+     *     filters: array{search: string|null, categoryIds: list<int>, difficulties: list<string>, sort: string},
      *     pagination: array{page: int, perPage: int, total: int, totalPages: int, hasMore: bool},
      *     errorMessage: string|null
      * }
@@ -77,6 +77,7 @@ class RecipeController
             'filters' => [
                 'search' => $recipeQuery->search,
                 'categoryIds' => $recipeQuery->categoryIds,
+                'difficulties' => $recipeQuery->difficulties,
                 'sort' => $recipeQuery->sort,
             ],
             'pagination' => [

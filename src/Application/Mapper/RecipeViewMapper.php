@@ -23,6 +23,7 @@ final class RecipeViewMapper
             'id' => (int) $recipe['idReceita'],
             'name' => (string) $recipe['nomeReceita'],
             'time' => (string) $recipe['tempoReceita'],
+            'difficulty' => self::texto($recipe, 'dificuldade'),
             'category' => self::categoria($recipe),
             'image' => (string) $recipe['imagem'],
         ];
@@ -63,9 +64,12 @@ final class RecipeViewMapper
             'category' => self::categoria($recipe),
             'categoryId' => (int) ($recipe['idcategoriaFK'] ?? 0),
             'time' => (string) $recipe['tempoReceita'],
+            'cookTime' => self::texto($recipe, 'tempoCozimento'),
+            'difficulty' => self::texto($recipe, 'dificuldade'),
             'servings' => (int) $recipe['porcoes'],
             'calories' => (float) $recipe['qtdCalorias'],
             'image' => (string) ($recipe['imagem'] ?? ''),
+            'tips' => self::texto($recipe, 'dicas'),
             'ingredients' => $ingredients,
             'preparation' => $preparation,
         ];
@@ -76,5 +80,13 @@ final class RecipeViewMapper
         $nome = trim((string) ($recipe['nomeCategoria'] ?? ''));
 
         return $nome !== '' ? $nome : 'Sem categoria';
+    }
+
+    /** Campo textual opcional: retorna null quando ausente/vazio. */
+    private static function texto(array $recipe, string $coluna): ?string
+    {
+        $valor = trim((string) ($recipe[$coluna] ?? ''));
+
+        return $valor !== '' ? $valor : null;
     }
 }

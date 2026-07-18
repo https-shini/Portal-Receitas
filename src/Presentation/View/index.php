@@ -2,12 +2,12 @@
 /** @var array $viewData */
 $cards = $viewData['cards'] ?? [];
 $categories = $viewData['categories'] ?? [];
-$filters = $viewData['filters'] ?? ['search' => null, 'categoryIds' => [], 'sort' => 'relevancia'];
+$filters = $viewData['filters'] ?? ['search' => null, 'categoryIds' => [], 'difficulties' => [], 'sort' => 'relevancia'];
 $pagination = $viewData['pagination'] ?? ['page' => 1, 'perPage' => 12, 'total' => count($cards), 'totalPages' => 1, 'hasMore' => false];
 $errorMessage = $viewData['errorMessage'] ?? null;
 
 $pesquisaAtual = (string) ($filters['search'] ?? '');
-$filtrando = ($filters['search'] ?? null) !== null || ($filters['categoryIds'] ?? []) !== [];
+$filtrando = ($filters['search'] ?? null) !== null || ($filters['categoryIds'] ?? []) !== [] || ($filters['difficulties'] ?? []) !== [];
 
 // Mapa id → nome para os chips de filtros ativos.
 $nomePorCategoria = [];
@@ -28,6 +28,10 @@ $catalogoUrl = static function (array $overrides = []) use ($filters): string {
     $cats = array_key_exists('categoryIds', $overrides) ? $overrides['categoryIds'] : ($filters['categoryIds'] ?? []);
     if ($cats !== []) {
         $params['categoriaReceita'] = array_values($cats);
+    }
+    $difs = array_key_exists('difficulties', $overrides) ? $overrides['difficulties'] : ($filters['difficulties'] ?? []);
+    if ($difs !== []) {
+        $params['dificuldade'] = array_values($difs);
     }
     $sort = array_key_exists('sort', $overrides) ? $overrides['sort'] : ($filters['sort'] ?? 'relevancia');
     if ($sort !== 'relevancia') {
@@ -156,6 +160,14 @@ require __DIR__ . '/partials/head.php';
                             <a class="active-filter" href="<?= htmlspecialchars($catalogoUrl(['categoryIds' => array_values(array_diff($filters['categoryIds'], [$catId]))])) ?>">
                                 <?= htmlspecialchars($nomePorCategoria[$catId] ?? ('#' . $catId)) ?> <i class="las la-times" aria-hidden="true"></i>
                                 <span class="visually-hidden">remover categoria</span>
+                            </a>
+                        </li>
+                    <?php endforeach; ?>
+                    <?php foreach (($filters['difficulties'] ?? []) as $dif): ?>
+                        <li>
+                            <a class="active-filter" href="<?= htmlspecialchars($catalogoUrl(['difficulties' => array_values(array_diff($filters['difficulties'], [$dif]))])) ?>">
+                                <?= htmlspecialchars($dif) ?> <i class="las la-times" aria-hidden="true"></i>
+                                <span class="visually-hidden">remover dificuldade</span>
                             </a>
                         </li>
                     <?php endforeach; ?>

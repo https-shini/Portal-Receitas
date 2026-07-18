@@ -148,13 +148,19 @@ CREATE TABLE receita (
     modoPreparo   TEXT           NOT NULL,
     idcategoriaFK INT UNSIGNED   NULL,
     imagem        VARCHAR(30)    NOT NULL,
+    dificuldade    ENUM('Fácil','Médio','Difícil') NULL COMMENT 'Grau de dificuldade exibido no card e na página',
+    tempoCozimento VARCHAR(10)   NULL COMMENT 'Tempo de cozimento, separado do tempo total de preparo',
+    dicas          TEXT          NULL COMMENT 'Dicas/observações opcionais exibidas na página da receita',
 
     CONSTRAINT pk_receita              PRIMARY KEY (idReceita),
     CONSTRAINT uq_receita_nome         UNIQUE (nomeReceita),
     CONSTRAINT uq_receita_link         UNIQUE (link),
     CONSTRAINT ck_receita_porcoes      CHECK (porcoes > 0),
     CONSTRAINT ck_receita_calorias     CHECK (qtdCalorias >= 0),
-    CONSTRAINT ck_receita_ingrediente1 CHECK (ingrediente_1 IS NOT NULL)
+    CONSTRAINT ck_receita_ingrediente1 CHECK (ingrediente_1 IS NOT NULL),
+
+    KEY idx_receita_categoria    (idcategoriaFK),
+    KEY idx_receita_dificuldade  (dificuldade)
 ) ENGINE = InnoDB
   COMMENT = 'Catálogo de receitas do portal';
 
@@ -611,6 +617,28 @@ INSERT INTO `receita` (`idReceita`, `nomeReceita`, `porcoes`, `tempoReceita`, `q
 (34, 'Carne de panela', 5, '50 min', 238.90, '<iframe width=\"735\" height=\"413\" src=\"https://www.youtube-nocookie.com/embed/yBLptTjDU8k\" title=\"Carne de panela — Receitas TudoGostoso\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture\" allowfullscreen></iframe>', '500 g de coxão mole cortado em bifes', '1 cebola ralada', '1 dente de alho amassado', '1/2 xícara chá de óleo', 'sal e pimenta-do-reino a gosto', '1/2 colher (sopa) de tempero em pó sabor umami (opcional)', '1 colher (sopa) de salsinha picada', '500 ml de água quente', '1/2 lata de massa de tomate', '1 pimentão verde picado', '1 tomate sem sementes picado', '1 cenoura pequena picada', 'orégano a gosto', NULL, NULL, '1. Em uma panela de pressão, coloque o óleo junte a cebola, alho e refogue bem.\r\n2. Acrescente a carne frite por 5 minutos mexendo bem, depois coloque o tempero em pó sabor umami (opcional), tomate, pimentão, massa de tomate, cenoura e a seguir acrescente a água orégano.\r\n3. Deixe cozinhar por 30 minutos contando o inicio da fervura, assim que a carne estiver cozida retire do fogo, misture a salsinha e sirva em seguida com arroz branco.', 6, 'carnepanela.png'),
 (35, 'Picadinho de carne', 4, '30 min', 53.00, '<iframe width=\"735\" height=\"413\" src=\"https://www.youtube-nocookie.com/embed/3C517wuWSbA\" title=\"Picadinho de carne — Receitas TudoGostoso\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture\" allowfullscreen></iframe>', '1 kg de patinho em cubos', '4 colheres (sopa) de farinha de trigo', '1 colher (sopa) de óleo', 'sal a gosto', 'pimenta-do-reino a gosto', '1 colher (sopa) de manteiga', '1/2 cebola ralada', '1 dente de alho picado', '1/4 de xícara de vinho tinto', '1/2 lata de tomate', '3 xícaras de água', NULL, NULL, NULL, NULL, '1. Em um recipiente, misture a carne com a farinha de trigo.\r\n2. Em uma panela, aqueça o óleo, acrescente a carne, tempere com sal e pimenta-do-reino e deixe dourar.\r\n3. Retire a carne da panela e reserve.\r\n4. Na mesma panela, adicione a manteiga e refogue a cebola e o alho.\r\n5. Acrescente o vinho tinto e deixe reduzir um pouco.\r\n6. Volte a carne para a panela e misture bem.\r\n7. Adicione o tomate e a água.\r\n8. Tempere com sal a pimenta-do-reino e deixe cozinhar.', 6, 'picadinhocarne.png'),
 (36, 'Rocambole de carne', 8, '15 min', 204.86, '<iframe width=\"735\" height=\"413\" src=\"https://www.youtube-nocookie.com/embed/NmICuanRLck\" title=\"Rocambole de carne moída — Receitas TudoGostoso\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture\" allowfullscreen></iframe>', '1/2 kg de carne moída', '1 pacote de sopa de cebola', 'presunto fatiado', 'queijo fatiado', 'tempero verde', 'sal a gosto', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '1. Tempere a carne moída com a sopa de cebola, o tempero verde e o sal.\r\n2. Coloque a carne temperada sobre uma folha de papel laminado ou papel manteiga e abra a massa com um rolo, na espessura de 1 cm, mais ou menos.\r\n3. Forre a carne com o presunto e o queijo, pode-se colocar também milho verde, ervilha e requeijão.\r\n4. Enrole a carne, com ajuda da folha de papel laminado ou manteiga, em forma de rocambole.\r\n5. Leve ao forno, em temperatura alta, por mais ou menos 30 minutos, ou no microondas por 15 minutos.\r\n6. Bom apetite!', 6, 'rocambole.png');
+
+-- ── 13.2.1 · Backfill de dificuldade, tempo de cozimento e dicas ─────────────
+--  Núcleo de campos do catálogo marketplace preenchido de forma derivada:
+--  dificuldade e tempo de cozimento a partir do tempo de preparo; dicas por
+--  categoria. Roda no seed (reseed recria o banco do zero).
+UPDATE receita SET
+    dificuldade = CASE
+        WHEN CAST(tempoReceita AS UNSIGNED) <= 20 THEN 'Fácil'
+        WHEN CAST(tempoReceita AS UNSIGNED) <= 40 THEN 'Médio'
+        ELSE 'Difícil'
+    END,
+    tempoCozimento = CONCAT(GREATEST(10, FLOOR(CAST(tempoReceita AS UNSIGNED) / 2)), ' min'),
+    dicas = CASE idcategoriaFK
+        WHEN 1 THEN 'Não cozinhe demais os frutos do mar para não ressecar; finalize com um toque de limão.'
+        WHEN 2 THEN 'Reserve um pouco da água do cozimento da massa para ajustar a cremosidade do molho.'
+        WHEN 3 THEN 'Prefira ingredientes frescos e da estação para realçar o sabor do prato.'
+        WHEN 4 THEN 'Sirva quente para manter a crocância; escorra bem o excesso de óleo após fritar.'
+        WHEN 5 THEN 'Use os ingredientes em temperatura ambiente para uma massa mais homogênea.'
+        WHEN 6 THEN 'Deixe a carne descansar alguns minutos antes de servir para manter a suculência.'
+        ELSE 'Ajuste o sal e os temperos a gosto e prefira ingredientes frescos.'
+    END;
+
 
 -- ── 13.3 · Usuários de demonstração ─────────────────────────────────────────
 --  Senhas armazenadas como hash bcrypt (compatíveis com password_verify):

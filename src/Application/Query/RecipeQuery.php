@@ -15,14 +15,19 @@ final class RecipeQuery
     /** Chaves de ordenação aceitas (traduzidas para SQL no repositório). */
     public const SORTS = ['relevancia', 'nome', 'tempo'];
 
+    /** Níveis de dificuldade aceitos (espelham o ENUM da coluna). */
+    public const DIFFICULTIES = ['Fácil', 'Médio', 'Difícil'];
+
     public const PER_PAGE = 12;
 
     /**
-     * @param list<int> $categoryIds
+     * @param list<int>    $categoryIds
+     * @param list<string> $difficulties
      */
     public function __construct(
         public readonly ?string $search = null,
         public readonly array $categoryIds = [],
+        public readonly array $difficulties = [],
         public readonly string $sort = 'relevancia',
         public readonly int $page = 1,
         public readonly int $perPage = self::PER_PAGE,
@@ -52,6 +57,18 @@ final class RecipeQuery
             }
         }
 
+        $rawDifs = $query['dificuldade'] ?? [];
+        if (!is_array($rawDifs)) {
+            $rawDifs = [$rawDifs];
+        }
+        $difficulties = [];
+        foreach ($rawDifs as $value) {
+            $value = (string) $value;
+            if (in_array($value, self::DIFFICULTIES, true) && !in_array($value, $difficulties, true)) {
+                $difficulties[] = $value;
+            }
+        }
+
         $sort = (string) ($query['ordenar'] ?? 'relevancia');
         if (!in_array($sort, self::SORTS, true)) {
             $sort = 'relevancia';
@@ -59,12 +76,12 @@ final class RecipeQuery
 
         $page = max(1, (int) ($query['pagina'] ?? 1));
 
-        return new self($search, $categoryIds, $sort, $page);
+        return new self($search, $categoryIds, $difficulties, $sort, $page);
     }
 
-    /** Há algum filtro (busca ou categoria) ativo? */
+    /** Há algum filtro (busca, categoria ou dificuldade) ativo? */
     public function hasFilters(): bool
     {
-        return $this->search !== null || $this->categoryIds !== [];
+        return $this->search !== null || $this->categoryIds !== [] || $this->difficulties !== [];
     }
 }
