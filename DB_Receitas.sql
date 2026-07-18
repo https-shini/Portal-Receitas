@@ -181,6 +181,20 @@ CREATE TABLE auditoria_usuario (
 ) ENGINE = InnoDB
   COMMENT = 'Auditoria de INSERT/UPDATE/DELETE na tabela usuario (via triggers)';
 
+-- ── 5.5 · favorito ──────────────────────────────────────────────────────────
+--  Receitas favoritadas por usuário autenticado (recurso do catálogo). Chave
+--  composta impede duplicidade; a PK já indexa idUsuario (prefixo) para listar
+--  as favoritas de um usuário. FKs em cascata: apagar a conta ou a receita
+--  remove os favoritos correspondentes.
+CREATE TABLE favorito (
+    idUsuario INT UNSIGNED NOT NULL,
+    idReceita INT UNSIGNED NOT NULL,
+    criadoEm  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT pk_favorito PRIMARY KEY (idUsuario, idReceita)
+) ENGINE = InnoDB
+  COMMENT = 'Receitas favoritadas por usuário';
+
 
 -- ═══════════════════════════════════════════════════════════════════════════
 --  6. CONSTRAINTS DE INTEGRIDADE REFERENCIAL
@@ -202,6 +216,18 @@ ALTER TABLE receita
     ADD CONSTRAINT fk_receita_categoria
         FOREIGN KEY (idcategoriaFK) REFERENCES categoria (idCategoria)
         ON DELETE SET NULL
+        ON UPDATE CASCADE;
+
+-- favorito → usuario / receita. ON DELETE CASCADE: apagar a conta ou a receita
+-- limpa os favoritos ligados a ela.
+ALTER TABLE favorito
+    ADD CONSTRAINT fk_favorito_usuario
+        FOREIGN KEY (idUsuario) REFERENCES usuario (idUsuario)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    ADD CONSTRAINT fk_favorito_receita
+        FOREIGN KEY (idReceita) REFERENCES receita (idReceita)
+        ON DELETE CASCADE
         ON UPDATE CASCADE;
 
 
@@ -757,6 +783,8 @@ GRANT SELECT ON tcc_receitas.* TO papel_leitura;
 GRANT SELECT                 ON tcc_receitas.categoria TO papel_aplicacao;
 GRANT SELECT                 ON tcc_receitas.receita   TO papel_aplicacao;
 GRANT SELECT, INSERT, UPDATE ON tcc_receitas.usuario   TO papel_aplicacao;
+-- Favoritos: a aplicação escreve apenas nesta tabela (menor privilégio).
+GRANT SELECT, INSERT, DELETE ON tcc_receitas.favorito  TO papel_aplicacao;
 
 -- Exemplo de REVOKE: um privilégio concedido além do necessário é retirado
 GRANT DELETE ON tcc_receitas.usuario TO papel_aplicacao;

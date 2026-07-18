@@ -74,6 +74,13 @@
 
 .recipe__actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 
+/* Favoritar: coração vazado → preenchido (vermelho) quando ativo. */
+.js-favorito .la-heart { color: #e0245e; }
+.js-favorito.is-active {
+    background: var(--color-primary-soft);
+    color: var(--color-primary-strong);
+}
+
 /* ── Corpo: vídeo/dicas + ingredientes/preparo ──────────────────── */
 .recipe__grid {
     display: grid;

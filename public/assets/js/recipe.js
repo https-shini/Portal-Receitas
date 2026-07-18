@@ -57,8 +57,46 @@
         setTimeout(() => { botao.innerHTML = original; }, 1800);
     }
 
+    /* ── Favoritar (usuário autenticado) ─────────────────────────── */
+    function initFavorite() {
+        const btn = document.querySelector(".js-favorito");
+        if (!btn) return;
+
+        btn.addEventListener("click", async () => {
+            btn.disabled = true;
+            try {
+                const res = await fetch("./api/favorites.php", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ idReceita: Number(btn.dataset.id), _csrf: btn.dataset.csrf }),
+                });
+
+                if (res.status === 401) { window.location.href = "login.php?erro=1"; return; }
+
+                const data = await res.json();
+                if (res.ok) {
+                    setState(btn, !!data.favorited);
+                }
+            } catch (e) {
+                /* falha de rede: mantém o estado atual */
+            } finally {
+                btn.disabled = false;
+            }
+        });
+    }
+
+    function setState(btn, favorited) {
+        btn.classList.toggle("is-active", favorited);
+        btn.setAttribute("aria-pressed", favorited ? "true" : "false");
+        const icon = btn.querySelector("i");
+        if (icon) icon.className = favorited ? "las la-heart" : "lar la-heart";
+        const label = btn.querySelector(".js-favorito-label");
+        if (label) label.textContent = favorited ? "Favoritada" : "Favoritar";
+    }
+
     window.addEventListener("DOMContentLoaded", () => {
         initVideoConsent();
         initShare();
+        initFavorite();
     });
 })();

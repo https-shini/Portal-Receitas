@@ -38,4 +38,13 @@ if ($viewData === null) {
     exit;
 }
 
+// Estado de favorito e token CSRF só interessam ao usuário autenticado
+// (o botão de favoritar aparece apenas para quem está logado).
+$isFavorite = false;
+$csrfToken = '';
+if ($isLogged) {
+    $isFavorite = $services['favoriteController']->isFavorite($id);
+    $csrfToken = $services['sessionManager']->csrfToken();
+}
+
 require __DIR__ . '/../src/Presentation/View/recipe.php';

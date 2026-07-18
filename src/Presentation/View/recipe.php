@@ -100,6 +100,19 @@ require __DIR__ . '/partials/head.php';
                     </p>
 
                     <div class="recipe__actions">
+                        <?php if ($isLogged): ?>
+                            <button type="button" class="btn btn--soft js-favorito<?= !empty($isFavorite) ? ' is-active' : '' ?>"
+                                    data-id="<?= (int) $recipe['id'] ?>"
+                                    data-csrf="<?= htmlspecialchars((string) ($csrfToken ?? '')) ?>"
+                                    aria-pressed="<?= !empty($isFavorite) ? 'true' : 'false' ?>">
+                                <i class="<?= !empty($isFavorite) ? 'las la-heart' : 'lar la-heart' ?>" aria-hidden="true"></i>
+                                <span class="js-favorito-label"><?= !empty($isFavorite) ? 'Favoritada' : 'Favoritar' ?></span>
+                            </button>
+                        <?php else: ?>
+                            <a class="btn btn--soft" href="login.php?erro=1">
+                                <i class="lar la-heart" aria-hidden="true"></i> Favoritar
+                            </a>
+                        <?php endif; ?>
                         <button type="button" class="btn btn--soft js-compartilhar"
                                 data-title="<?= htmlspecialchars((string) $recipe['name']) ?>">
                             <i class="las la-share-alt" aria-hidden="true"></i> Compartilhar

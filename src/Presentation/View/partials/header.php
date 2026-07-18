@@ -42,6 +42,9 @@ $paginaAtual = basename($_SERVER['SCRIPT_NAME'] ?? '');
                         <span class="btn btn--ghost btn--icon" aria-hidden="true"><i class="las la-user"></i></span>
                     </summary>
                     <nav class="user-menu__panel" aria-label="Menu do usuário">
+                        <a class="user-menu__item" href="favoritas.php">
+                            <i class="las la-heart" aria-hidden="true"></i> Minhas favoritas
+                        </a>
                         <a class="user-menu__item" href="profile.php">
                             <i class="las la-user-cog" aria-hidden="true"></i> Meu perfil
                         </a>
