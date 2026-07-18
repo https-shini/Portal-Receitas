@@ -1,5 +1,17 @@
 # CHANGELOG — Consolidação das branches
 
+## [3.0.0] — 2026-07-18
+
+Refatoração da home em experiência de **marketplace** (plano em `docs/plano-refatoracao-marketplace.md`), implementada em etapas E1–E7, cada uma em um commit:
+
+- **Rotas amigáveis (E1):** `mod_rewrite` + `AllowOverride All` nos Dockerfiles e `public/.htaccess` reescrevendo `/receita/{id}/{slug}` → `receita.php` e `/receitas` → `index.php`; página 404 navegável (`not-found.php`); `<base href="/">` global.
+- **Leitura por id + categorias data-driven (E2):** `RecipeRepository::findById/findRelated` e nome da categoria por JOIN; `CategoryRepository` lê a tabela `categoria` (coluna `icone` Line Awesome, seed em Title Case + categorias de referência); fim dos rótulos fixos em código; `RecipeViewMapper` como fonte única do mapeamento.
+- **Página individual de receita (E3):** `View/recipe.php` (layout único reutilizável: breadcrumb, hero, selos, ingredientes, preparo, vídeo com consentimento LGPD, relacionadas, compartilhar) com JSON-LD `Recipe` e canonical; **modal removido**; card extraído para `partials/recipe-card.php` e transformado em link.
+- **Catálogo facetado + paginação (E4):** botão "Filtros" + painel (categorias múltiplas com contagem, dificuldade, ordenação por whitelist), chips de filtros ativos removíveis, paginação numerada (sem JS) com "Carregar mais" (progressive enhancement); `RecipeQuery` + `search()/count()` paginados.
+- **Dificuldade, tempo de cozimento e dicas (E5):** novas colunas em `receita` (backfill das 36 receitas no seed) exibidas no card e na página; filtro por dificuldade.
+- **Favoritos (E6):** tabela `favorito` (menor privilégio no DCL), API `POST /api/favorites.php` (sessão + CSRF + rate limit), botão de favoritar na receita e página protegida `/favoritas`.
+- **Qualidade (E7):** 15 novos testes PHPUnit (mapper, query, catálogo, receita, favoritos, categorias — 39 no total) com fakes em memória; **sitemap dinâmico** (`sitemap.php`, uma URL por receita) servido em `/sitemap.xml`.
+
 ## [2.4.0] — 2026-07-18
 
 Melhorias do guia técnico (`docs/GUIA-DE-MELHORIAS.md`) e refatoração final de header/footer, sem regressões (24 testes verdes):

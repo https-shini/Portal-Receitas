@@ -22,18 +22,20 @@
 
 O que o site faz hoje, exatamente como está no código:
 
-- **Catálogo de receitas** em cards com foto, tempo de preparo e categoria.
-- **Detalhe de cada receita** com vídeo do YouTube incorporado (iframe), lista de até 15 ingredientes, porções, calorias e modo de preparo dividido em passos.
+- **Catálogo estilo marketplace** em cards (foto, categoria, tempo de preparo, dificuldade), com **filtros facetados** (categorias múltiplas + dificuldade), **ordenação** e **paginação** ("Carregar mais").
+- **Página individual de receita** em rota própria (`/receita/{id}/{slug}`) — layout único reutilizável com galeria/hero, selos (categoria, tempos, porções, dificuldade, calorias), ingredientes, modo de preparo, dicas, **receitas relacionadas**, compartilhamento e vídeo do YouTube com **consentimento por clique** (LGPD).
 - **Busca por ingrediente**: o termo é comparado (`LIKE`) contra as 15 colunas de ingredientes de cada receita.
-- **Filtro por categoria**, com seis categorias fixas: Frutos do Mar, Massas, Veganas, Salgados, Doces e Carnes.
-- **Cadastro e login de usuários** com senha protegida por `password_hash`/`password_verify` (bcrypt, `PASSWORD_DEFAULT`) — tela unificada com painel deslizante, medidor de força de senha e validação no servidor (mín. 8 caracteres com letra e número), UX inspirada no [AuthService](https://github.com/https-shini/AuthService), com API JSON própria (`/api/login.php`, `/api/register.php`, `/api/me.php`, `/api/logout.php`).
+- **Categorias controladas por dados** (tabela `categoria`, com ícone) — novas categorias entram sem alterar o código da interface.
+- **Favoritos** para usuários autenticados: botão na página da receita (API `POST /api/favorites.php`, sessão + CSRF + rate limit) e página **Minhas favoritas** (`/favoritas`).
+- **Cadastro e login de usuários** com senha protegida por `password_hash`/`password_verify` (bcrypt, `PASSWORD_DEFAULT`) — validação no servidor (mín. 8 caracteres com letra e número), UX inspirada no [AuthService](https://github.com/https-shini/AuthService), com API JSON própria (`/api/login.php`, `/api/register.php`, `/api/me.php`, `/api/logout.php`).
 - **Perfil do usuário** com edição de nome, e-mail e senha, protegido por guard de sessão.
+- **SEO**: JSON-LD `Recipe` por página, canonical e **sitemap dinâmico** (`/sitemap.xml`, uma URL por receita).
 - **Logout** com encerramento de sessão.
 - **Resiliência de deploy**: página amigável de indisponibilidade (HTTP 503) quando o banco está fora, e endpoint `healthz.php` (HTTP 200, sem tocar o banco) para health check das plataformas.
 
 ### 🗺️ Roadmap (ainda não implementado)
 
-Ideias da concepção original do TCC que **não existem** no código atual e ficam como evolução futura: engine de recomendação por preferências, calculadora de calorias em tempo real por porção, sistema de favoritos e avaliações, e camada de comunidade entre usuários.
+Ideias que **não existem** no código atual e ficam como evolução futura (fase 2): avaliação por estrelas dos usuários, galeria de imagens por receita e nutrição detalhada, engine de recomendação por preferências, calculadora de calorias em tempo real por porção, e camada de comunidade entre usuários.
 
 ---
 

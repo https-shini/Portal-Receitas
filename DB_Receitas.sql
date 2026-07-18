@@ -157,10 +157,7 @@ CREATE TABLE receita (
     CONSTRAINT uq_receita_link         UNIQUE (link),
     CONSTRAINT ck_receita_porcoes      CHECK (porcoes > 0),
     CONSTRAINT ck_receita_calorias     CHECK (qtdCalorias >= 0),
-    CONSTRAINT ck_receita_ingrediente1 CHECK (ingrediente_1 IS NOT NULL),
-
-    KEY idx_receita_categoria    (idcategoriaFK),
-    KEY idx_receita_dificuldade  (dificuldade)
+    CONSTRAINT ck_receita_ingrediente1 CHECK (ingrediente_1 IS NOT NULL)
 ) ENGINE = InnoDB
   COMMENT = 'Catálogo de receitas do portal';
 
@@ -242,6 +239,7 @@ ALTER TABLE favorito
 --    grandes — exemplo de uso na seção 14.7.
 
 CREATE INDEX idx_receita_categoria ON receita (idcategoriaFK);
+CREATE INDEX idx_receita_dificuldade ON receita (dificuldade);
 CREATE INDEX idx_usuario_categoria ON usuario (idCategoriaFK);
 CREATE INDEX idx_auditoria_usuario_evento ON auditoria_usuario (idUsuario, dataEvento);
 
@@ -648,13 +646,16 @@ INSERT INTO `receita` (`idReceita`, `nomeReceita`, `porcoes`, `tempoReceita`, `q
 --  Núcleo de campos do catálogo marketplace preenchido de forma derivada:
 --  dificuldade e tempo de cozimento a partir do tempo de preparo; dicas por
 --  categoria. Roda no seed (reseed recria o banco do zero).
+-- REGEXP_REPLACE isola os dígitos de tempoReceita ('15 min' → '15') antes do
+-- CAST: sob sql_mode estrito (MariaDB), converter a string direto abortaria a
+-- UPDATE por "Truncated incorrect INTEGER value".
 UPDATE receita SET
     dificuldade = CASE
-        WHEN CAST(tempoReceita AS UNSIGNED) <= 20 THEN 'Fácil'
-        WHEN CAST(tempoReceita AS UNSIGNED) <= 40 THEN 'Médio'
+        WHEN CAST(REGEXP_REPLACE(tempoReceita, '[^0-9]', '') AS UNSIGNED) <= 20 THEN 'Fácil'
+        WHEN CAST(REGEXP_REPLACE(tempoReceita, '[^0-9]', '') AS UNSIGNED) <= 40 THEN 'Médio'
         ELSE 'Difícil'
     END,
-    tempoCozimento = CONCAT(GREATEST(10, FLOOR(CAST(tempoReceita AS UNSIGNED) / 2)), ' min'),
+    tempoCozimento = CONCAT(GREATEST(10, FLOOR(CAST(REGEXP_REPLACE(tempoReceita, '[^0-9]', '') AS UNSIGNED) / 2)), ' min'),
     dicas = CASE idcategoriaFK
         WHEN 1 THEN 'Não cozinhe demais os frutos do mar para não ressecar; finalize com um toque de limão.'
         WHEN 2 THEN 'Reserve um pouco da água do cozimento da massa para ajustar a cremosidade do molho.'

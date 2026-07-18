@@ -42,6 +42,21 @@ class RecipeController
     }
 
     /**
+     * Todas as receitas (id + nome) para o sitemap dinâmico.
+     *
+     * @return list<array{id: int, name: string}>
+     */
+    public function sitemapEntries(): array
+    {
+        $result = $this->findRecipesUseCase->execute(new RecipeQuery(perPage: 1000));
+
+        return array_map(
+            static fn (array $card): array => ['id' => (int) $card['id'], 'name' => (string) $card['name']],
+            $result['cards'],
+        );
+    }
+
+    /**
      * Monta os dados do catálogo a partir da query string (busca facetada).
      *
      * Parâmetros reconhecidos: 'pesquisa' (termo), 'categoriaReceita' (id ou
