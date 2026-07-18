@@ -1,6 +1,6 @@
 # Runbook de Resposta a Incidentes de Segurança/Privacidade (LGPD, art. 48)
 
-**Versão:** 1.0 (15/07/2026) · **Responsável:** Guilherme Cruz · guilhermedesouzacruz80@gmail.com
+**Versão:** 1.0 (15/07/2026) · **Responsável:** Guilherme Cruz · receitasdelicia498@gmail.com
 
 **1. Detecção** — sinais: healthcheck falhando, pico de 401/429 nos logs (`docker compose logs web | grep "\[auth\]"`), alerta da plataforma, relato de usuário.
 **2. Contenção (primeira hora)** — se comprometimento de credenciais/infra: colocar o serviço em manutenção (suspender na Render), revogar/trocar segredos (`DB_PASS`, contas do banco), preservar logs (exportar antes de reiniciar).

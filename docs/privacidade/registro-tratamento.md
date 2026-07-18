@@ -1,6 +1,6 @@
 # Registro das Operações de Tratamento (LGPD, art. 37)
 
-**Controlador/Responsável:** Guilherme Cruz · guilhermedesouzacruz80@gmail.com
+**Controlador/Responsável:** Guilherme Cruz · receitasdelicia498@gmail.com
 **Sistema:** Portal Receitas · HomeMadeGourmet · **Versão do registro:** 1.0 (15/07/2026)
 
 | # | Operação | Dados | Titulares | Finalidade | Base legal | Retenção | Compartilhamento |

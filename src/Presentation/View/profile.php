@@ -11,7 +11,7 @@ $csrf = $viewData['csrf'] ?? '';
 <?php
 $pageTitle = 'Meu perfil · HomeMadeGourmet';
 $pageDescription = 'Gerencie seus dados no HomeMadeGourmet: nome, e-mail e senha.';
-$pageCss = ['pages/home.css', 'pages/profile.css'];
+$pageCss = ['pages/profile.css'];
 $robotsNoindex = true;
 require __DIR__ . '/partials/head.php';
 ?>

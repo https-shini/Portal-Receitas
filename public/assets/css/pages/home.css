@@ -3,87 +3,6 @@
    Mobile-first · usa tokens/base/components do Design System
    ════════════════════════════════════════════════════════════════ */
 
-/* ── Header fixo (glass) ────────────────────────────────────────── */
-.site-header {
-    position: sticky;
-    top: 0;
-    z-index: var(--layer-nav);
-    padding: var(--space-2) 0;
-    background: var(--glass-bg);
-    -webkit-backdrop-filter: var(--glass-blur);
-    backdrop-filter: var(--glass-blur);
-    border-bottom: 1px solid var(--glass-border);
-}
-
-.site-header__row {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-}
-
-.brand {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
-    text-decoration: none;
-    color: var(--color-text-primary);
-}
-
-.brand img { width: 2.25rem; height: 2.25rem; border-radius: var(--radius-sm); }
-
-.brand__name {
-    font-family: var(--font-display);
-    font-weight: var(--weight-bold);
-    font-size: var(--text-lg);
-    letter-spacing: -0.01em;
-    white-space: nowrap;
-}
-
-/* ── Menu do usuário (details nativo) ───────────────────────────── */
-.user-menu { position: relative; margin-left: auto; }
-
-.user-menu summary {
-    list-style: none;
-    cursor: pointer;
-    display: inline-flex;
-}
-
-.user-menu summary::-webkit-details-marker { display: none; }
-
-.user-menu[open] > summary .btn--icon { background: var(--color-hover); }
-
-.user-menu__panel {
-    position: absolute;
-    right: 0;
-    top: calc(100% + var(--space-2));
-    min-width: 14rem;
-    padding: var(--space-2);
-    display: grid;
-    gap: var(--space-1);
-    background: var(--color-surface-overlay);
-    -webkit-backdrop-filter: var(--glass-blur);
-    backdrop-filter: var(--glass-blur);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-3);
-    animation: fade-up var(--dur-fast) var(--ease-out);
-}
-
-.user-menu__item {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    padding: var(--space-2) var(--space-3);
-    border-radius: var(--radius-md);
-    text-decoration: none;
-    color: var(--color-text-primary);
-    font-size: var(--text-sm);
-    font-weight: var(--weight-medium);
-}
-
-.user-menu__item:hover { background: var(--color-hover); color: var(--color-text-primary); }
-.user-menu__item .las { font-size: 1.15rem; color: var(--color-text-muted); }
-
 /* ── Hero de busca ──────────────────────────────────────────────── */
 .search-hero {
     padding: var(--space-6) 0 var(--space-5);
@@ -265,15 +184,6 @@
 /* ── Skeletons da busca ─────────────────────────────────────────── */
 .skeleton-card { height: 17rem; }
 
-/* ── Rodapé ─────────────────────────────────────────────────────── */
-.site-footer {
-    padding: var(--space-6) 0;
-    border-top: 1px solid var(--color-border);
-    color: var(--color-text-muted);
-    font-size: var(--text-sm);
-    text-align: center;
-}
-
 /* ── Consentimento antes de carregar o vídeo (LGPD/terceiros) ───── */
 .video-consent {
     display: grid;
@@ -296,52 +206,4 @@
 .video-consent__box p { font-size: var(--text-xs); max-width: 30rem; }
 .video-consent__box a { color: #FDBA74; }
 
-/* ── Navegação do header (link Receitas) ────────────────────────── */
-.site-nav {
-    display: none;
-    margin-left: var(--space-2);
-}
 
-.site-nav__link {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-1);
-    padding: var(--space-2) var(--space-3);
-    border-radius: var(--radius-md);
-    text-decoration: none;
-    color: var(--color-text-secondary);
-    font-size: var(--text-sm);
-    font-weight: var(--weight-medium);
-}
-
-.site-nav__link:hover { background: var(--color-hover); color: var(--color-text-primary); }
-
-.site-header__row .btn--soft,
-.site-header__row .js-theme-toggle { margin-left: var(--space-1); }
-
-.site-header__row > .brand { margin-right: auto; }
-
-@media (min-width: 40rem) {
-    .site-nav { display: block; }
-    .site-header__row > .brand { margin-right: 0; }
-    .site-nav { margin-right: auto; }
-}
-
-/* ── Rodapé: layout com links ───────────────────────────────────── */
-.site-footer__inner {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--space-2);
-    text-align: center;
-}
-
-.site-footer__links {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: var(--space-2);
-}
-
-.site-footer__links a { color: var(--color-text-secondary); text-decoration: none; }
-.site-footer__links a:hover { color: var(--color-primary); text-decoration: underline; }

@@ -13,7 +13,7 @@ $atualizadoEm = '15/07/2026';
 <?php
 $pageTitle = 'Termos de Uso · HomeMadeGourmet';
 $pageDescription = 'Condições de uso do portal de receitas HomeMadeGourmet.';
-$pageCss = ['pages/home.css', 'pages/legal.css'];
+$pageCss = ['pages/legal.css'];
 require __DIR__ . '/partials/head.php';
 ?>
 </head>
@@ -57,7 +57,7 @@ require __DIR__ . '/partials/head.php';
 
             <section aria-labelledby="tu-contato">
                 <h2 id="tu-contato">7. Contato</h2>
-                <p>Dúvidas sobre estes Termos: <a href="mailto:guilhermedesouzacruz80@gmail.com">guilhermedesouzacruz80@gmail.com</a>.</p>
+                <p>Dúvidas sobre estes Termos: <a href="mailto:receitasdelicia498@gmail.com">receitasdelicia498@gmail.com</a>.</p>
             </section>
         </article>
     </main>

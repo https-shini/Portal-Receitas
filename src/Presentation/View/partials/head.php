@@ -34,6 +34,7 @@ $extraHead = $extraHead ?? '';
     <link rel="stylesheet" href="./assets/css/tokens.css">
     <link rel="stylesheet" href="./assets/css/base.css">
     <link rel="stylesheet" href="./assets/css/components.css">
+    <link rel="stylesheet" href="./assets/css/layout.css">
     <?php foreach ($pageCss as $css): ?>
     <link rel="stylesheet" href="./assets/css/<?= htmlspecialchars($css) ?>">
     <?php endforeach; ?>

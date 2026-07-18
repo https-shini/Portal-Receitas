@@ -41,6 +41,9 @@ jobs:
           composer validate --strict
           composer install --no-interaction --prefer-dist
 
+      - name: Auditoria de vulnerabilidades (composer audit)
+        run: composer audit
+
       - name: PHPUnit
         run: vendor/bin/phpunit
 

@@ -1,5 +1,18 @@
 # CHANGELOG — Consolidação das branches
 
+## [2.4.0] — 2026-07-18
+
+Melhorias do guia técnico (`docs/GUIA-DE-MELHORIAS.md`) e refatoração final de header/footer, sem regressões (24 testes verdes):
+
+- **Header/Footer em camada global própria:** estilos movidos de `pages/home.css` para `public/assets/css/layout.css` (carregado em todas as páginas via `head.php`) e comportamento em `public/assets/js/header.js` (incluído no `footer.php`, ativo em toda página) — antes o JS do menu do usuário só rodava na home. Header ganha estado de rolagem (`.is-scrolled`) e o menu do usuário fecha ao clicar fora/Esc em qualquer página.
+- **Rodapé reformulado:** três colunas (marca + tagline · navegação com ícones · contato com CTA "Fale conosco", e-mail e localização), divisor em gradiente e barra inferior com copyright dinâmico.
+- **SEO — dados estruturados `Recipe` (JSON-LD):** `index.php` emite um `ItemList` de `Recipe` com os campos já visíveis no card (nome, imagem, categoria); barra de escape de `/` para evitar quebra da tag.
+- **Cache-Control de assets estáticos** (`docker/security-headers.conf`): 1h para CSS/JS, 30 dias `immutable` para imagens/fontes/ícones — só `mod_headers`, sem tocar nos Dockerfiles.
+- **`composer audit` no CI** (`.github/workflows/ci.yml`): falha o build diante de dependência com vulnerabilidade conhecida.
+- **Contato oficial do projeto** atualizado para `receitasdelicia498@gmail.com` nos documentos públicos (privacidade, termos, registro de tratamento, runbook) e no rodapé.
+- `pages/home.css` removido dos `pageCss` de auth/perfil/privacidade/termos (o layout global já vem de `layout.css`).
+- `docs/GUIA-DE-MELHORIAS.md`: guia técnico priorizado (o que já está pronto, alta/média/contínua) para a evolução do projeto.
+
 ## [2.3.0] — 2026-07-17
 
 Refatoração das telas de Login e Cadastro e do layout global, sem regressões (24 testes verdes):

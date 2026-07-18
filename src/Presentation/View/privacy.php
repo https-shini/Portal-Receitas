@@ -13,7 +13,7 @@ $atualizadoEm = '15/07/2026';
 <?php
 $pageTitle = 'Política de Privacidade · HomeMadeGourmet';
 $pageDescription = 'Como o HomeMadeGourmet coleta, usa, protege e elimina seus dados pessoais, em conformidade com a LGPD.';
-$pageCss = ['pages/home.css', 'pages/legal.css'];
+$pageCss = ['pages/legal.css'];
 require __DIR__ . '/partials/head.php';
 ?>
 </head>
@@ -27,7 +27,7 @@ require __DIR__ . '/partials/head.php';
 
             <section aria-labelledby="pp-quem">
                 <h2 id="pp-quem">1. Quem somos e como falar conosco</h2>
-                <p>O <strong>HomeMadeGourmet</strong> é um portal de receitas de caráter acadêmico (TCC — ETEC de Vila Formosa). O responsável pelo tratamento de dados e canal de contato do titular é: <strong>Guilherme Cruz</strong> — <a href="mailto:guilhermedesouzacruz80@gmail.com">guilhermedesouzacruz80@gmail.com</a>. Solicitações de titulares são respondidas em até 15 dias.</p>
+                <p>O <strong>HomeMadeGourmet</strong> é um portal de receitas de caráter acadêmico (TCC — ETEC de Vila Formosa). O responsável pelo tratamento de dados e canal de contato do titular é: <strong>Guilherme Cruz</strong> — <a href="mailto:receitasdelicia498@gmail.com">receitasdelicia498@gmail.com</a>. Solicitações de titulares são respondidas em até 15 dias.</p>
             </section>
 
             <section aria-labelledby="pp-dados">

@@ -24,7 +24,7 @@ $categorias = [
 
 $pageTitle = ($isRegister ? 'Cadastro' : 'Login') . ' · HomeMadeGourmet';
 $pageDescription = 'Acesse o HomeMadeGourmet para gerenciar seu perfil e recursos personalizados. As receitas são públicas.';
-$pageCss = ['pages/home.css', 'pages/auth.css'];
+$pageCss = ['pages/auth.css'];
 $robotsNoindex = true;
 $isLogged = false;
 $showLoginCta = false;

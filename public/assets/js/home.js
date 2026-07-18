@@ -1,8 +1,10 @@
 /* ════════════════════════════════════════════════════════════════
    home.js — Página inicial · HomeMadeGourmet DS
    Modal de receita acessível (foco gerenciado, Esc, backdrop),
-   conteúdo clonado de <template> (iframes só carregam ao abrir),
-   skeleton de feedback ao buscar e fechamento do menu do usuário.
+   conteúdo clonado de <template> (iframes só carregam ao abrir)
+   e skeleton de feedback ao buscar.
+   (Comportamento do header/menu do usuário está em assets/js/header.js,
+   carregado globalmente via partials/footer.php.)
    ════════════════════════════════════════════════════════════════ */
 
 "use strict";
@@ -92,23 +94,9 @@ const HomePage = (() => {
         });
     }
 
-    /* ── Menu do usuário: fecha ao clicar fora / Esc ─────────────── */
-
-    function _initUserMenu() {
-        const menu = document.getElementById("userMenu");
-        if (!menu) return;
-        document.addEventListener("click", (e) => {
-            if (menu.open && !menu.contains(e.target)) menu.open = false;
-        });
-        document.addEventListener("keydown", (e) => {
-            if (e.key === "Escape" && menu.open) menu.open = false;
-        });
-    }
-
     function init() {
         _initModal();
         _initSearchFeedback();
-        _initUserMenu();
     }
 
     return { init };

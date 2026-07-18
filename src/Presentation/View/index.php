@@ -27,6 +27,37 @@ $prepararEmbed = static function (string $html): string {
 
     return str_ireplace('<iframe ', '<iframe loading="lazy" ', $html);
 };
+
+/*
+ * Dados estruturados (schema.org/Recipe) das receitas exibidas nesta
+ * página, para rich results de busca (SEO). Usa só os campos já
+ * renderizados no card (nome, imagem, categoria) — nunca o conteúdo do
+ * modal (ingredientes/preparo), que só existe no DOM após interação do
+ * usuário e não deve ser descrito como visível para o buscador.
+ */
+$recipesJsonLd = '';
+if (!empty($cards)) {
+    $itensLista = [];
+    foreach ($cards as $i => $recipe) {
+        $itensLista[] = [
+            '@type' => 'ListItem',
+            'position' => $i + 1,
+            'item' => [
+                '@type' => 'Recipe',
+                'name' => $recipe['name'],
+                'image' => './assets/img/' . $recipe['image'],
+                'recipeCategory' => $recipe['category'],
+            ],
+        ];
+    }
+    // Sem JSON_UNESCAPED_SLASHES de propósito: "/" escapado evita que um
+    // nome de receita com "</script>" quebre para fora da tag.
+    $recipesJsonLd = json_encode([
+        '@context' => 'https://schema.org',
+        '@type' => 'ItemList',
+        'itemListElement' => $itensLista,
+    ], JSON_UNESCAPED_UNICODE);
+}
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -47,6 +78,9 @@ $extraHead = <<<'HTML'
     {"@context":"https://schema.org","@type":"WebSite","name":"HomeMadeGourmet","description":"Portal de receitas caseiras com busca por ingrediente e filtro por categoria.","inLanguage":"pt-BR"}
     </script>
 HTML;
+if ($recipesJsonLd !== '') {
+    $extraHead .= "\n    <script type=\"application/ld+json\">{$recipesJsonLd}</script>\n";
+}
 require __DIR__ . '/partials/head.php';
 ?>
 </head>
