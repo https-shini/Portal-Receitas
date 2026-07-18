@@ -6,9 +6,11 @@ use App\Application\Security\RateLimiterInterface;
 use App\Application\UseCase\AuthenticateUserUseCase;
 use App\Application\UseCase\DeleteUserAccountUseCase;
 use App\Application\UseCase\FindRecipesUseCase;
+use App\Application\UseCase\ListCategoriesUseCase;
 use App\Application\UseCase\RegisterUserUseCase;
 use App\Application\UseCase\UpdateUserProfileUseCase;
 use App\Infrastructure\Database\PdoConnectionFactory;
+use App\Infrastructure\Repository\PdoCategoryRepository;
 use App\Infrastructure\Repository\PdoRecipeRepository;
 use App\Infrastructure\Repository\PdoUserRepository;
 use App\Infrastructure\Security\FileRateLimiter;
@@ -67,12 +69,14 @@ $connectionFactory = new PdoConnectionFactory(
 
 $userRepository = new PdoUserRepository($connectionFactory);
 $recipeRepository = new PdoRecipeRepository($connectionFactory);
+$categoryRepository = new PdoCategoryRepository($connectionFactory);
 
 $authenticateUserUseCase = new AuthenticateUserUseCase($userRepository);
 $registerUserUseCase = new RegisterUserUseCase($userRepository);
 $updateUserProfileUseCase = new UpdateUserProfileUseCase($userRepository);
 $deleteUserAccountUseCase = new DeleteUserAccountUseCase($userRepository);
 $findRecipesUseCase = new FindRecipesUseCase($recipeRepository);
+$listCategoriesUseCase = new ListCategoriesUseCase($categoryRepository);
 
 $sessionManager = new SessionManager();
 
@@ -82,6 +86,6 @@ $rateLimiter = new FileRateLimiter();
 return [
     'authController' => new AuthController($registerUserUseCase, $authenticateUserUseCase, $deleteUserAccountUseCase, $sessionManager, $rateLimiter),
     'profileController' => new ProfileController($updateUserProfileUseCase, $sessionManager),
-    'recipeController' => new RecipeController($findRecipesUseCase, $sessionManager),
+    'recipeController' => new RecipeController($findRecipesUseCase, $listCategoriesUseCase, $sessionManager),
     'sessionManager' => $sessionManager,
 ];

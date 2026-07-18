@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Presentation\Controller;
 
 use App\Application\UseCase\FindRecipesUseCase;
+use App\Application\UseCase\ListCategoriesUseCase;
 use App\Domain\Exception\ValidationException;
 use App\Presentation\Http\SessionManager;
 
@@ -12,12 +13,14 @@ use App\Presentation\Http\SessionManager;
  * Controller da home: catálogo de receitas com busca e filtro.
  *
  * A home é pública (paridade com o site original); a sessão é iniciada
- * apenas para preservar o estado de login na navegação.
+ * apenas para preservar o estado de login na navegação. As categorias dos
+ * filtros vêm do banco (data-driven) via ListCategoriesUseCase.
  */
 class RecipeController
 {
     public function __construct(
         private readonly FindRecipesUseCase $findRecipesUseCase,
+        private readonly ListCategoriesUseCase $listCategoriesUseCase,
         private readonly SessionManager $sessionManager,
     ) {
     }
@@ -32,7 +35,7 @@ class RecipeController
      * busca explícita. Busca vazia gera mensagem de orientação; busca sem
      * resultados gera a mensagem legada "Não foi possível encontrar receitas".
      *
-     * @return array{cards: list<array<string, mixed>>, details: list<array<string, mixed>>, errorMessage: string|null}
+     * @return array{cards: list<array<string, mixed>>, details: list<array<string, mixed>>, categories: list<array<string, mixed>>, errorMessage: string|null}
      */
     public function list(array $query): array
     {
@@ -62,6 +65,7 @@ class RecipeController
         return [
             'cards' => $recipes['cards'],
             'details' => $recipes['details'],
+            'categories' => $this->listCategoriesUseCase->execute(),
             'errorMessage' => $errorMessage,
         ];
     }

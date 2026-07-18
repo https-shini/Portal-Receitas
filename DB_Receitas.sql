@@ -89,6 +89,7 @@ USE tcc_receitas;
 CREATE TABLE categoria (
     idCategoria   INT UNSIGNED  NOT NULL AUTO_INCREMENT,
     nomeCategoria VARCHAR(30)   NOT NULL,
+    icone         VARCHAR(40)   NULL COMMENT 'Classe do ícone Line Awesome (ex.: la-fish) — permite adicionar categorias sem tocar no código',
 
     CONSTRAINT pk_categoria             PRIMARY KEY (idCategoria),
     CONSTRAINT uq_categoria_nome        UNIQUE (nomeCategoria),
@@ -540,18 +541,36 @@ DELIMITER ;
 -- ═══════════════════════════════════════════════════════════════════════════
 --  13. SEED — DADOS INICIAIS (DML)
 -- ═══════════════════════════════════════════════════════════════════════════
---  Carga oficial do portal: 6 categorias, 36 receitas e 2 usuários de
+--  Carga oficial do portal: 20 categorias, 36 receitas e 2 usuários de
 --  demonstração. Os INSERTs abaixo também disparam os triggers de auditoria
 --  da seção 12 (verificado na seção 17).
 
 -- ── 13.1 · Categorias ────────────────────────────────────────────────────────
-INSERT INTO `categoria` (`idCategoria`, `nomeCategoria`) VALUES
-(1, 'frutos do mar'),
-(2, 'massas'),
-(3, 'veganas'),
-(4, 'salgados'),
-(5, 'doces'),
-(6, 'carnes');
+--  Nome de exibição (Title Case) e ícone Line Awesome vêm do banco: a interface
+--  não fixa nenhuma categoria em código — novas linhas aqui já aparecem nos
+--  filtros. Ids 1–6 preservam o mapeamento das 36 receitas; 7+ são categorias
+--  de referência prontas para receber receitas futuras.
+INSERT INTO `categoria` (`idCategoria`, `nomeCategoria`, `icone`) VALUES
+(1,  'Frutos do Mar',  'la-fish'),
+(2,  'Massas',         'la-utensils'),
+(3,  'Veganas',        'la-leaf'),
+(4,  'Salgados',       'la-hotdog'),
+(5,  'Doces',          'la-cookie'),
+(6,  'Carnes',         'la-drumstick-bite'),
+(7,  'Aves',           'la-feather-alt'),
+(8,  'Peixes',         'la-fish'),
+(9,  'Saladas',        'la-carrot'),
+(10, 'Bolos',          'la-birthday-cake'),
+(11, 'Sobremesas',     'la-ice-cream'),
+(12, 'Lanches',        'la-hamburger'),
+(13, 'Bebidas',        'la-cocktail'),
+(14, 'Vegetarianas',   'la-seedling'),
+(15, 'Fitness',        'la-dumbbell'),
+(16, 'Café da Manhã',  'la-mug-hot'),
+(17, 'Almoço',         'la-concierge-bell'),
+(18, 'Jantar',         'la-moon'),
+(19, 'Aperitivos',     'la-cheese'),
+(20, 'Molhos',         'la-pepper-hot');
 
 
 -- ── 13.2 · Receitas (36 registros com vídeo, ingredientes e modo de preparo) ─
@@ -791,7 +810,7 @@ COMMIT;
 --  Autoverificação da implantação: cada linha deve retornar 'OK'.
 
 -- ── 17.1 · Volumetria do seed ────────────────────────────────────────────────
-SELECT IF(COUNT(*) = 6,  'OK', 'ERRO: categorias')      AS teste_categorias FROM categoria;
+SELECT IF(COUNT(*) = 20, 'OK', 'ERRO: categorias')      AS teste_categorias FROM categoria;
 SELECT IF(COUNT(*) = 36, 'OK', 'ERRO: receitas')        AS teste_receitas   FROM receita;
 SELECT IF(COUNT(*) = 2,  'OK', 'ERRO: usuarios')        AS teste_usuarios   FROM usuario;
 
