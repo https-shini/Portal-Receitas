@@ -1,0 +1,21 @@
+# ════════════════════════════════════════════════════════════════
+# Reescrita de URL amigável — HomeMadeGourmet
+# Requer mod_rewrite + AllowOverride All (habilitados nos Dockerfiles).
+# Arquivos e diretórios reais (assets, api/, *.php diretos) são servidos
+# sem reescrita; só as rotas "bonitas" abaixo são mapeadas.
+# ════════════════════════════════════════════════════════════════
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Não reescrever quando o alvo já é um arquivo ou diretório existente.
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # /receita/12/lasanha-a-bolonhesa  ou  /receita/12  → receita.php?id=12
+    # O slug é apenas cosmético/SEO; a busca usa somente o id.
+    RewriteRule ^receita/([0-9]+)(?:/[^/]*)?/?$ receita.php?id=$1 [L,QSA]
+
+    # /receitas → catálogo (home)
+    RewriteRule ^receitas/?$ index.php [L,QSA]
+</IfModule>
