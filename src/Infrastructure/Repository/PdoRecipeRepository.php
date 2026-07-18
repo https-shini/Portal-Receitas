@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Repository;
 
+use App\Application\Query\RecipeQuery;
 use App\Domain\Repository\RecipeRepositoryInterface;
 use App\Infrastructure\Database\PdoConnectionFactory;
 use PDO;
@@ -14,8 +15,8 @@ use PDO;
  * A busca por ingrediente percorre as 15 colunas ingrediente_N com LIKE
  * (modelo de dados herdado do TCC original — ver ADR-003 em docs/backend.md).
  * Cada coluna recebe seu próprio placeholder (:s0..:s14); o termo nunca é
- * interpolado no SQL. O nome da categoria vem por LEFT JOIN (`nomeCategoria`),
- * eliminando os rótulos antes fixados em código.
+ * interpolado no SQL. O nome da categoria vem por LEFT JOIN (`nomeCategoria`).
+ * A ordenação usa uma whitelist (chave → SQL) para evitar injeção.
  */
 class PdoRecipeRepository implements RecipeRepositoryInterface
 {
@@ -28,7 +29,7 @@ class PdoRecipeRepository implements RecipeRepositoryInterface
     /** Colunas de resumo (card). */
     private const SUMMARY_COLUMNS = 'r.idReceita, r.nomeReceita, r.tempoReceita, r.idcategoriaFK, r.imagem, c.nomeCategoria';
 
-    /** Colunas de detalhe (página/modal): tudo do resumo + vídeo, ingredientes, preparo. */
+    /** Colunas de detalhe (página): resumo + vídeo, ingredientes, preparo. */
     private const DETAIL_COLUMNS = 'r.idReceita, r.qtdCalorias, r.nomeReceita, r.porcoes, r.tempoReceita, r.link, '
         . 'r.ingrediente_1, r.ingrediente_2, r.ingrediente_3, r.ingrediente_4, r.ingrediente_5, '
         . 'r.ingrediente_6, r.ingrediente_7, r.ingrediente_8, r.ingrediente_9, r.ingrediente_10, '
@@ -37,14 +38,28 @@ class PdoRecipeRepository implements RecipeRepositoryInterface
 
     private const FROM_JOIN = ' FROM receita r LEFT JOIN categoria c ON c.idCategoria = r.idcategoriaFK';
 
+    /** Whitelist de ordenação: chave validada em RecipeQuery → cláusula SQL. */
+    private const SORTS = [
+        'relevancia' => 'r.idReceita ASC',
+        'nome' => 'r.nomeReceita ASC',
+        'tempo' => 'CAST(r.tempoReceita AS UNSIGNED) ASC, r.nomeReceita ASC',
+    ];
+
     public function __construct(private readonly PdoConnectionFactory $connectionFactory)
     {
     }
 
-    public function findSummaries(?string $search, ?int $categoryId): array
+    public function search(RecipeQuery $query): array
     {
-        [$whereSql, $params] = $this->buildFilters($search, $categoryId);
-        $sql = 'SELECT ' . self::SUMMARY_COLUMNS . self::FROM_JOIN . $whereSql;
+        [$whereSql, $params] = $this->buildWhere($query);
+        $order = self::SORTS[$query->sort] ?? self::SORTS['relevancia'];
+
+        // perPage/offset são inteiros controlados (não vêm crus do usuário).
+        $perPage = max(1, min(60, $query->perPage));
+        $offset = max(0, ($query->page - 1) * $perPage);
+
+        $sql = 'SELECT ' . self::SUMMARY_COLUMNS . self::FROM_JOIN . $whereSql
+            . ' ORDER BY ' . $order . ' LIMIT ' . $perPage . ' OFFSET ' . $offset;
 
         $stmt = $this->connectionFactory->create()->prepare($sql);
         $stmt->execute($params);
@@ -52,15 +67,15 @@ class PdoRecipeRepository implements RecipeRepositoryInterface
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function findDetails(?string $search, ?int $categoryId): array
+    public function count(RecipeQuery $query): int
     {
-        [$whereSql, $params] = $this->buildFilters($search, $categoryId);
-        $sql = 'SELECT ' . self::DETAIL_COLUMNS . self::FROM_JOIN . $whereSql;
+        [$whereSql, $params] = $this->buildWhere($query);
+        $sql = 'SELECT COUNT(*)' . self::FROM_JOIN . $whereSql;
 
         $stmt = $this->connectionFactory->create()->prepare($sql);
         $stmt->execute($params);
 
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return (int) $stmt->fetchColumn();
     }
 
     public function findById(int $id): ?array
@@ -76,8 +91,6 @@ class PdoRecipeRepository implements RecipeRepositoryInterface
 
     public function findRelated(int $categoryId, int $excludeId, int $limit): array
     {
-        // $limit é um inteiro controlado internamente (não vem do usuário);
-        // interpolado após cast para evitar a limitação do bind em LIMIT.
         $limit = max(1, min(24, $limit));
         $sql = 'SELECT ' . self::SUMMARY_COLUMNS . self::FROM_JOIN
             . ' WHERE r.idcategoriaFK = :categoryId AND r.idReceita <> :excludeId'
@@ -90,33 +103,35 @@ class PdoRecipeRepository implements RecipeRepositoryInterface
     }
 
     /**
-     * Constrói a cláusula WHERE comum às consultas de listagem.
+     * WHERE comum a search()/count(): categorias combinadas por IN e/ou termo
+     * presente em qualquer das 15 colunas de ingrediente (grupo de ORs). Todos
+     * os valores ficam em $params; a SQL só recebe fragmentos fixos.
      *
-     * Filtros são combináveis com AND: categoria exata e/ou termo presente em
-     * QUALQUER uma das 15 colunas de ingrediente (grupo de ORs). A cláusula é
-     * montada apenas com fragmentos fixos; valores ficam em $params.
-     *
-     * @return array{0: string, 1: array<string, mixed>} SQL do WHERE (ou '')
-     *                                                    e parâmetros do bind.
+     * @return array{0: string, 1: array<string, mixed>}
      */
-    private function buildFilters(?string $search, ?int $categoryId): array
+    private function buildWhere(RecipeQuery $query): array
     {
         $conditions = [];
         $params = [];
 
-        if ($categoryId !== null) {
-            $conditions[] = 'r.idcategoriaFK = :categoryId';
-            $params['categoryId'] = $categoryId;
+        if ($query->categoryIds !== []) {
+            $placeholders = [];
+            foreach ($query->categoryIds as $index => $categoryId) {
+                $ph = 'cat' . $index;
+                $placeholders[] = ':' . $ph;
+                $params[$ph] = $categoryId;
+            }
+            $conditions[] = 'r.idcategoriaFK IN (' . implode(', ', $placeholders) . ')';
         }
 
-        if ($search !== null && $search !== '') {
+        if ($query->search !== null && $query->search !== '') {
             $searchConditions = [];
-            $searchValue = '%' . $search . '%';
+            $searchValue = '%' . $query->search . '%';
 
             foreach (self::INGREDIENT_COLUMNS as $index => $column) {
-                $placeholder = 's' . $index;
-                $searchConditions[] = sprintf('r.%s LIKE :%s', $column, $placeholder);
-                $params[$placeholder] = $searchValue;
+                $ph = 's' . $index;
+                $searchConditions[] = sprintf('r.%s LIKE :%s', $column, $ph);
+                $params[$ph] = $searchValue;
             }
 
             $conditions[] = '(' . implode(' OR ', $searchConditions) . ')';

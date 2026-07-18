@@ -5,18 +5,13 @@ declare(strict_types=1);
 namespace App\Application\UseCase;
 
 use App\Application\Mapper\RecipeViewMapper;
-use App\Domain\Exception\ValidationException;
+use App\Application\Query\RecipeQuery;
 use App\Domain\Repository\RecipeRepositoryInterface;
 
 /**
- * Caso de uso: montar o catálogo de receitas da home, com ou sem filtros.
- *
- * Produz duas projeções da mesma consulta:
- *  - 'cards'   → resumo exibido na grade de resultados;
- *  - 'details' → detalhe completo, com ingredientes e preparo normalizados.
- *
- * Os rótulos de categoria vêm do banco (JOIN em RecipeRepository) — não há
- * mais mapa fixo de categorias aqui.
+ * Caso de uso: montar o catálogo de receitas (grade de cards) a partir de um
+ * critério facetado e paginado. Devolve os cards da página pedida e os
+ * metadados de paginação. Os rótulos de categoria vêm do banco (JOIN).
  */
 class FindRecipesUseCase
 {
@@ -25,41 +20,28 @@ class FindRecipesUseCase
     }
 
     /**
-     * Busca receitas aplicando os filtros informados (null = sem filtro).
-     *
-     * @return array{cards: list<array<string, mixed>>, details: list<array<string, mixed>>}
+     * @return array{
+     *     cards: list<array<string, mixed>>,
+     *     total: int,
+     *     page: int,
+     *     perPage: int,
+     *     totalPages: int,
+     *     hasMore: bool
+     * }
      */
-    public function execute(?string $search, ?int $categoryId): array
+    public function execute(RecipeQuery $query): array
     {
-        $search = $search !== null ? trim($search) : null;
-        if ($search === '') {
-            $search = null;
-        }
-
-        if ($categoryId !== null && $categoryId < 1) {
-            $categoryId = null;
-        }
-
-        $summaries = $this->recipeRepository->findSummaries($search, $categoryId);
-        $details = $this->recipeRepository->findDetails($search, $categoryId);
+        $total = $this->recipeRepository->count($query);
+        $totalPages = $total > 0 ? (int) ceil($total / $query->perPage) : 1;
+        $rows = $this->recipeRepository->search($query);
 
         return [
-            'cards' => array_map(RecipeViewMapper::summary(...), $summaries),
-            'details' => array_map(RecipeViewMapper::detail(...), $details),
+            'cards' => array_map(RecipeViewMapper::summary(...), $rows),
+            'total' => $total,
+            'page' => $query->page,
+            'perPage' => $query->perPage,
+            'totalPages' => $totalPages,
+            'hasMore' => $query->page < $totalPages,
         ];
-    }
-
-    /**
-     * Regra de negócio da busca explícita: o usuário precisa informar um
-     * termo OU selecionar uma categoria — submissão vazia é orientada, não
-     * silenciosamente ignorada.
-     *
-     * @throws ValidationException Mensagem de orientação exibida na home.
-     */
-    public function validateSearchRequest(?string $search, ?int $categoryId): void
-    {
-        if (($search === null || trim($search) === '') && $categoryId === null) {
-            throw new ValidationException('Tente escrever algo na barra de pesquisa ou selecionar uma categoria');
-        }
     }
 }

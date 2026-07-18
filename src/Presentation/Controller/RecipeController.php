@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Presentation\Controller;
 
+use App\Application\Query\RecipeQuery;
 use App\Application\UseCase\FindRecipesUseCase;
 use App\Application\UseCase\ListCategoriesUseCase;
 use App\Application\UseCase\ShowRecipeUseCase;
-use App\Domain\Exception\ValidationException;
 use App\Presentation\Http\SessionManager;
 
 /**
@@ -42,46 +42,50 @@ class RecipeController
     }
 
     /**
-     * Monta os dados da home a partir da query string.
+     * Monta os dados do catálogo a partir da query string (busca facetada).
      *
-     * Parâmetros reconhecidos: 'pesquisa' (termo), 'categoriaReceita' (id) e
-     * 'buscar' (presente somente quando o formulário foi submetido).
+     * Parâmetros reconhecidos: 'pesquisa' (termo), 'categoriaReceita' (id ou
+     * lista de ids), 'ordenar' (relevancia|nome|tempo) e 'pagina'. Sem
+     * filtros, lista o catálogo completo paginado — comportamento de
+     * marketplace, sem submit explícito.
      *
-     * Fluxo: sem 'buscar', lista o catálogo completo — os filtros só valem em
-     * busca explícita. Busca vazia gera mensagem de orientação; busca sem
-     * resultados gera a mensagem legada "Não foi possível encontrar receitas".
-     *
-     * @return array{cards: list<array<string, mixed>>, details: list<array<string, mixed>>, categories: list<array<string, mixed>>, errorMessage: string|null}
+     * @return array{
+     *     cards: list<array<string, mixed>>,
+     *     categories: list<array<string, mixed>>,
+     *     filters: array{search: string|null, categoryIds: list<int>, sort: string},
+     *     pagination: array{page: int, perPage: int, total: int, totalPages: int, hasMore: bool},
+     *     errorMessage: string|null
+     * }
      */
     public function list(array $query): array
     {
         $this->sessionManager->start();
 
-        $search = isset($query['pesquisa']) ? trim((string) $query['pesquisa']) : null;
-        $categoryId = isset($query['categoriaReceita']) && $query['categoriaReceita'] !== '' ? (int) $query['categoriaReceita'] : null;
+        $recipeQuery = RecipeQuery::fromArray($query);
+        $result = $this->findRecipesUseCase->execute($recipeQuery);
+
         $errorMessage = null;
-
-        if (isset($query['buscar'])) {
-            try {
-                $this->findRecipesUseCase->validateSearchRequest($search, $categoryId);
-            } catch (ValidationException $exception) {
-                $errorMessage = $exception->getMessage();
-            }
-        }
-
-        $recipes = $this->findRecipesUseCase->execute(
-            isset($query['buscar']) ? $search : null,
-            isset($query['buscar']) ? $categoryId : null,
-        );
-
-        if (isset($query['buscar']) && $errorMessage === null && $recipes['cards'] === []) {
-            $errorMessage = 'Não foi possível encontrar receitas :(';
+        if ($result['cards'] === []) {
+            $errorMessage = $recipeQuery->hasFilters()
+                ? 'Nenhuma receita encontrada com esses filtros.'
+                : 'Não foi possível encontrar receitas :(';
         }
 
         return [
-            'cards' => $recipes['cards'],
-            'details' => $recipes['details'],
+            'cards' => $result['cards'],
             'categories' => $this->listCategoriesUseCase->execute(),
+            'filters' => [
+                'search' => $recipeQuery->search,
+                'categoryIds' => $recipeQuery->categoryIds,
+                'sort' => $recipeQuery->sort,
+            ],
+            'pagination' => [
+                'page' => $result['page'],
+                'perPage' => $result['perPage'],
+                'total' => $result['total'],
+                'totalPages' => $result['totalPages'],
+                'hasMore' => $result['hasMore'],
+            ],
             'errorMessage' => $errorMessage,
         ];
     }

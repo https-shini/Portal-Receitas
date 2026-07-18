@@ -4,31 +4,31 @@ declare(strict_types=1);
 
 namespace App\Domain\Repository;
 
+use App\Application\Query\RecipeQuery;
+
 /**
  * Contrato de consulta ao catálogo de receitas (somente leitura — o portal
  * não possui escrita de receitas pela aplicação).
  *
- * Os métodos de listagem aceitam os mesmos filtros opcionais e combináveis:
- * termo de busca por ingrediente e/ou id de categoria; null desliga o filtro.
- * Todas as projeções trazem o nome da categoria por JOIN (`nomeCategoria`) —
- * o rótulo não é mais fixado em código.
+ * A listagem é facetada e paginada via RecipeQuery; todas as projeções trazem
+ * o nome da categoria por JOIN (`nomeCategoria`) — o rótulo não é fixado em
+ * código.
  */
 interface RecipeRepositoryInterface
 {
     /**
-     * Dados resumidos para os cards (id, nome, tempo, categoria, imagem).
+     * Página de resumos (cards) que satisfazem o critério, já ordenada e
+     * limitada.
      *
      * @return list<array<string, mixed>>
      */
-    public function findSummaries(?string $search, ?int $categoryId): array;
+    public function search(RecipeQuery $query): array;
 
     /**
-     * Dados completos (vídeo, 15 ingredientes, modo de preparo, porções,
-     * calorias) — usado hoje pela projeção de detalhe do catálogo.
-     *
-     * @return list<array<string, mixed>>
+     * Total de receitas que satisfazem o critério (ignora paginação), para o
+     * cálculo de páginas.
      */
-    public function findDetails(?string $search, ?int $categoryId): array;
+    public function count(RecipeQuery $query): int;
 
     /**
      * Detalhe completo de uma única receita pelo id, para a página dedicada.
