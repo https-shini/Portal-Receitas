@@ -61,6 +61,7 @@ final class RecipeViewMapper
             'name' => (string) $recipe['nomeReceita'],
             'video' => (string) $recipe['link'],
             'category' => self::categoria($recipe),
+            'categoryId' => (int) ($recipe['idcategoriaFK'] ?? 0),
             'time' => (string) $recipe['tempoReceita'],
             'servings' => (int) $recipe['porcoes'],
             'calories' => (float) $recipe['qtdCalorias'],

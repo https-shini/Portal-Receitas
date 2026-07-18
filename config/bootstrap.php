@@ -8,6 +8,7 @@ use App\Application\UseCase\DeleteUserAccountUseCase;
 use App\Application\UseCase\FindRecipesUseCase;
 use App\Application\UseCase\ListCategoriesUseCase;
 use App\Application\UseCase\RegisterUserUseCase;
+use App\Application\UseCase\ShowRecipeUseCase;
 use App\Application\UseCase\UpdateUserProfileUseCase;
 use App\Infrastructure\Database\PdoConnectionFactory;
 use App\Infrastructure\Repository\PdoCategoryRepository;
@@ -77,6 +78,7 @@ $updateUserProfileUseCase = new UpdateUserProfileUseCase($userRepository);
 $deleteUserAccountUseCase = new DeleteUserAccountUseCase($userRepository);
 $findRecipesUseCase = new FindRecipesUseCase($recipeRepository);
 $listCategoriesUseCase = new ListCategoriesUseCase($categoryRepository);
+$showRecipeUseCase = new ShowRecipeUseCase($recipeRepository);
 
 $sessionManager = new SessionManager();
 
@@ -86,6 +88,6 @@ $rateLimiter = new FileRateLimiter();
 return [
     'authController' => new AuthController($registerUserUseCase, $authenticateUserUseCase, $deleteUserAccountUseCase, $sessionManager, $rateLimiter),
     'profileController' => new ProfileController($updateUserProfileUseCase, $sessionManager),
-    'recipeController' => new RecipeController($findRecipesUseCase, $listCategoriesUseCase, $sessionManager),
+    'recipeController' => new RecipeController($findRecipesUseCase, $listCategoriesUseCase, $showRecipeUseCase, $sessionManager),
     'sessionManager' => $sessionManager,
 ];

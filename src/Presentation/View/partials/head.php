@@ -16,6 +16,10 @@ $extraHead = $extraHead ?? '';
 ?>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Base na raiz: mantém os caminhos relativos (./assets, index.php, ...)
+         resolvendo a partir do docroot mesmo nas URLs amigáveis de receita
+         (/receita/{id}/{slug}), que são servidas dois níveis abaixo. -->
+    <base href="/">
     <title><?= htmlspecialchars($pageTitle) ?></title>
     <meta name="description" content="<?= htmlspecialchars($pageDescription) ?>">
     <?php if ($robotsNoindex): ?><meta name="robots" content="noindex"><?php endif; ?>

@@ -126,43 +126,7 @@
 .recipe-card__meta span { display: inline-flex; align-items: center; gap: var(--space-1); }
 .recipe-card__meta .las { font-size: 1rem; color: var(--color-primary); }
 
-/* ── Modal da receita ───────────────────────────────────────────── */
-.recipe-modal__head {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--space-3);
-    padding: var(--space-5) var(--space-5) 0;
-}
-
-.recipe-modal__head h2 { flex: 1; font-size: var(--text-2xl); }
-
-.recipe-modal__grid {
-    display: grid;
-    gap: var(--space-5);
-    padding: var(--space-4) var(--space-5) var(--space-6);
-}
-
-@media (min-width: 56rem) {
-    .recipe-modal__grid { grid-template-columns: 1.2fr 1fr; }
-}
-
-.recipe-modal__video {
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    border: 1px solid var(--color-border);
-    background: #000;
-    aspect-ratio: 16 / 9;
-}
-
-.recipe-modal__video iframe { width: 100%; height: 100%; border: 0; }
-
-.recipe-modal__facts {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-    margin: var(--space-3) 0;
-}
-
+/* ── Seção de receita (usada na página dedicada e em relacionadas) ─ */
 .recipe-section h3 {
     display: flex;
     align-items: center;

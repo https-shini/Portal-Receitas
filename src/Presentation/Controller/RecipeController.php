@@ -6,11 +6,13 @@ namespace App\Presentation\Controller;
 
 use App\Application\UseCase\FindRecipesUseCase;
 use App\Application\UseCase\ListCategoriesUseCase;
+use App\Application\UseCase\ShowRecipeUseCase;
 use App\Domain\Exception\ValidationException;
 use App\Presentation\Http\SessionManager;
 
 /**
- * Controller da home: catálogo de receitas com busca e filtro.
+ * Controller do catálogo de receitas: listagem (home) com busca e filtro e
+ * detalhe da receita (página dedicada).
  *
  * A home é pública (paridade com o site original); a sessão é iniciada
  * apenas para preservar o estado de login na navegação. As categorias dos
@@ -21,8 +23,22 @@ class RecipeController
     public function __construct(
         private readonly FindRecipesUseCase $findRecipesUseCase,
         private readonly ListCategoriesUseCase $listCategoriesUseCase,
+        private readonly ShowRecipeUseCase $showRecipeUseCase,
         private readonly SessionManager $sessionManager,
     ) {
+    }
+
+    /**
+     * Detalhe de uma receita para a página dedicada (/receita/{id}/{slug}).
+     *
+     * @return array{recipe: array<string, mixed>, related: list<array<string, mixed>>}|null
+     *         null quando a receita não existe (o entrypoint responde 404).
+     */
+    public function show(int $id): ?array
+    {
+        $this->sessionManager->start();
+
+        return $this->showRecipeUseCase->execute($id);
     }
 
     /**

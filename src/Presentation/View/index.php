@@ -1,7 +1,6 @@
 <?php
 /** @var array $viewData */
 $cards = $viewData['cards'] ?? [];
-$details = $viewData['details'] ?? [];
 $errorMessage = $viewData['errorMessage'] ?? null;
 
 $pesquisaAtual = isset($_GET['pesquisa']) ? trim((string) $_GET['pesquisa']) : '';
@@ -18,22 +17,10 @@ $categorias = [
 ];
 
 /*
- * Preparação do embed vindo do banco: força o domínio de privacidade
- * reforçada (youtube-nocookie.com — cobre bancos semeados por versões
- * antigas do seed) e adiciona lazy loading, sem alterar o restante do HTML.
- */
-$prepararEmbed = static function (string $html): string {
-    $html = str_ireplace(['www.youtube.com/embed', 'youtube.com/embed'], ['www.youtube-nocookie.com/embed', 'youtube-nocookie.com/embed'], $html);
-
-    return str_ireplace('<iframe ', '<iframe loading="lazy" ', $html);
-};
-
-/*
  * Dados estruturados (schema.org/Recipe) das receitas exibidas nesta
  * página, para rich results de busca (SEO). Usa só os campos já
- * renderizados no card (nome, imagem, categoria) — nunca o conteúdo do
- * modal (ingredientes/preparo), que só existe no DOM após interação do
- * usuário e não deve ser descrito como visível para o buscador.
+ * renderizados no card (nome, imagem, categoria); o passo a passo completo
+ * é descrito na página dedicada de cada receita.
  */
 $recipesJsonLd = '';
 if (!empty($cards)) {
@@ -148,84 +135,13 @@ require __DIR__ . '/partials/head.php';
                 </div>
             <?php else: ?>
                 <ul class="recipe-grid" id="gradeReceitas" role="list" style="list-style:none; padding:0;">
-                    <?php foreach ($cards as $i => $recipe): ?>
-                        <li class="card recipe-card reveal" style="animation-delay: <?= min($i * 40, 400) ?>ms">
-                            <button type="button" class="recipe-card__btn js-abrir-receita"
-                                    data-receita="<?= (int) $recipe['id'] ?>"
-                                    aria-haspopup="dialog"
-                                    aria-label="Abrir receita: <?= htmlspecialchars($recipe['name']) ?>">
-                                <span class="recipe-card__media">
-                                    <img src="./assets/img/<?= htmlspecialchars($recipe['image']) ?>"
-                                         alt="" loading="lazy" width="400" height="300">
-                                </span>
-                                <span class="recipe-card__body">
-                                    <span class="recipe-card__title"><?= htmlspecialchars($recipe['name']) ?></span>
-                                    <span class="recipe-card__meta">
-                                        <span><i class="las la-clock" aria-hidden="true"></i><?= htmlspecialchars($recipe['time']) ?></span>
-                                        <span><i class="las la-tag" aria-hidden="true"></i><?= htmlspecialchars($recipe['category']) ?></span>
-                                    </span>
-                                </span>
-                            </button>
-                        </li>
+                    <?php foreach ($cards as $cardIndex => $card): ?>
+                        <?php require __DIR__ . '/partials/recipe-card.php'; ?>
                     <?php endforeach; ?>
                 </ul>
             <?php endif; ?>
         </section>
     </main>
-
-    <!-- ── Modal de receita (conteúdo vem dos <template>, iframes só carregam ao abrir) ── -->
-    <div class="modal-backdrop" id="modalReceita" role="dialog" aria-modal="true" aria-labelledby="modalTitulo" hidden>
-        <article class="modal" id="modalConteudo"></article>
-    </div>
-
-    <?php foreach ($details as $recipe): ?>
-        <template id="tplReceita<?= (int) $recipe['id'] ?>">
-            <header class="recipe-modal__head">
-                <h2 id="modalTitulo"><?= htmlspecialchars($recipe['name']) ?></h2>
-                <button type="button" class="btn btn--ghost btn--icon js-fechar-receita" aria-label="Fechar receita">
-                    <i class="las la-times" aria-hidden="true"></i>
-                </button>
-            </header>
-            <div class="recipe-modal__grid">
-                <div>
-                    <div class="recipe-modal__video video-consent js-video-consent">
-                        <div class="video-consent__box">
-                            <i class="las la-play-circle" aria-hidden="true"></i>
-                            <p>O vídeo é exibido pelo YouTube (youtube-nocookie.com). Ao carregar, seu IP será compartilhado com o Google — <a href="privacidade.php" target="_blank" rel="noopener">saiba mais</a>.</p>
-                            <button type="button" class="btn btn--primary js-carregar-video">Carregar vídeo</button>
-                        </div>
-                        <template class="js-video-tpl"><?= $prepararEmbed((string) $recipe['video']) ?></template>
-                    </div>
-                    <div class="recipe-modal__facts">
-                        <span class="badge"><i class="las la-tag" aria-hidden="true"></i><?= htmlspecialchars($recipe['category']) ?></span>
-                        <span class="badge"><i class="las la-clock" aria-hidden="true"></i><?= htmlspecialchars($recipe['time']) ?></span>
-                        <span class="badge"><i class="las la-utensils" aria-hidden="true"></i><?= (int) $recipe['servings'] ?> Porções</span>
-                        <span class="badge"><i class="las la-fire" aria-hidden="true"></i><?= htmlspecialchars((string) $recipe['calories']) ?> cal</span>
-                    </div>
-                </div>
-                <div>
-                    <section class="recipe-section" aria-label="Ingredientes">
-                        <h3><i class="las la-shopping-basket" aria-hidden="true"></i>Ingredientes</h3>
-                        <ul>
-                            <?php foreach ($recipe['ingredients'] as $ingredient): ?>
-                                <?php if ($ingredient !== 'Não há mais ingredientes'): ?>
-                                    <li><?= htmlspecialchars($ingredient) ?></li>
-                                <?php endif; ?>
-                            <?php endforeach; ?>
-                        </ul>
-                    </section>
-                    <section class="recipe-section" aria-label="Modo de preparo" style="margin-top: var(--space-4);">
-                        <h3><i class="las la-mortar-pestle" aria-hidden="true"></i>Modo de Preparo</h3>
-                        <ol>
-                            <?php foreach ($recipe['preparation'] as $step): ?>
-                                <li><?= htmlspecialchars(preg_replace('/^\d+\.\s*/', '', $step)) ?></li>
-                            <?php endforeach; ?>
-                        </ol>
-                    </section>
-                </div>
-            </div>
-        </template>
-    <?php endforeach; ?>
 
 <?php require __DIR__ . '/partials/footer.php'; ?>
 
