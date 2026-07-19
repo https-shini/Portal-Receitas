@@ -72,8 +72,28 @@ final class RecipeViewMapper
             'image' => (string) ($recipe['imagem'] ?? ''),
             'tips' => self::texto($recipe, 'dicas'),
             'rating' => self::rating($recipe),
+            'nutrition' => self::nutrition($recipe),
             'ingredients' => $ingredients,
             'preparation' => $preparation,
+        ];
+    }
+
+    /**
+     * Informações nutricionais por porção. Cada macro é null quando ausente
+     * (a view oculta a linha correspondente).
+     *
+     * @return array{calories: float, protein: float|null, carbs: float|null, fat: float|null}
+     */
+    private static function nutrition(array $recipe): array
+    {
+        $macro = static fn (string $coluna): ?float =>
+            isset($recipe[$coluna]) && $recipe[$coluna] !== null ? (float) $recipe[$coluna] : null;
+
+        return [
+            'calories' => (float) ($recipe['qtdCalorias'] ?? 0),
+            'protein' => $macro('proteinas'),
+            'carbs' => $macro('carboidratos'),
+            'fat' => $macro('gorduras'),
         ];
     }
 

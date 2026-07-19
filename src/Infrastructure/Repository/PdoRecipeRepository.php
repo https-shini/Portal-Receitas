@@ -34,7 +34,8 @@ class PdoRecipeRepository implements RecipeRepositoryInterface
         . 'r.ingrediente_1, r.ingrediente_2, r.ingrediente_3, r.ingrediente_4, r.ingrediente_5, '
         . 'r.ingrediente_6, r.ingrediente_7, r.ingrediente_8, r.ingrediente_9, r.ingrediente_10, '
         . 'r.ingrediente_11, r.ingrediente_12, r.ingrediente_13, r.ingrediente_14, r.ingrediente_15, '
-        . 'r.modoPreparo, r.dificuldade, r.tempoCozimento, r.dicas, r.idcategoriaFK, r.imagem, c.nomeCategoria, a.notaMedia, a.notaTotal';
+        . 'r.modoPreparo, r.dificuldade, r.tempoCozimento, r.dicas, r.proteinas, r.carboidratos, r.gorduras, '
+        . 'r.idcategoriaFK, r.imagem, c.nomeCategoria, a.notaMedia, a.notaTotal';
 
     /**
      * receita + categoria (rótulo) + agregado de avaliações (média/contagem).

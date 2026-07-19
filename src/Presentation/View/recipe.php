@@ -182,6 +182,33 @@ require __DIR__ . '/partials/head.php';
                             <p class="recipe__tips"><?= nl2br(htmlspecialchars((string) $recipe['tips'])) ?></p>
                         </section>
                     <?php endif; ?>
+
+                    <?php $n = $recipe['nutrition']; ?>
+                    <section class="recipe-section" aria-labelledby="tituloNutricao">
+                        <h2 id="tituloNutricao"><i class="las la-heartbeat" aria-hidden="true"></i> Informações nutricionais</h2>
+                        <p class="recipe__nutri-note">Valores estimados por porção.</p>
+                        <ul class="nutri-grid" role="list">
+                            <li class="nutri-item">
+                                <span class="nutri-item__value"><?= htmlspecialchars((string) $n['calories']) ?></span>
+                                <span class="nutri-item__label">kcal</span>
+                            </li>
+                            <?php
+                            $macros = [
+                                ['Proteínas', $n['protein']],
+                                ['Carboidratos', $n['carbs']],
+                                ['Gorduras', $n['fat']],
+                            ];
+                            foreach ($macros as [$rotulo, $valor]):
+                                if ($valor === null) {
+                                    continue;
+                                } ?>
+                                <li class="nutri-item">
+                                    <span class="nutri-item__value"><?= htmlspecialchars(number_format((float) $valor, 1, ',', '')) ?> g</span>
+                                    <span class="nutri-item__label"><?= $rotulo ?></span>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </section>
                 </div>
 
                 <div class="recipe__col">

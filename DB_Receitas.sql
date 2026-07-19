@@ -151,6 +151,9 @@ CREATE TABLE receita (
     dificuldade    ENUM('Fácil','Médio','Difícil') NULL COMMENT 'Grau de dificuldade exibido no card e na página',
     tempoCozimento VARCHAR(10)   NULL COMMENT 'Tempo de cozimento, separado do tempo total de preparo',
     dicas          TEXT          NULL COMMENT 'Dicas/observações opcionais exibidas na página da receita',
+    proteinas      DECIMAL(6,2)  NULL COMMENT 'Proteínas por porção (g) — bloco nutricional',
+    carboidratos   DECIMAL(6,2)  NULL COMMENT 'Carboidratos por porção (g)',
+    gorduras       DECIMAL(6,2)  NULL COMMENT 'Gorduras por porção (g)',
 
     CONSTRAINT pk_receita              PRIMARY KEY (idReceita),
     CONSTRAINT uq_receita_nome         UNIQUE (nomeReceita),
@@ -706,6 +709,11 @@ UPDATE receita SET
         ELSE 'Difícil'
     END,
     tempoCozimento = CONCAT(GREATEST(10, FLOOR(CAST(REGEXP_REPLACE(tempoReceita, '[^0-9]', '') AS UNSIGNED) / 2)), ' min'),
+    -- Macros derivados das calorias por uma divisão típica (20% proteína /
+    -- 50% carboidrato / 30% gordura), convertidos para gramas (4/4/9 kcal/g).
+    proteinas    = ROUND(qtdCalorias * 0.20 / 4, 1),
+    carboidratos = ROUND(qtdCalorias * 0.50 / 4, 1),
+    gorduras     = ROUND(qtdCalorias * 0.30 / 9, 1),
     dicas = CASE idcategoriaFK
         WHEN 1 THEN 'Não cozinhe demais os frutos do mar para não ressecar; finalize com um toque de limão.'
         WHEN 2 THEN 'Reserve um pouco da água do cozimento da massa para ajustar a cremosidade do molho.'
