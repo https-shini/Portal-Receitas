@@ -51,7 +51,36 @@ $pageDescription = 'Receita de ' . $recipe['name'] . ' (' . $recipe['category'] 
 // home.css fornece .recipe-card, .recipe-grid e .video-consent (compartilhados
 // com o catálogo); recipe.css traz o layout específico da página.
 $pageCss = ['pages/home.css', 'pages/recipe.css'];
+
+// Open Graph/Twitter exigem URLs absolutas (o crawler não resolve <base href>).
+// Deriva o origin do request; usa o host/protocolo efetivos por trás de proxy.
+$scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+    || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https') ? 'https' : 'http';
+$host = (string) ($_SERVER['HTTP_HOST'] ?? 'localhost');
+$origin = $scheme . '://' . preg_replace('/[^\w.:-]/', '', $host);
+$ogUrl = $origin . '/receita/' . (int) $recipe['id'] . '/' . $slug;
+$ogImage = $origin . '/assets/img/' . rawurlencode((string) $recipe['image']);
+
+$ogTitle = htmlspecialchars($pageTitle, ENT_QUOTES);
+$ogDesc = htmlspecialchars($pageDescription, ENT_QUOTES);
+$ogUrlE = htmlspecialchars($ogUrl, ENT_QUOTES);
+$ogImageE = htmlspecialchars($ogImage, ENT_QUOTES);
+
+$og = <<<HTML
+<meta property="og:type" content="article">
+    <meta property="og:site_name" content="HomeMadeGourmet">
+    <meta property="og:title" content="{$ogTitle}">
+    <meta property="og:description" content="{$ogDesc}">
+    <meta property="og:url" content="{$ogUrlE}">
+    <meta property="og:image" content="{$ogImageE}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{$ogTitle}">
+    <meta name="twitter:description" content="{$ogDesc}">
+    <meta name="twitter:image" content="{$ogImageE}">
+HTML;
+
 $extraHead = "<link rel=\"canonical\" href=\"receita/{$recipe['id']}/{$slug}\">\n"
+    . '    ' . $og . "\n"
     . "    <script type=\"application/ld+json\">{$jsonLd}</script>";
 require __DIR__ . '/partials/head.php';
 ?>

@@ -1,5 +1,12 @@
 # CHANGELOG — Consolidação das branches
 
+## [3.3.0] — 2026-07-19
+
+Melhorias incrementais (H), cada uma validada com o projeto 100% funcional (testes + E2E sob Apache real):
+
+- **Busca por nome do prato (H1):** o catálogo passou a casar o termo também contra `nomeReceita` (antes só ingredientes) — buscar "carbonara"/"brigadeiro" agora encontra a receita pelo nome; texto do hero e placeholder atualizados.
+- **Open Graph/Twitter na página de receita (H2):** meta tags `og:*`/`twitter:*` com **URLs absolutas** (derivadas do host do request, cientes de proxy HTTPS) para `og:url` e `og:image`, `twitter:card=summary_large_image` — links compartilhados (botão "Compartilhar") renderizam prévia rica com título, descrição e foto da receita.
+
 ## [3.2.0] — 2026-07-19
 
 Fase de comunidade e personalização (G1–G3), cada etapa em um commit:
