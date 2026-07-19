@@ -233,6 +233,46 @@ require __DIR__ . '/partials/head.php';
             </div>
         </article>
 
+        <?php $comments = $comments ?? []; ?>
+        <section class="comments" aria-labelledby="tituloComentarios">
+            <h2 id="tituloComentarios" class="comments__title">
+                Comentários <span class="comments__count" id="comentariosContagem">(<?= count($comments) ?>)</span>
+            </h2>
+
+            <?php if ($isLogged): ?>
+                <form class="comment-form js-comment-form" data-id="<?= (int) $recipe['id'] ?>"
+                      data-csrf="<?= htmlspecialchars((string) ($csrfToken ?? '')) ?>">
+                    <label class="visually-hidden" for="comentarioTexto">Seu comentário</label>
+                    <textarea class="field__input" id="comentarioTexto" name="texto" rows="3"
+                              maxlength="500" placeholder="Compartilhe sua experiência com esta receita…" required></textarea>
+                    <div class="comment-form__foot">
+                        <div class="alert" id="comentarioAlerta" role="alert" aria-live="polite"></div>
+                        <button type="submit" class="btn btn--primary"><i class="las la-paper-plane" aria-hidden="true"></i> Comentar</button>
+                    </div>
+                </form>
+            <?php else: ?>
+                <p class="comments__login"><a href="login.php?erro=1">Entre</a> para deixar um comentário.</p>
+            <?php endif; ?>
+
+            <ul class="comment-list" id="comentarios" role="list">
+                <?php foreach ($comments as $comentario): ?>
+                    <li class="comment" data-id="<?= (int) $comentario['id'] ?>">
+                        <div class="comment__head">
+                            <span class="comment__author"><i class="las la-user-circle" aria-hidden="true"></i> <?= htmlspecialchars($comentario['autor']) ?></span>
+                            <span class="comment__date"><?= htmlspecialchars($comentario['data']) ?></span>
+                        </div>
+                        <p class="comment__text"><?= nl2br(htmlspecialchars($comentario['texto'])) ?></p>
+                        <?php if (!empty($comentario['mine'])): ?>
+                            <button type="button" class="comment__delete js-comment-delete" aria-label="Excluir comentário">
+                                <i class="las la-trash" aria-hidden="true"></i> Excluir
+                            </button>
+                        <?php endif; ?>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+            <p class="comments__empty" id="comentariosVazio"<?= $comments !== [] ? ' hidden' : '' ?>>Ainda não há comentários. Seja o primeiro!</p>
+        </section>
+
         <?php if ($related !== []): ?>
             <section class="related" aria-labelledby="tituloRelacionadas">
                 <h2 id="tituloRelacionadas" class="related__title">Receitas relacionadas</h2>

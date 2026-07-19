@@ -49,4 +49,7 @@ if ($isLogged) {
     $csrfToken = $services['sessionManager']->csrfToken();
 }
 
+// Comentários (leitura pública; publicar exige login).
+$comments = $services['commentController']->forRecipe($id);
+
 require __DIR__ . '/../src/Presentation/View/recipe.php';

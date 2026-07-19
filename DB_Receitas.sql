@@ -225,6 +225,21 @@ CREATE TABLE receita_imagem (
 ) ENGINE = InnoDB
   COMMENT = 'Galeria de imagens adicionais por receita';
 
+-- ── 5.8 · comentario ────────────────────────────────────────────────────────
+--  Comentários de usuários autenticados em receitas (comunidade). FKs em
+--  cascata; texto limitado. O autor é derivado por JOIN em usuario na leitura.
+CREATE TABLE comentario (
+    idComentario BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    idReceita    INT UNSIGNED    NOT NULL,
+    idUsuario    INT UNSIGNED    NOT NULL,
+    texto        VARCHAR(500)    NOT NULL,
+    criadoEm     TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT pk_comentario       PRIMARY KEY (idComentario),
+    CONSTRAINT ck_comentario_texto CHECK (CHAR_LENGTH(TRIM(texto)) >= 1)
+) ENGINE = InnoDB
+  COMMENT = 'Comentários de usuários em receitas';
+
 
 -- ═══════════════════════════════════════════════════════════════════════════
 --  6. CONSTRAINTS DE INTEGRIDADE REFERENCIAL
@@ -278,6 +293,17 @@ ALTER TABLE receita_imagem
         ON DELETE CASCADE
         ON UPDATE CASCADE;
 
+-- comentario → receita / usuario (apagar qualquer um apaga os comentários).
+ALTER TABLE comentario
+    ADD CONSTRAINT fk_comentario_receita
+        FOREIGN KEY (idReceita) REFERENCES receita (idReceita)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    ADD CONSTRAINT fk_comentario_usuario
+        FOREIGN KEY (idUsuario) REFERENCES usuario (idUsuario)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE;
+
 
 -- ═══════════════════════════════════════════════════════════════════════════
 --  7. ÍNDICES E OTIMIZAÇÃO
@@ -294,6 +320,8 @@ CREATE INDEX idx_receita_dificuldade ON receita (dificuldade);
 CREATE INDEX idx_usuario_categoria ON usuario (idCategoriaFK);
 -- Média/contagem de avaliações são agrupadas por receita (a PK começa por idUsuario).
 CREATE INDEX idx_avaliacao_receita ON avaliacao (idReceita);
+-- Comentários são listados por receita, mais recentes primeiro.
+CREATE INDEX idx_comentario_receita ON comentario (idReceita, criadoEm);
 CREATE INDEX idx_auditoria_usuario_evento ON auditoria_usuario (idUsuario, dataEvento);
 
 CREATE FULLTEXT INDEX ftx_receita_ingredientes ON receita (
@@ -754,6 +782,14 @@ INSERT INTO `receita_imagem` (`idReceita`, `arquivo`, `ordem`) VALUES
 (25, 'food.jpg', 1), (25, 'imagemExemplo.png', 2);
 
 
+-- ── 13.6 · Comentários de demonstração ───────────────────────────────────────
+INSERT INTO `comentario` (`idReceita`, `idUsuario`, `texto`) VALUES
+(1, 1, 'Fiz no fim de semana e ficou perfeito! O segredo é o ponto dos ovos.'),
+(1, 2, 'Muito bom, só reduzi o bacon pela metade e ainda ficou ótimo.'),
+(8, 2, 'Clássico infalível. Toda a família aprovou.'),
+(21, 1, 'Esse brownie é viciante — caprichei nas nozes.');
+
+
 -- ═══════════════════════════════════════════════════════════════════════════
 --  14. CONSULTAS DE EXEMPLO
 -- ═══════════════════════════════════════════════════════════════════════════
@@ -868,6 +904,8 @@ GRANT SELECT, INSERT, DELETE         ON tcc_receitas.favorito  TO papel_aplicaca
 GRANT SELECT, INSERT, UPDATE, DELETE ON tcc_receitas.avaliacao TO papel_aplicacao;
 -- Galeria de imagens: apenas leitura pela aplicação.
 GRANT SELECT                         ON tcc_receitas.receita_imagem TO papel_aplicacao;
+-- Comentários: cria e remove (o próprio); nunca edita comentário alheio.
+GRANT SELECT, INSERT, DELETE         ON tcc_receitas.comentario     TO papel_aplicacao;
 
 -- Exemplo de REVOKE: um privilégio concedido além do necessário é retirado
 GRANT DELETE ON tcc_receitas.usuario TO papel_aplicacao;

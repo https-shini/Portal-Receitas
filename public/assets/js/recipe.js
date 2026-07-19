@@ -173,11 +173,102 @@
         });
     }
 
+    /* ── Comentários (publicar / excluir o próprio) ──────────────── */
+    function esc(s) {
+        const d = document.createElement("div");
+        d.textContent = String(s);
+        return d.innerHTML;
+    }
+
+    function initComments() {
+        const form = document.querySelector(".js-comment-form");
+        const list = document.getElementById("comentarios");
+        const count = document.getElementById("comentariosContagem");
+        const vazio = document.getElementById("comentariosVazio");
+        if (!list) return;
+
+        const csrf = form ? form.dataset.csrf : "";
+
+        function refreshCount() {
+            const n = list.querySelectorAll(".comment").length;
+            if (count) count.textContent = "(" + n + ")";
+            if (vazio) vazio.hidden = n > 0;
+        }
+
+        function bindDelete(btn) {
+            btn.addEventListener("click", async () => {
+                const li = btn.closest(".comment");
+                btn.disabled = true;
+                try {
+                    const res = await fetch("./api/comments.php", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ acao: "excluir", idComentario: Number(li.dataset.id), _csrf: csrf }),
+                    });
+                    if (res.ok) { li.remove(); refreshCount(); }
+                } catch (e) {
+                    /* mantém */
+                } finally {
+                    btn.disabled = false;
+                }
+            });
+        }
+
+        function render(c) {
+            const li = document.createElement("li");
+            li.className = "comment";
+            li.dataset.id = c.id;
+            li.innerHTML =
+                '<div class="comment__head"><span class="comment__author"><i class="las la-user-circle" aria-hidden="true"></i> '
+                + esc(c.autor) + '</span><span class="comment__date">' + esc(c.data) + "</span></div>"
+                + '<p class="comment__text">' + esc(c.texto).replace(/\n/g, "<br>") + "</p>"
+                + '<button type="button" class="comment__delete js-comment-delete" aria-label="Excluir comentário"><i class="las la-trash" aria-hidden="true"></i> Excluir</button>';
+            return li;
+        }
+
+        list.querySelectorAll(".js-comment-delete").forEach(bindDelete);
+
+        form?.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const ta = form.querySelector("textarea");
+            const alerta = document.getElementById("comentarioAlerta");
+            const texto = ta.value.trim();
+            if (!texto) return;
+            const btn = form.querySelector("button[type=submit]");
+            btn.disabled = true;
+            try {
+                const res = await fetch("./api/comments.php", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ idReceita: Number(form.dataset.id), texto, _csrf: csrf }),
+                });
+                if (res.status === 401) { window.location.href = "login.php?erro=1"; return; }
+                const data = await res.json();
+                if (res.ok) {
+                    const li = render(data);
+                    list.prepend(li);
+                    bindDelete(li.querySelector(".js-comment-delete"));
+                    refreshCount();
+                    ta.value = "";
+                    if (alerta) { alerta.className = "alert"; alerta.textContent = ""; }
+                } else if (alerta) {
+                    alerta.className = "alert show alert--error";
+                    alerta.textContent = data.detail || "Não foi possível comentar.";
+                }
+            } catch (err) {
+                if (alerta) { alerta.className = "alert show alert--error"; alerta.textContent = "Falha de conexão."; }
+            } finally {
+                btn.disabled = false;
+            }
+        });
+    }
+
     window.addEventListener("DOMContentLoaded", () => {
         initVideoConsent();
         initShare();
         initFavorite();
         initRate();
         initGallery();
+        initComments();
     });
 })();
