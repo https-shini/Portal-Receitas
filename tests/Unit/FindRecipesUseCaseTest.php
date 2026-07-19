@@ -51,4 +51,20 @@ class FindRecipesUseCaseTest extends TestCase
         $this->assertSame(5, $result['total']);
         $this->assertSame('Doces', $result['cards'][0]['category']);
     }
+
+    public function testSearchMatchesRecipeName(): void
+    {
+        $repo = new InMemoryRecipeRepository();
+        $repo->seed(1, 'Carbonara', 2, 'Massas', ['ingrediente_1' => 'bacon']);
+        $repo->seed(2, 'Brigadeiro', 5, 'Doces', ['ingrediente_1' => 'chocolate']);
+        $useCase = new FindRecipesUseCase($repo);
+
+        $porNome = $useCase->execute(new RecipeQuery(search: 'carbonara'));
+        $this->assertSame(1, $porNome['total']);
+        $this->assertSame('Carbonara', $porNome['cards'][0]['name']);
+
+        $porIngrediente = $useCase->execute(new RecipeQuery(search: 'chocolate'));
+        $this->assertSame(1, $porIngrediente['total']);
+        $this->assertSame('Brigadeiro', $porIngrediente['cards'][0]['name']);
+    }
 }

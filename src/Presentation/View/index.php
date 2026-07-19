@@ -108,7 +108,7 @@ require __DIR__ . '/partials/head.php';
         <!-- ── Busca e filtros (marketplace) ── -->
         <section class="search-hero container" aria-labelledby="tituloBusca">
             <h1 id="tituloBusca">O que vamos cozinhar hoje?</h1>
-            <p>Busque por ingrediente ou use os filtros para explorar o catálogo.</p>
+            <p>Busque por nome da receita ou ingrediente, ou use os filtros para explorar o catálogo.</p>
 
             <form action="index.php" method="GET" id="formSearch" role="search" aria-label="Buscar e filtrar receitas">
                 <div class="search-bar glass">
@@ -116,7 +116,7 @@ require __DIR__ . '/partials/head.php';
                         <i class="las la-search" aria-hidden="true"></i>
                         <label class="visually-hidden" for="campoPesquisa">Ingrediente da receita</label>
                         <input class="field__input" id="campoPesquisa" name="pesquisa" type="search"
-                               placeholder="Ex.: bacon, leite, chocolate…"
+                               placeholder="Ex.: carbonara, bacon, chocolate…"
                                value="<?= htmlspecialchars($pesquisaAtual) ?>">
                     </div>
                     <button class="btn btn--soft btn--filtros" type="button" id="btnFiltros"

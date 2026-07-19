@@ -189,8 +189,12 @@ class PdoRecipeRepository implements RecipeRepositoryInterface
         }
 
         if ($query->search !== null && $query->search !== '') {
-            $searchConditions = [];
             $searchValue = '%' . $query->search . '%';
+
+            // Casa pelo nome do prato OU por qualquer uma das 15 colunas de
+            // ingrediente — buscar "carbonara" encontra a receita pelo nome.
+            $searchConditions = ['r.nomeReceita LIKE :sname'];
+            $params['sname'] = $searchValue;
 
             foreach (self::INGREDIENT_COLUMNS as $index => $column) {
                 $ph = 's' . $index;

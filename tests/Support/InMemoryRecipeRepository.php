@@ -111,8 +111,14 @@ class InMemoryRecipeRepository implements RecipeRepositoryInterface
             return false;
         }
 
-        if ($query->search !== null && stripos((string) $row['nomeReceita'], $query->search) === false) {
-            return false;
+        if ($query->search !== null) {
+            $haystack = (string) $row['nomeReceita'];
+            for ($i = 1; $i <= 15; $i++) {
+                $haystack .= ' ' . (string) ($row['ingrediente_' . $i] ?? '');
+            }
+            if (stripos($haystack, $query->search) === false) {
+                return false;
+            }
         }
 
         return true;
