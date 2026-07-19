@@ -27,6 +27,8 @@ O que o site faz hoje, exatamente como está no código:
 - **Busca por ingrediente**: o termo é comparado (`LIKE`) contra as 15 colunas de ingredientes de cada receita.
 - **Categorias controladas por dados** (tabela `categoria`, com ícone) — novas categorias entram sem alterar o código da interface.
 - **Favoritos** para usuários autenticados: botão na página da receita (API `POST /api/favorites.php`, sessão + CSRF + rate limit) e página **Minhas favoritas** (`/favoritas`).
+- **Avaliações por estrelas**: média e contagem no card e na página; usuários autenticados dão/alteram/removem a própria nota (API `POST /api/ratings.php`).
+- **Galeria de imagens** por receita (miniaturas que trocam a foto principal) e **informações nutricionais** por porção (calorias + proteínas/carboidratos/gorduras).
 - **Cadastro e login de usuários** com senha protegida por `password_hash`/`password_verify` (bcrypt, `PASSWORD_DEFAULT`) — validação no servidor (mín. 8 caracteres com letra e número), UX inspirada no [AuthService](https://github.com/https-shini/AuthService), com API JSON própria (`/api/login.php`, `/api/register.php`, `/api/me.php`, `/api/logout.php`).
 - **Perfil do usuário** com edição de nome, e-mail e senha, protegido por guard de sessão.
 - **SEO**: JSON-LD `Recipe` por página, canonical e **sitemap dinâmico** (`/sitemap.xml`, uma URL por receita).
@@ -35,7 +37,7 @@ O que o site faz hoje, exatamente como está no código:
 
 ### 🗺️ Roadmap (ainda não implementado)
 
-Ideias que **não existem** no código atual e ficam como evolução futura (fase 2): avaliação por estrelas dos usuários, galeria de imagens por receita e nutrição detalhada, engine de recomendação por preferências, calculadora de calorias em tempo real por porção, e camada de comunidade entre usuários.
+Ideias que **não existem** no código atual e ficam como evolução futura: engine de recomendação por preferências, calculadora de calorias em tempo real por porção, camada de comunidade (comentários) entre usuários e análise estática (PHPStan) fixada como etapa bloqueante do CI após o baseline.
 
 ---
 

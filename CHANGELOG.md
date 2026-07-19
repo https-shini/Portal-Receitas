@@ -1,5 +1,15 @@
 # CHANGELOG — Consolidação das branches
 
+## [3.1.0] — 2026-07-19
+
+Fase 2 do marketplace (avaliações, galeria, nutrição) + refatoração de qualidade, cada etapa em um commit (F1–F4):
+
+- **Avaliações por estrelas (F1):** tabela `avaliacao` (1–5, voto único por usuário/receita) com média/contagem agregadas na leitura; API `POST /api/ratings.php` (sessão + CSRF + rate limit); média com estrela no card e na página + widget de estrelas interativo (revoto/remoção, hover-preview) para logados.
+- **Galeria de imagens (F2):** tabela `receita_imagem`; página com imagem principal + tira de miniaturas (troca ao clicar), com fallback para imagem única.
+- **Nutrição detalhada (F3):** colunas `proteinas`/`carboidratos`/`gorduras` (backfill derivado das calorias) e bloco nutricional na página.
+- **Qualidade (F4):** remoção de CSS morto (`.cat-filter`, `.results__clear` duplicado); `count()` do catálogo sem JOINs desnecessários; testes de `Slug` e `VideoEmbed` (49 no total); `phpstan.neon` (nível 6) + etapa advisory no CI.
+- Validado end-to-end contra MariaDB real (import limpo, agregados, upsert de nota, galeria, macros).
+
 ## [3.0.0] — 2026-07-18
 
 Refatoração da home em experiência de **marketplace** (plano em `docs/plano-refatoracao-marketplace.md`), implementada em etapas E1–E7, cada uma em um commit:

@@ -42,21 +42,6 @@
 
 .search-bar .btn { border-radius: var(--radius-full); }
 
-/* ── Filtro de categorias ───────────────────────────────────────── */
-.cat-filter {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--space-2);
-    width: min(100%, 44rem);
-    margin: var(--space-4) auto 0;
-    border: 0;
-    padding: 0;
-}
-
-@media (min-width: 40rem) {
-    .cat-filter { grid-template-columns: repeat(6, 1fr); }
-}
-
 /* ── Resultados ─────────────────────────────────────────────────── */
 .results { padding-bottom: var(--space-9); }
 
@@ -70,8 +55,6 @@
 .results__head h2 { font-size: var(--text-xl); }
 
 .results__count { color: var(--color-text-muted); font-size: var(--text-sm); }
-
-.results__clear { margin-left: auto; font-size: var(--text-sm); }
 
 .recipe-grid {
     display: grid;

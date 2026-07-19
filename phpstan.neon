@@ -1,0 +1,9 @@
+# Análise estática (PHPStan). Instale com:
+#   composer require --dev phpstan/phpstan
+# e rode:
+#   vendor/bin/phpstan analyse
+parameters:
+    level: 6
+    paths:
+        - src
+    tmpDir: build/phpstan

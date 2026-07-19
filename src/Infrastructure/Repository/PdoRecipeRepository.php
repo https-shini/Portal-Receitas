@@ -76,8 +76,10 @@ class PdoRecipeRepository implements RecipeRepositoryInterface
 
     public function count(RecipeQuery $query): int
     {
+        // A contagem só filtra por colunas de receita — dispensa os JOINs de
+        // categoria e do agregado de avaliações usados na projeção.
         [$whereSql, $params] = $this->buildWhere($query);
-        $sql = 'SELECT COUNT(*)' . self::FROM_JOIN . $whereSql;
+        $sql = 'SELECT COUNT(*) FROM receita r' . $whereSql;
 
         $stmt = $this->connectionFactory->create()->prepare($sql);
         $stmt->execute($params);

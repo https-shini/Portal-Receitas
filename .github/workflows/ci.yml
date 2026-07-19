@@ -47,6 +47,14 @@ jobs:
       - name: PHPUnit
         run: vendor/bin/phpunit
 
+      # Análise estática do domínio/aplicação. Advisory (continue-on-error)
+      # até um baseline ser fixado — não bloqueia o merge por ora.
+      - name: Análise estática (PHPStan)
+        continue-on-error: true
+        run: |
+          composer require --dev phpstan/phpstan --no-interaction
+          vendor/bin/phpstan analyse --no-progress
+
   imagens:
     name: Build das imagens Docker
     runs-on: ubuntu-latest
