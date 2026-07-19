@@ -48,7 +48,7 @@ $paginaAtual = basename($_SERVER['SCRIPT_NAME'] ?? '');
                         <a class="user-menu__item" href="profile.php">
                             <i class="las la-user-cog" aria-hidden="true"></i> Meu perfil
                         </a>
-                        <a class="user-menu__item" href="./assets/php/logout.php">
+                        <a class="user-menu__item" href="logout.php">
                             <i class="las la-sign-out-alt" aria-hidden="true"></i> Sair da conta
                         </a>
                     </nav>

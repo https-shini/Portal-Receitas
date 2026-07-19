@@ -211,16 +211,18 @@ class AuthController
     }
 
     /**
-     * Logout tradicional do link do menu (assets/php/logout.php).
+     * Logout tradicional do link do menu (entrypoint public/logout.php).
+     * Encerra a sessão e devolve a URL de redirecionamento (o catálogo é
+     * público, então volta para a home já como visitante).
      *
-     * @return string URL de redirecionamento relativa àquele entrypoint.
+     * @return string URL de redirecionamento relativa ao docroot.
      */
     public function logout(): string
     {
         $this->sessionManager->start();
         $this->sessionManager->destroy();
 
-        return '../../login.php';
+        return 'index.php';
     }
 
     /**
