@@ -183,7 +183,11 @@ require __DIR__ . '/partials/head.php';
                         </section>
                     <?php endif; ?>
 
-                    <?php $n = $recipe['nutrition']; ?>
+                    <?php
+                    $n = $recipe['nutrition'];
+                    $porcoesBase = max(1, (int) $recipe['servings']);
+                    $fmt = static fn (float $v): string => number_format($v, 1, ',', '');
+                    ?>
                     <section class="recipe-section" aria-labelledby="tituloNutricao">
                         <h2 id="tituloNutricao"><i class="las la-heartbeat" aria-hidden="true"></i> Informações nutricionais</h2>
                         <p class="recipe__nutri-note">Valores estimados por porção.</p>
@@ -208,6 +212,28 @@ require __DIR__ . '/partials/head.php';
                                 </li>
                             <?php endforeach; ?>
                         </ul>
+
+                        <div class="portion-calc js-portion"
+                             data-servings="<?= $porcoesBase ?>"
+                             data-kcal="<?= htmlspecialchars((string) $n['calories']) ?>"
+                             data-p="<?= htmlspecialchars((string) ($n['protein'] ?? '')) ?>"
+                             data-c="<?= htmlspecialchars((string) ($n['carbs'] ?? '')) ?>"
+                             data-g="<?= htmlspecialchars((string) ($n['fat'] ?? '')) ?>">
+                            <span class="portion-calc__label">Calcular o total para</span>
+                            <div class="stepper" role="group" aria-label="Número de porções">
+                                <button type="button" class="stepper__btn js-portion-dec" aria-label="Menos uma porção">&minus;</button>
+                                <span class="stepper__value"><span class="js-portion-n"><?= $porcoesBase ?></span> porções</span>
+                                <button type="button" class="stepper__btn js-portion-inc" aria-label="Mais uma porção">+</button>
+                            </div>
+                            <p class="portion-calc__total" aria-live="polite">
+                                <b><span class="js-portion-kcal"><?= $fmt($n['calories'] * $porcoesBase) ?></span> kcal</b>
+                                <?php if ($n['protein'] !== null): ?>
+                                    · <span class="js-portion-p"><?= $fmt(($n['protein'] ?? 0) * $porcoesBase) ?></span> g prot.
+                                    · <span class="js-portion-c"><?= $fmt(($n['carbs'] ?? 0) * $porcoesBase) ?></span> g carb.
+                                    · <span class="js-portion-g"><?= $fmt(($n['fat'] ?? 0) * $porcoesBase) ?></span> g gord.
+                                <?php endif; ?>
+                            </p>
+                        </div>
                     </section>
                 </div>
 

@@ -1,5 +1,14 @@
 # CHANGELOG — Consolidação das branches
 
+## [3.2.0] — 2026-07-19
+
+Fase de comunidade e personalização (G1–G3), cada etapa em um commit:
+
+- **Comentários (G1):** tabela `comentario`; seção na página da receita com lista pública (autor + data), formulário para logados e publicar/excluir o próprio sem recarregar; API `POST /api/comments.php` (sessão + CSRF + rate limit), escape anti-XSS no cliente.
+- **Recomendações (G2):** vitrine na entrada da home — "Para você" (mais bem avaliadas nas categorias favoritadas, excluindo as já favoritas) para logados com favoritos; "Mais bem avaliadas" caso contrário.
+- **Calculadora de porções (G3):** stepper na página que recalcula a nutrição **total** (calorias + macros) em tempo real conforme o número de porções, mantendo os valores por porção; funciona sem JS (total inicial renderizado no servidor).
+- **Testes:** `PostComment` e `RecommendRecipes` (59 no total). Validado end-to-end contra MariaDB real.
+
 ## [3.1.0] — 2026-07-19
 
 Fase 2 do marketplace (avaliações, galeria, nutrição) + refatoração de qualidade, cada etapa em um commit (F1–F4):

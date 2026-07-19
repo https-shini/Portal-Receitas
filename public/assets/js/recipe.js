@@ -263,6 +263,45 @@
         });
     }
 
+    /* ── Calculadora de porções (nutrição total em tempo real) ───── */
+    function initPortion() {
+        const box = document.querySelector(".js-portion");
+        if (!box) return;
+
+        const perServing = {
+            kcal: parseFloat(box.dataset.kcal) || 0,
+            p: parseFloat(box.dataset.p),
+            c: parseFloat(box.dataset.c),
+            g: parseFloat(box.dataset.g),
+        };
+        let servings = Math.max(1, parseInt(box.dataset.servings, 10) || 1);
+
+        const nEl = box.querySelector(".js-portion-n");
+        const out = {
+            kcal: box.querySelector(".js-portion-kcal"),
+            p: box.querySelector(".js-portion-p"),
+            c: box.querySelector(".js-portion-c"),
+            g: box.querySelector(".js-portion-g"),
+        };
+
+        const fmt = (v) => (Math.round(v * 10) / 10).toFixed(1).replace(".", ",");
+
+        function render() {
+            if (nEl) nEl.textContent = servings;
+            if (out.kcal) out.kcal.textContent = fmt(perServing.kcal * servings);
+            if (out.p && !Number.isNaN(perServing.p)) out.p.textContent = fmt(perServing.p * servings);
+            if (out.c && !Number.isNaN(perServing.c)) out.c.textContent = fmt(perServing.c * servings);
+            if (out.g && !Number.isNaN(perServing.g)) out.g.textContent = fmt(perServing.g * servings);
+        }
+
+        box.querySelector(".js-portion-dec")?.addEventListener("click", () => {
+            if (servings > 1) { servings--; render(); }
+        });
+        box.querySelector(".js-portion-inc")?.addEventListener("click", () => {
+            if (servings < 50) { servings++; render(); }
+        });
+    }
+
     window.addEventListener("DOMContentLoaded", () => {
         initVideoConsent();
         initShare();
@@ -270,5 +309,6 @@
         initRate();
         initGallery();
         initComments();
+        initPortion();
     });
 })();
