@@ -26,6 +26,7 @@ final class RecipeViewMapper
             'difficulty' => self::texto($recipe, 'dificuldade'),
             'category' => self::categoria($recipe),
             'image' => (string) $recipe['imagem'],
+            'rating' => self::rating($recipe),
         ];
     }
 
@@ -70,8 +71,25 @@ final class RecipeViewMapper
             'calories' => (float) $recipe['qtdCalorias'],
             'image' => (string) ($recipe['imagem'] ?? ''),
             'tips' => self::texto($recipe, 'dicas'),
+            'rating' => self::rating($recipe),
             'ingredients' => $ingredients,
             'preparation' => $preparation,
+        ];
+    }
+
+    /**
+     * Agregado de avaliações: média (1 casa) e contagem. average é null
+     * quando ninguém avaliou (a view mostra "Sem avaliações ainda").
+     *
+     * @return array{average: float|null, count: int}
+     */
+    private static function rating(array $recipe): array
+    {
+        $count = (int) ($recipe['notaTotal'] ?? 0);
+
+        return [
+            'average' => $count > 0 && isset($recipe['notaMedia']) ? round((float) $recipe['notaMedia'], 1) : null,
+            'count' => $count,
         ];
     }
 

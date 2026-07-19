@@ -41,9 +41,11 @@ if ($viewData === null) {
 // Estado de favorito e token CSRF só interessam ao usuário autenticado
 // (o botão de favoritar aparece apenas para quem está logado).
 $isFavorite = false;
+$userScore = null;
 $csrfToken = '';
 if ($isLogged) {
     $isFavorite = $services['favoriteController']->isFavorite($id);
+    $userScore = $services['ratingController']->userScore($id);
     $csrfToken = $services['sessionManager']->csrfToken();
 }
 

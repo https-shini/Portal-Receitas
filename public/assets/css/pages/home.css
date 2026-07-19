@@ -125,6 +125,8 @@
 
 .recipe-card__meta span { display: inline-flex; align-items: center; gap: var(--space-1); }
 .recipe-card__meta .las { font-size: 1rem; color: var(--color-primary); }
+.recipe-card__rating .la-star { color: #f59e0b; }
+.recipe-card__rating-count { color: var(--color-text-muted); }
 
 /* ── Seção de receita (usada na página dedicada e em relacionadas) ─ */
 .recipe-section h3 {

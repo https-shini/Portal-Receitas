@@ -27,16 +27,22 @@ class PdoRecipeRepository implements RecipeRepositoryInterface
     ];
 
     /** Colunas de resumo (card). */
-    private const SUMMARY_COLUMNS = 'r.idReceita, r.nomeReceita, r.tempoReceita, r.dificuldade, r.idcategoriaFK, r.imagem, c.nomeCategoria';
+    private const SUMMARY_COLUMNS = 'r.idReceita, r.nomeReceita, r.tempoReceita, r.dificuldade, r.idcategoriaFK, r.imagem, c.nomeCategoria, a.notaMedia, a.notaTotal';
 
     /** Colunas de detalhe (página): resumo + vídeo, ingredientes, preparo. */
     private const DETAIL_COLUMNS = 'r.idReceita, r.qtdCalorias, r.nomeReceita, r.porcoes, r.tempoReceita, r.link, '
         . 'r.ingrediente_1, r.ingrediente_2, r.ingrediente_3, r.ingrediente_4, r.ingrediente_5, '
         . 'r.ingrediente_6, r.ingrediente_7, r.ingrediente_8, r.ingrediente_9, r.ingrediente_10, '
         . 'r.ingrediente_11, r.ingrediente_12, r.ingrediente_13, r.ingrediente_14, r.ingrediente_15, '
-        . 'r.modoPreparo, r.dificuldade, r.tempoCozimento, r.dicas, r.idcategoriaFK, r.imagem, c.nomeCategoria';
+        . 'r.modoPreparo, r.dificuldade, r.tempoCozimento, r.dicas, r.idcategoriaFK, r.imagem, c.nomeCategoria, a.notaMedia, a.notaTotal';
 
-    private const FROM_JOIN = ' FROM receita r LEFT JOIN categoria c ON c.idCategoria = r.idcategoriaFK';
+    /**
+     * receita + categoria (rótulo) + agregado de avaliações (média/contagem).
+     * A subconsulta agrupa por receita — barata com o índice idx_avaliacao_receita.
+     */
+    private const FROM_JOIN = ' FROM receita r'
+        . ' LEFT JOIN categoria c ON c.idCategoria = r.idcategoriaFK'
+        . ' LEFT JOIN (SELECT idReceita, AVG(nota) AS notaMedia, COUNT(*) AS notaTotal FROM avaliacao GROUP BY idReceita) a ON a.idReceita = r.idReceita';
 
     /** Whitelist de ordenação: chave validada em RecipeQuery → cláusula SQL. */
     private const SORTS = [

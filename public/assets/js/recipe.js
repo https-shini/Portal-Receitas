@@ -94,9 +94,70 @@
         if (label) label.textContent = favorited ? "Favoritada" : "Favoritar";
     }
 
+    /* ── Avaliar (estrelas, usuário autenticado) ─────────────────── */
+    function initRate() {
+        const widget = document.querySelector(".js-rate");
+        if (!widget) return;
+
+        const stars = Array.from(widget.querySelectorAll(".rate-star"));
+        let current = Number(widget.dataset.score) || 0;
+
+        function paint(score) {
+            stars.forEach((b) => {
+                const s = Number(b.dataset.score);
+                b.classList.toggle("is-on", s <= score);
+                const icon = b.querySelector("i");
+                if (icon) icon.className = (s <= score ? "las" : "lar") + " la-star";
+                b.setAttribute("aria-pressed", s === current ? "true" : "false");
+            });
+        }
+
+        function updateAverage(average, count) {
+            const box = document.querySelector(".recipe__rating");
+            if (!box) return;
+            if (count > 0) {
+                const media = String(average).replace(".", ",");
+                box.innerHTML = '<i class="las la-star" aria-hidden="true"></i> '
+                    + '<span class="rating-value">' + media + "</span> "
+                    + '<span class="rating-count">(' + count + " avaliaç" + (count === 1 ? "ão" : "ões") + ")</span>";
+            } else {
+                box.innerHTML = '<span class="rating-empty">Sem avaliações ainda</span>';
+            }
+        }
+
+        stars.forEach((b) => {
+            b.addEventListener("mouseenter", () => paint(Number(b.dataset.score)));
+            b.addEventListener("mouseleave", () => paint(current));
+            b.addEventListener("click", async () => {
+                const s = Number(b.dataset.score);
+                const nota = s === current ? 0 : s; // reclicar a própria nota remove
+                stars.forEach((x) => { x.disabled = true; });
+                try {
+                    const res = await fetch("./api/ratings.php", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ idReceita: Number(widget.dataset.id), nota, _csrf: widget.dataset.csrf }),
+                    });
+                    if (res.status === 401) { window.location.href = "login.php?erro=1"; return; }
+                    const data = await res.json();
+                    if (res.ok) {
+                        current = Number(data.userScore) || 0;
+                        paint(current);
+                        updateAverage(data.average, data.count);
+                    }
+                } catch (e) {
+                    /* falha de rede: mantém o estado atual */
+                } finally {
+                    stars.forEach((x) => { x.disabled = false; });
+                }
+            });
+        });
+    }
+
     window.addEventListener("DOMContentLoaded", () => {
         initVideoConsent();
         initShare();
         initFavorite();
+        initRate();
     });
 })();

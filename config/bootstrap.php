@@ -8,6 +8,7 @@ use App\Application\UseCase\DeleteUserAccountUseCase;
 use App\Application\UseCase\FindRecipesUseCase;
 use App\Application\UseCase\ListCategoriesUseCase;
 use App\Application\UseCase\ListFavoritesUseCase;
+use App\Application\UseCase\RateRecipeUseCase;
 use App\Application\UseCase\RegisterUserUseCase;
 use App\Application\UseCase\ShowRecipeUseCase;
 use App\Application\UseCase\ToggleFavoriteUseCase;
@@ -15,12 +16,14 @@ use App\Application\UseCase\UpdateUserProfileUseCase;
 use App\Infrastructure\Database\PdoConnectionFactory;
 use App\Infrastructure\Repository\PdoCategoryRepository;
 use App\Infrastructure\Repository\PdoFavoriteRepository;
+use App\Infrastructure\Repository\PdoRatingRepository;
 use App\Infrastructure\Repository\PdoRecipeRepository;
 use App\Infrastructure\Repository\PdoUserRepository;
 use App\Infrastructure\Security\FileRateLimiter;
 use App\Presentation\Controller\AuthController;
 use App\Presentation\Controller\FavoriteController;
 use App\Presentation\Controller\ProfileController;
+use App\Presentation\Controller\RatingController;
 use App\Presentation\Controller\RecipeController;
 use App\Presentation\Http\SessionManager;
 
@@ -76,6 +79,7 @@ $userRepository = new PdoUserRepository($connectionFactory);
 $recipeRepository = new PdoRecipeRepository($connectionFactory);
 $categoryRepository = new PdoCategoryRepository($connectionFactory);
 $favoriteRepository = new PdoFavoriteRepository($connectionFactory);
+$ratingRepository = new PdoRatingRepository($connectionFactory);
 
 $authenticateUserUseCase = new AuthenticateUserUseCase($userRepository);
 $registerUserUseCase = new RegisterUserUseCase($userRepository);
@@ -86,6 +90,7 @@ $listCategoriesUseCase = new ListCategoriesUseCase($categoryRepository);
 $showRecipeUseCase = new ShowRecipeUseCase($recipeRepository);
 $toggleFavoriteUseCase = new ToggleFavoriteUseCase($favoriteRepository);
 $listFavoritesUseCase = new ListFavoritesUseCase($favoriteRepository);
+$rateRecipeUseCase = new RateRecipeUseCase($ratingRepository);
 
 $sessionManager = new SessionManager();
 
@@ -97,5 +102,6 @@ return [
     'profileController' => new ProfileController($updateUserProfileUseCase, $sessionManager),
     'recipeController' => new RecipeController($findRecipesUseCase, $listCategoriesUseCase, $showRecipeUseCase, $sessionManager),
     'favoriteController' => new FavoriteController($toggleFavoriteUseCase, $listFavoritesUseCase, $favoriteRepository, $sessionManager, $rateLimiter),
+    'ratingController' => new RatingController($rateRecipeUseCase, $ratingRepository, $sessionManager, $rateLimiter),
     'sessionManager' => $sessionManager,
 ];

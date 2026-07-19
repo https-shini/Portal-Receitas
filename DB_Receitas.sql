@@ -192,6 +192,22 @@ CREATE TABLE favorito (
 ) ENGINE = InnoDB
   COMMENT = 'Receitas favoritadas por usuário';
 
+-- ── 5.6 · avaliacao ─────────────────────────────────────────────────────────
+--  Nota de 1 a 5 por usuário/receita (uma por par — a PK composta garante um
+--  voto único; a atualização reaproveita a linha). Média e contagem são
+--  agregadas na leitura do catálogo. FKs em cascata.
+CREATE TABLE avaliacao (
+    idUsuario    INT UNSIGNED     NOT NULL,
+    idReceita    INT UNSIGNED     NOT NULL,
+    nota         TINYINT UNSIGNED NOT NULL,
+    criadoEm     TIMESTAMP        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    atualizadoEm TIMESTAMP        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    CONSTRAINT pk_avaliacao      PRIMARY KEY (idUsuario, idReceita),
+    CONSTRAINT ck_avaliacao_nota CHECK (nota BETWEEN 1 AND 5)
+) ENGINE = InnoDB
+  COMMENT = 'Avaliação (1–5) de uma receita por usuário';
+
 
 -- ═══════════════════════════════════════════════════════════════════════════
 --  6. CONSTRAINTS DE INTEGRIDADE REFERENCIAL
@@ -227,6 +243,17 @@ ALTER TABLE favorito
         ON DELETE CASCADE
         ON UPDATE CASCADE;
 
+-- avaliacao → usuario / receita (mesma política de cascata dos favoritos).
+ALTER TABLE avaliacao
+    ADD CONSTRAINT fk_avaliacao_usuario
+        FOREIGN KEY (idUsuario) REFERENCES usuario (idUsuario)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    ADD CONSTRAINT fk_avaliacao_receita
+        FOREIGN KEY (idReceita) REFERENCES receita (idReceita)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE;
+
 
 -- ═══════════════════════════════════════════════════════════════════════════
 --  7. ÍNDICES E OTIMIZAÇÃO
@@ -241,6 +268,8 @@ ALTER TABLE favorito
 CREATE INDEX idx_receita_categoria ON receita (idcategoriaFK);
 CREATE INDEX idx_receita_dificuldade ON receita (dificuldade);
 CREATE INDEX idx_usuario_categoria ON usuario (idCategoriaFK);
+-- Média/contagem de avaliações são agrupadas por receita (a PK começa por idUsuario).
+CREATE INDEX idx_avaliacao_receita ON avaliacao (idReceita);
 CREATE INDEX idx_auditoria_usuario_evento ON auditoria_usuario (idUsuario, dataEvento);
 
 CREATE FULLTEXT INDEX ftx_receita_ingredientes ON receita (
@@ -676,6 +705,15 @@ INSERT INTO `usuario` (`idUsuario`, `nomeUsuario`, `emailUsuario`, `senhaUsuario
 (2, 'Bruno Exemplo', 'demo2@example.com', '$2y$10$eTiUF8o3aqtvPaqyNNRs7.VwJlvcU0SU7.bt8lVoJ45o4/.f21DSW', 2);
 
 
+-- ── 13.4 · Avaliações de demonstração ────────────────────────────────────────
+--  Notas dos dois usuários-demo em algumas receitas, para as médias já
+--  aparecerem no catálogo (o ambiente free é efêmero; votos reais somem no
+--  reseed, estes voltam).
+INSERT INTO `avaliacao` (`idUsuario`, `idReceita`, `nota`) VALUES
+(1, 1, 5), (1, 2, 4), (1, 5, 5), (1, 8, 4), (1, 12, 3), (1, 21, 5), (1, 22, 5), (1, 25, 4),
+(2, 1, 4), (2, 2, 5), (2, 5, 4), (2, 8, 5), (2, 15, 3), (2, 21, 4), (2, 28, 5), (2, 25, 5);
+
+
 -- ═══════════════════════════════════════════════════════════════════════════
 --  14. CONSULTAS DE EXEMPLO
 -- ═══════════════════════════════════════════════════════════════════════════
@@ -785,7 +823,9 @@ GRANT SELECT                 ON tcc_receitas.categoria TO papel_aplicacao;
 GRANT SELECT                 ON tcc_receitas.receita   TO papel_aplicacao;
 GRANT SELECT, INSERT, UPDATE ON tcc_receitas.usuario   TO papel_aplicacao;
 -- Favoritos: a aplicação escreve apenas nesta tabela (menor privilégio).
-GRANT SELECT, INSERT, DELETE ON tcc_receitas.favorito  TO papel_aplicacao;
+GRANT SELECT, INSERT, DELETE         ON tcc_receitas.favorito  TO papel_aplicacao;
+-- Avaliações: cria, atualiza (revoto) e remove a própria nota.
+GRANT SELECT, INSERT, UPDATE, DELETE ON tcc_receitas.avaliacao TO papel_aplicacao;
 
 -- Exemplo de REVOKE: um privilégio concedido além do necessário é retirado
 GRANT DELETE ON tcc_receitas.usuario TO papel_aplicacao;

@@ -71,6 +71,40 @@
 }
 
 .recipe__rating .las { color: #f59e0b; font-size: 1.15rem; }
+.recipe__rating .rating-value { font-weight: var(--weight-semibold); color: var(--color-text-primary); }
+.recipe__rating .rating-count { color: var(--color-text-muted); }
+.recipe__rating .rating-empty { color: var(--color-text-muted); }
+
+/* ── Widget de avaliação (estrelas interativas) ─────────────────── */
+.rate-widget {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+.rate-widget__label {
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+    margin-right: var(--space-1);
+}
+
+.rate-star {
+    background: none;
+    border: none;
+    padding: 0.15rem;
+    cursor: pointer;
+    color: #f59e0b;
+    font-size: 1.35rem;
+    line-height: 1;
+    border-radius: var(--radius-sm);
+    transition: transform var(--dur-fast) var(--ease-spring);
+}
+
+.rate-star:hover { transform: scale(1.15); }
+.rate-star:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.rate-star:disabled { cursor: progress; }
+
+.rate-login { font-size: var(--text-sm); }
 
 .recipe__actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 

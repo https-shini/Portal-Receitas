@@ -29,6 +29,9 @@ $loading = !empty($cardEager) ? 'eager' : 'lazy';
                 <?php if (!empty($card['difficulty'])): ?>
                     <span><i class="las la-signal" aria-hidden="true"></i><?= htmlspecialchars((string) $card['difficulty']) ?></span>
                 <?php endif; ?>
+                <?php if (!empty($card['rating']['count'])): ?>
+                    <span class="recipe-card__rating"><i class="las la-star" aria-hidden="true"></i><?= htmlspecialchars(number_format((float) $card['rating']['average'], 1, ',', '')) ?> <span class="recipe-card__rating-count">(<?= (int) $card['rating']['count'] ?>)</span></span>
+                <?php endif; ?>
             </span>
         </span>
     </a>

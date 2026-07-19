@@ -49,10 +49,11 @@ class PdoFavoriteRepository implements FavoriteRepositoryInterface
 
     public function listByUser(int $userId): array
     {
-        $sql = 'SELECT r.idReceita, r.nomeReceita, r.tempoReceita, r.dificuldade, r.idcategoriaFK, r.imagem, c.nomeCategoria'
+        $sql = 'SELECT r.idReceita, r.nomeReceita, r.tempoReceita, r.dificuldade, r.idcategoriaFK, r.imagem, c.nomeCategoria, a.notaMedia, a.notaTotal'
             . ' FROM favorito f'
             . ' JOIN receita r ON r.idReceita = f.idReceita'
             . ' LEFT JOIN categoria c ON c.idCategoria = r.idcategoriaFK'
+            . ' LEFT JOIN (SELECT idReceita, AVG(nota) AS notaMedia, COUNT(*) AS notaTotal FROM avaliacao GROUP BY idReceita) a ON a.idReceita = r.idReceita'
             . ' WHERE f.idUsuario = :u'
             . ' ORDER BY f.criadoEm DESC';
 

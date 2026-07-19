@@ -94,10 +94,35 @@ require __DIR__ . '/partials/head.php';
                         <li class="badge"><i class="las la-bolt" aria-hidden="true"></i><?= htmlspecialchars((string) $recipe['calories']) ?> cal</li>
                     </ul>
 
-                    <p class="recipe__rating" aria-label="Avaliação">
-                        <i class="las la-star" aria-hidden="true"></i>
-                        <span>Sem avaliações ainda</span>
-                    </p>
+                    <?php $rating = $recipe['rating']; $notaUsuario = $userScore ?? null; ?>
+                    <div class="recipe__rating" aria-label="Avaliação média">
+                        <?php if ($rating['count'] > 0): ?>
+                            <i class="las la-star" aria-hidden="true"></i>
+                            <span class="rating-value"><?= htmlspecialchars(number_format((float) $rating['average'], 1, ',', '')) ?></span>
+                            <span class="rating-count">(<?= (int) $rating['count'] ?> avaliaç<?= (int) $rating['count'] === 1 ? 'ão' : 'ões' ?>)</span>
+                        <?php else: ?>
+                            <span class="rating-empty">Sem avaliações ainda</span>
+                        <?php endif; ?>
+                    </div>
+
+                    <?php if ($isLogged): ?>
+                        <div class="rate-widget js-rate" role="radiogroup" aria-label="Sua avaliação"
+                             data-id="<?= (int) $recipe['id'] ?>"
+                             data-csrf="<?= htmlspecialchars((string) ($csrfToken ?? '')) ?>"
+                             data-score="<?= (int) $notaUsuario ?>">
+                            <span class="rate-widget__label">Sua nota:</span>
+                            <?php for ($s = 1; $s <= 5; $s++): ?>
+                                <?php $on = $notaUsuario !== null && $s <= $notaUsuario; ?>
+                                <button type="button" class="rate-star<?= $on ? ' is-on' : '' ?>" data-score="<?= $s ?>"
+                                        aria-label="<?= $s ?> estrela<?= $s > 1 ? 's' : '' ?>"
+                                        aria-pressed="<?= $notaUsuario === $s ? 'true' : 'false' ?>">
+                                    <i class="<?= $on ? 'las' : 'lar' ?> la-star" aria-hidden="true"></i>
+                                </button>
+                            <?php endfor; ?>
+                        </div>
+                    <?php else: ?>
+                        <a class="rate-login" href="login.php?erro=1">Entre para avaliar</a>
+                    <?php endif; ?>
 
                     <div class="recipe__actions">
                         <?php if ($isLogged): ?>
