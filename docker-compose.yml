@@ -31,10 +31,16 @@ services:
       - ./DB_Receitas.sql:/docker-entrypoint-initdb.d/DB_Receitas.sql:ro
       - dbdata:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${DB_PASS:-rootpass}"]
+      # Consulta uma tabela do seed via TCP (127.0.0.1, não socket): só fica
+      # "healthy" quando o servidor DEFINITIVO já está na rede E a importação
+      # do seed terminou. O antigo `mysqladmin ping` pela socket ficava verde
+      # ainda durante o init (servidor temporário), liberando a web cedo demais
+      # e causando 503 na primeira carga.
+      test: ["CMD-SHELL", "mysql -h 127.0.0.1 -uroot -p\"${DB_PASS:-rootpass}\" -e 'SELECT 1 FROM tcc_receitas.receita LIMIT 1' >/dev/null 2>&1 || exit 1"]
       interval: 5s
       timeout: 5s
-      retries: 15
+      retries: 20
+      start_period: 40s
     restart: unless-stopped
 
 volumes:

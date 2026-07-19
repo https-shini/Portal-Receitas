@@ -4,6 +4,7 @@
 
 Melhorias incrementais (H), cada uma validada com o projeto 100% funcional (testes + E2E sob Apache real):
 
+- **Fim do 503 na primeira carga (H3):** o healthcheck do MySQL no `docker-compose.yml` passou a consultar uma tabela do seed via **TCP** (`127.0.0.1`), em vez de `mysqladmin ping` pela socket. O ping antigo ficava "healthy" ainda durante o init (servidor temporário, antes da importação do seed e da rede subir), liberando a web cedo demais e servindo 503 na primeira carga; agora a web só sobe quando o banco definitivo responde na rede com o seed já importado (`start_period` de 40s).
 - **Busca por nome do prato (H1):** o catálogo passou a casar o termo também contra `nomeReceita` (antes só ingredientes) — buscar "carbonara"/"brigadeiro" agora encontra a receita pelo nome; texto do hero e placeholder atualizados.
 - **Open Graph/Twitter na página de receita (H2):** meta tags `og:*`/`twitter:*` com **URLs absolutas** (derivadas do host do request, cientes de proxy HTTPS) para `og:url` e `og:image`, `twitter:card=summary_large_image` — links compartilhados (botão "Compartilhar") renderizam prévia rica com título, descrição e foto da receita.
 
