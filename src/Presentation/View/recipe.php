@@ -72,10 +72,26 @@ require __DIR__ . '/partials/head.php';
 
         <article class="recipe">
             <header class="recipe__head">
-                <div class="recipe__media glass">
-                    <img src="./assets/img/<?= htmlspecialchars((string) $recipe['image']) ?>"
-                         alt="Foto da receita <?= htmlspecialchars((string) $recipe['name']) ?>"
-                         width="800" height="600">
+                <?php $gallery = $recipe['gallery'] ?? [$recipe['image']]; ?>
+                <div class="recipe__gallery">
+                    <div class="recipe__media glass">
+                        <img id="galeriaPrincipal" src="./assets/img/<?= htmlspecialchars((string) $gallery[0]) ?>"
+                             alt="Foto da receita <?= htmlspecialchars((string) $recipe['name']) ?>"
+                             width="800" height="600">
+                    </div>
+                    <?php if (count($gallery) > 1): ?>
+                        <ul class="recipe__thumbs js-galeria" role="list" aria-label="Galeria de fotos">
+                            <?php foreach ($gallery as $i => $arquivo): ?>
+                                <li>
+                                    <button type="button" class="recipe__thumb<?= $i === 0 ? ' is-active' : '' ?>"
+                                            data-src="./assets/img/<?= htmlspecialchars((string) $arquivo) ?>"
+                                            aria-label="Ver foto <?= $i + 1 ?>" aria-pressed="<?= $i === 0 ? 'true' : 'false' ?>">
+                                        <img src="./assets/img/<?= htmlspecialchars((string) $arquivo) ?>" alt="" loading="lazy" width="120" height="90">
+                                    </button>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    <?php endif; ?>
                 </div>
 
                 <div class="recipe__intro">

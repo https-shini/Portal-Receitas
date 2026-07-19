@@ -70,6 +70,19 @@ class InMemoryRecipeRepository implements RecipeRepositoryInterface
         return array_slice(array_values($related), 0, $limit);
     }
 
+    /** @var array<int, list<string>> */
+    private array $images = [];
+
+    public function withImages(int $recipeId, array $files): void
+    {
+        $this->images[$recipeId] = $files;
+    }
+
+    public function findImages(int $recipeId): array
+    {
+        return $this->images[$recipeId] ?? [];
+    }
+
     private function matches(array $row, RecipeQuery $query): bool
     {
         if ($query->categoryIds !== [] && !in_array((int) $row['idcategoriaFK'], $query->categoryIds, true)) {

@@ -39,8 +39,13 @@ class ShowRecipeUseCase
             );
         }
 
+        $recipe = RecipeViewMapper::detail($row);
+        // Galeria: imagem principal + imagens adicionais (sem duplicar).
+        $extras = array_values(array_diff($this->recipeRepository->findImages($id), [$recipe['image']]));
+        $recipe['gallery'] = array_merge($recipe['image'] !== '' ? [$recipe['image']] : [], $extras);
+
         return [
-            'recipe' => RecipeViewMapper::detail($row),
+            'recipe' => $recipe,
             'related' => $related,
         ];
     }

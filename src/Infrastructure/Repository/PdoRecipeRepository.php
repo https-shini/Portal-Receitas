@@ -108,6 +108,16 @@ class PdoRecipeRepository implements RecipeRepositoryInterface
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function findImages(int $recipeId): array
+    {
+        $stmt = $this->connectionFactory->create()->prepare(
+            'SELECT arquivo FROM receita_imagem WHERE idReceita = :r ORDER BY ordem ASC, idImagem ASC',
+        );
+        $stmt->execute(['r' => $recipeId]);
+
+        return array_map('strval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+    }
+
     /**
      * WHERE comum a search()/count(): categorias combinadas por IN e/ou termo
      * presente em qualquer das 15 colunas de ingrediente (grupo de ORs). Todos

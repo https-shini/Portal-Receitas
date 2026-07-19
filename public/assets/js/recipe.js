@@ -154,10 +154,30 @@
         });
     }
 
+    /* ── Galeria: miniatura troca a imagem principal ─────────────── */
+    function initGallery() {
+        const strip = document.querySelector(".js-galeria");
+        const main = document.getElementById("galeriaPrincipal");
+        if (!strip || !main) return;
+
+        const thumbs = Array.from(strip.querySelectorAll(".recipe__thumb"));
+        thumbs.forEach((btn) => {
+            btn.addEventListener("click", () => {
+                main.src = btn.dataset.src;
+                thumbs.forEach((b) => {
+                    const active = b === btn;
+                    b.classList.toggle("is-active", active);
+                    b.setAttribute("aria-pressed", active ? "true" : "false");
+                });
+            });
+        });
+    }
+
     window.addEventListener("DOMContentLoaded", () => {
         initVideoConsent();
         initShare();
         initFavorite();
         initRate();
+        initGallery();
     });
 })();

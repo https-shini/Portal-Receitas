@@ -44,4 +44,11 @@ interface RecipeRepositoryInterface
      * @return list<array<string, mixed>>
      */
     public function findRelated(int $categoryId, int $excludeId, int $limit): array;
+
+    /**
+     * Nomes dos arquivos de imagens adicionais da receita (galeria), ordenados.
+     *
+     * @return list<string>
+     */
+    public function findImages(int $recipeId): array;
 }

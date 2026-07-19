@@ -43,4 +43,15 @@ class ShowRecipeUseCaseTest extends TestCase
     {
         $this->assertNull($this->useCase->execute(999));
     }
+
+    public function testGalleryPrependsMainImageWithoutDuplicating(): void
+    {
+        $repo = new InMemoryRecipeRepository();
+        $repo->seed(1, 'Carbonara', 2, 'Massas', ['imagem' => 'carbonara.png']);
+        $repo->withImages(1, ['carbonara.png', 'food.jpg', 'exemplo.png']);
+        $result = (new ShowRecipeUseCase($repo))->execute(1);
+
+        // imagem principal primeiro; sem duplicar a que também está na galeria
+        $this->assertSame(['carbonara.png', 'food.jpg', 'exemplo.png'], $result['recipe']['gallery']);
+    }
 }

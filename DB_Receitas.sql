@@ -208,6 +208,20 @@ CREATE TABLE avaliacao (
 ) ENGINE = InnoDB
   COMMENT = 'Avaliação (1–5) de uma receita por usuário';
 
+-- ── 5.7 · receita_imagem ────────────────────────────────────────────────────
+--  Fotos adicionais de uma receita (galeria), além da imagem principal em
+--  receita.imagem. 'ordem' controla a exibição. Só leitura pela aplicação.
+CREATE TABLE receita_imagem (
+    idImagem  INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    idReceita INT UNSIGNED NOT NULL,
+    arquivo   VARCHAR(60)  NOT NULL,
+    ordem     SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+
+    CONSTRAINT pk_receita_imagem PRIMARY KEY (idImagem),
+    CONSTRAINT uq_receita_imagem UNIQUE (idReceita, arquivo)
+) ENGINE = InnoDB
+  COMMENT = 'Galeria de imagens adicionais por receita';
+
 
 -- ═══════════════════════════════════════════════════════════════════════════
 --  6. CONSTRAINTS DE INTEGRIDADE REFERENCIAL
@@ -250,6 +264,13 @@ ALTER TABLE avaliacao
         ON DELETE CASCADE
         ON UPDATE CASCADE,
     ADD CONSTRAINT fk_avaliacao_receita
+        FOREIGN KEY (idReceita) REFERENCES receita (idReceita)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE;
+
+-- receita_imagem → receita (apagar a receita apaga suas fotos).
+ALTER TABLE receita_imagem
+    ADD CONSTRAINT fk_receita_imagem_receita
         FOREIGN KEY (idReceita) REFERENCES receita (idReceita)
         ON DELETE CASCADE
         ON UPDATE CASCADE;
@@ -714,6 +735,17 @@ INSERT INTO `avaliacao` (`idUsuario`, `idReceita`, `nota`) VALUES
 (2, 1, 4), (2, 2, 5), (2, 5, 4), (2, 8, 5), (2, 15, 3), (2, 21, 4), (2, 28, 5), (2, 25, 5);
 
 
+-- ── 13.5 · Galeria de imagens (demonstração) ─────────────────────────────────
+--  Fotos adicionais (além da principal) em algumas receitas, para exibir a
+--  galeria com miniaturas. Usa imagens genéricas do acervo; um deploy real
+--  substituiria por fotos próprias de cada prato.
+INSERT INTO `receita_imagem` (`idReceita`, `arquivo`, `ordem`) VALUES
+(1, 'food.jpg', 1), (1, 'imagemExemplo.png', 2),
+(8, 'food.jpg', 1), (8, 'imagemExemplo.png', 2),
+(21, 'food.jpg', 1),
+(25, 'food.jpg', 1), (25, 'imagemExemplo.png', 2);
+
+
 -- ═══════════════════════════════════════════════════════════════════════════
 --  14. CONSULTAS DE EXEMPLO
 -- ═══════════════════════════════════════════════════════════════════════════
@@ -826,6 +858,8 @@ GRANT SELECT, INSERT, UPDATE ON tcc_receitas.usuario   TO papel_aplicacao;
 GRANT SELECT, INSERT, DELETE         ON tcc_receitas.favorito  TO papel_aplicacao;
 -- Avaliações: cria, atualiza (revoto) e remove a própria nota.
 GRANT SELECT, INSERT, UPDATE, DELETE ON tcc_receitas.avaliacao TO papel_aplicacao;
+-- Galeria de imagens: apenas leitura pela aplicação.
+GRANT SELECT                         ON tcc_receitas.receita_imagem TO papel_aplicacao;
 
 -- Exemplo de REVOKE: um privilégio concedido além do necessário é retirado
 GRANT DELETE ON tcc_receitas.usuario TO papel_aplicacao;
