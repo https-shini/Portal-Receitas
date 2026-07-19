@@ -7,6 +7,7 @@ namespace App\Presentation\Controller;
 use App\Application\Query\RecipeQuery;
 use App\Application\UseCase\FindRecipesUseCase;
 use App\Application\UseCase\ListCategoriesUseCase;
+use App\Application\UseCase\RecommendRecipesUseCase;
 use App\Application\UseCase\ShowRecipeUseCase;
 use App\Presentation\Http\SessionManager;
 
@@ -24,6 +25,7 @@ class RecipeController
         private readonly FindRecipesUseCase $findRecipesUseCase,
         private readonly ListCategoriesUseCase $listCategoriesUseCase,
         private readonly ShowRecipeUseCase $showRecipeUseCase,
+        private readonly RecommendRecipesUseCase $recommendRecipesUseCase,
         private readonly SessionManager $sessionManager,
     ) {
     }
@@ -67,6 +69,7 @@ class RecipeController
      * @return array{
      *     cards: list<array<string, mixed>>,
      *     categories: list<array<string, mixed>>,
+     *     recommendations: array{title: string, cards: list<array<string, mixed>>},
      *     filters: array{search: string|null, categoryIds: list<int>, difficulties: list<string>, sort: string},
      *     pagination: array{page: int, perPage: int, total: int, totalPages: int, hasMore: bool},
      *     errorMessage: string|null
@@ -86,9 +89,17 @@ class RecipeController
                 : 'Não foi possível encontrar receitas :(';
         }
 
+        // Vitrine de recomendações só na entrada da home (sem filtros, página 1).
+        $recommendations = ['title' => '', 'cards' => []];
+        if (!$recipeQuery->hasFilters() && $recipeQuery->page === 1) {
+            $userId = (int) $this->sessionManager->get('idUsuario');
+            $recommendations = $this->recommendRecipesUseCase->execute($userId > 0 ? $userId : null);
+        }
+
         return [
             'cards' => $result['cards'],
             'categories' => $this->listCategoriesUseCase->execute(),
+            'recommendations' => $recommendations,
             'filters' => [
                 'search' => $recipeQuery->search,
                 'categoryIds' => $recipeQuery->categoryIds,

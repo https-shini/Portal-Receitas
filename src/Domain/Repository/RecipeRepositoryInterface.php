@@ -51,4 +51,14 @@ interface RecipeRepositoryInterface
      * @return list<string>
      */
     public function findImages(int $recipeId): array;
+
+    /**
+     * Recomendações: melhores avaliadas, opcionalmente restritas a categorias
+     * e excluindo ids indesejados (ex.: já favoritadas). Formato de resumo.
+     *
+     * @param  list<int>|null $categoryIds Restringe às categorias (null = todas).
+     * @param  list<int>      $excludeIds  Ids a não recomendar.
+     * @return list<array<string, mixed>>
+     */
+    public function recommend(?array $categoryIds, array $excludeIds, int $limit): array;
 }

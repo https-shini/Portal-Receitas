@@ -135,6 +135,21 @@ require __DIR__ . '/partials/head.php';
             </form>
         </section>
 
+        <?php $recommendations = $viewData['recommendations'] ?? ['title' => '', 'cards' => []]; ?>
+        <?php if (!empty($recommendations['cards'])): ?>
+            <!-- ── Vitrine de recomendações ── -->
+            <section class="reco container" aria-labelledby="tituloReco">
+                <div class="results__head">
+                    <h2 id="tituloReco"><i class="las la-magic" aria-hidden="true"></i> <?= htmlspecialchars($recommendations['title']) ?></h2>
+                </div>
+                <ul class="recipe-grid" role="list" style="list-style:none; padding:0;">
+                    <?php foreach ($recommendations['cards'] as $cardIndex => $card): ?>
+                        <?php require __DIR__ . '/partials/recipe-card.php'; ?>
+                    <?php endforeach; ?>
+                </ul>
+            </section>
+        <?php endif; ?>
+
         <!-- ── Resultados ── -->
         <section class="results container" aria-labelledby="tituloResultados">
             <div class="results__head">

@@ -111,6 +111,41 @@ class PdoRecipeRepository implements RecipeRepositoryInterface
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function recommend(?array $categoryIds, array $excludeIds, int $limit): array
+    {
+        $limit = max(1, min(24, $limit));
+        $conditions = [];
+        $params = [];
+
+        if ($categoryIds !== null && $categoryIds !== []) {
+            $ph = [];
+            foreach (array_values($categoryIds) as $i => $cid) {
+                $ph[] = ':rc' . $i;
+                $params['rc' . $i] = (int) $cid;
+            }
+            $conditions[] = 'r.idcategoriaFK IN (' . implode(', ', $ph) . ')';
+        }
+
+        if ($excludeIds !== []) {
+            $ph = [];
+            foreach (array_values($excludeIds) as $i => $rid) {
+                $ph[] = ':rx' . $i;
+                $params['rx' . $i] = (int) $rid;
+            }
+            $conditions[] = 'r.idReceita NOT IN (' . implode(', ', $ph) . ')';
+        }
+
+        $where = $conditions !== [] ? ' WHERE ' . implode(' AND ', $conditions) : '';
+        $sql = 'SELECT ' . self::SUMMARY_COLUMNS . self::FROM_JOIN . $where
+            . ' ORDER BY COALESCE(a.notaMedia, 0) DESC, COALESCE(a.notaTotal, 0) DESC, r.idReceita ASC'
+            . ' LIMIT ' . $limit;
+
+        $stmt = $this->connectionFactory->create()->prepare($sql);
+        $stmt->execute($params);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public function findImages(int $recipeId): array
     {
         $stmt = $this->connectionFactory->create()->prepare(

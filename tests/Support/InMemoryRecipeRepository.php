@@ -83,6 +83,24 @@ class InMemoryRecipeRepository implements RecipeRepositoryInterface
         return $this->images[$recipeId] ?? [];
     }
 
+    public function recommend(?array $categoryIds, array $excludeIds, int $limit): array
+    {
+        $rows = array_filter($this->rows, static function (array $r) use ($categoryIds, $excludeIds): bool {
+            if ($categoryIds !== null && $categoryIds !== [] && !in_array((int) $r['idcategoriaFK'], $categoryIds, true)) {
+                return false;
+            }
+
+            return !in_array((int) $r['idReceita'], $excludeIds, true);
+        });
+
+        // Melhores avaliadas primeiro (notaMedia desc), fallback por id.
+        usort($rows, static fn (array $a, array $b): int =>
+            ((float) ($b['notaMedia'] ?? 0)) <=> ((float) ($a['notaMedia'] ?? 0))
+            ?: ((int) $a['idReceita'] <=> (int) $b['idReceita']));
+
+        return array_slice(array_values($rows), 0, max(1, $limit));
+    }
+
     private function matches(array $row, RecipeQuery $query): bool
     {
         if ($query->categoryIds !== [] && !in_array((int) $row['idcategoriaFK'], $query->categoryIds, true)) {

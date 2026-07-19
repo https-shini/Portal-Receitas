@@ -10,6 +10,7 @@ use App\Application\UseCase\ListCategoriesUseCase;
 use App\Application\UseCase\ListFavoritesUseCase;
 use App\Application\UseCase\PostCommentUseCase;
 use App\Application\UseCase\RateRecipeUseCase;
+use App\Application\UseCase\RecommendRecipesUseCase;
 use App\Application\UseCase\RegisterUserUseCase;
 use App\Application\UseCase\ShowRecipeUseCase;
 use App\Application\UseCase\ToggleFavoriteUseCase;
@@ -92,6 +93,7 @@ $deleteUserAccountUseCase = new DeleteUserAccountUseCase($userRepository);
 $findRecipesUseCase = new FindRecipesUseCase($recipeRepository);
 $listCategoriesUseCase = new ListCategoriesUseCase($categoryRepository);
 $showRecipeUseCase = new ShowRecipeUseCase($recipeRepository);
+$recommendRecipesUseCase = new RecommendRecipesUseCase($recipeRepository, $favoriteRepository);
 $toggleFavoriteUseCase = new ToggleFavoriteUseCase($favoriteRepository);
 $listFavoritesUseCase = new ListFavoritesUseCase($favoriteRepository);
 $rateRecipeUseCase = new RateRecipeUseCase($ratingRepository);
@@ -105,7 +107,7 @@ $rateLimiter = new FileRateLimiter();
 return [
     'authController' => new AuthController($registerUserUseCase, $authenticateUserUseCase, $deleteUserAccountUseCase, $sessionManager, $rateLimiter),
     'profileController' => new ProfileController($updateUserProfileUseCase, $sessionManager),
-    'recipeController' => new RecipeController($findRecipesUseCase, $listCategoriesUseCase, $showRecipeUseCase, $sessionManager),
+    'recipeController' => new RecipeController($findRecipesUseCase, $listCategoriesUseCase, $showRecipeUseCase, $recommendRecipesUseCase, $sessionManager),
     'favoriteController' => new FavoriteController($toggleFavoriteUseCase, $listFavoritesUseCase, $favoriteRepository, $sessionManager, $rateLimiter),
     'ratingController' => new RatingController($rateRecipeUseCase, $ratingRepository, $sessionManager, $rateLimiter),
     'commentController' => new CommentController($postCommentUseCase, $commentRepository, $sessionManager, $rateLimiter),
