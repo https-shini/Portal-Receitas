@@ -78,11 +78,31 @@ class PdoConnectionFactory
         // A socket (unix_socket) tem precedência sobre host/port: no container
         // all-in-one ela é o caminho garantido, sem depender de o servidor
         // abrir a porta TCP.
-        $dsn = $this->socket !== null && $this->socket !== ''
+        $usaSocket = $this->socket !== null && $this->socket !== '';
+        $dsn = $usaSocket
             ? sprintf('mysql:unix_socket=%s;dbname=%s;charset=utf8mb4', $this->socket, $this->database)
             : sprintf('mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4', $this->host, $this->port, $this->database);
 
-        $this->connection = new PDO($dsn, $this->username, $this->password, $options);
+        try {
+            $this->connection = new PDO($dsn, $this->username, $this->password, $options);
+        } catch (\PDOException $e) {
+            // Registra o motivo real da falha (sem senha) no log do servidor —
+            // os entrypoints só mostram um 503 genérico ao usuário. Essencial
+            // para diagnosticar deploy (ex.: socket ausente, banco inexistente,
+            // acesso negado). Vai para o stderr do Apache → logs da Render.
+            $alvo = $usaSocket
+                ? 'unix_socket=' . $this->socket
+                : $this->host . ':' . $this->port;
+            error_log(sprintf(
+                '[DB] Falha ao conectar (%s, db=%s, user=%s): %s',
+                $alvo,
+                $this->database,
+                $this->username,
+                $e->getMessage(),
+            ));
+
+            throw $e;
+        }
 
         return $this->connection;
     }

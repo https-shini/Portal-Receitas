@@ -17,6 +17,13 @@ set -e
 
 DATADIR=/var/lib/mysql
 
+# /run é um tmpfs vazio a cada boot; garante o diretório da socket com
+# permissão de travessia para o www-data (processo do Apache) alcançar a
+# socket (ela própria é criada 0777 pelo MariaDB).
+mkdir -p /run/mysqld
+chown mysql:mysql /run/mysqld
+chmod 755 /run/mysqld
+
 if [ ! -d "$DATADIR/mysql" ]; then
     echo "[render-free] Inicializando datadir do MariaDB..."
     mariadb-install-db --user=mysql --datadir="$DATADIR" \
@@ -45,6 +52,17 @@ if ! mariadb --protocol=socket -u root -e "USE tcc_receitas" 2>/dev/null; then
     echo "[render-free] Importando seed DB_Receitas.sql..."
     mariadb --protocol=socket -u root < /var/www/html/database/DB_Receitas.sql
     echo "[render-free] Seed importado."
+fi
+
+# Sanidade: testa o MESMO caminho da aplicação (usuário www-data → socket →
+# tcc_receitas). O resultado vai para o log da Render, tornando óbvio, num
+# eventual 503, se o problema é o acesso ao banco pelo processo do Apache.
+SOCK="${DB_SOCKET:-/run/mysqld/mysqld.sock}"
+if su www-data -s /bin/sh -c "mariadb --socket=$SOCK -u root tcc_receitas -e 'SELECT COUNT(*) FROM receita'" >/tmp/dbcheck.txt 2>&1; then
+    echo "[render-free] Checagem do banco pelo Apache (www-data via socket): OK — $(tr -d '\n' </tmp/dbcheck.txt)"
+else
+    echo "[render-free] AVISO: www-data NÃO acessou o banco pela socket:" >&2
+    cat /tmp/dbcheck.txt >&2
 fi
 
 echo "[render-free] Banco pronto. Iniciando Apache..."
