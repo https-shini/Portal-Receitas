@@ -6,4 +6,4 @@
 # ════════════════════════════════════════════════════════════════
 FROM mysql:8.0
 
-COPY DB_Receitas.sql /docker-entrypoint-initdb.d/DB_Receitas.sql
+COPY database/DB_Receitas.sql /docker-entrypoint-initdb.d/DB_Receitas.sql

@@ -3,7 +3,7 @@
 **Projeto:** Portal Receitas · HomeMadeGourmet
 **Escopo:** camada de serviços e regras de negócio (PHP 8.2, Clean Architecture)
 **Status:** referência oficial do backend · v2.0
-**Complementa:** [architecture.md](architecture.md) (resumo) · [../DEPLOY.md](../DEPLOY.md) (operação) · [../DB_Receitas.sql](../DB_Receitas.sql) (banco oficial)
+**Complementa:** [architecture.md](architecture.md) (resumo) · [../DEPLOY.md](../DEPLOY.md) (operação) · [../database/DB_Receitas.sql](../database/DB_Receitas.sql) (banco oficial)
 
 Este documento descreve **o que está implementado hoje** (marcado ✅), **as justificativas de cada decisão** e **a evolução recomendada** (marcado 🔭). Tudo o que está marcado ✅ é verificável no código.
 
@@ -166,7 +166,7 @@ Toda a montagem de dependências acontece em **um único lugar**: `config/bootst
 │  └─ Presentation/           ← controllers, sessão, views (depende da Application)
 ├─ config/bootstrap.php       ← composition root
 ├─ tests/                     ← Unit/ + Support/ (fakes)
-└─ DB_Receitas.sql            ← banco oficial (schema, rotinas, seed, DCL, testes)
+└─ database/DB_Receitas.sql   ← banco oficial (schema, rotinas, seed, DCL, testes)
 ```
 
 Regras de módulo: **entrypoints não contêm lógica** (só orquestram controller + view/JSON); **controllers não contêm SQL**; **use cases não conhecem HTTP**; **repositórios não contêm regra de negócio**.

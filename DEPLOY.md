@@ -22,7 +22,7 @@ Um único serviço web roda Apache/PHP **e** o MariaDB no mesmo container
 
 ### Opção B — Web free na Render + MySQL externo (free com persistência)
 1. Crie um MySQL 8 gerenciado em um provedor com plano grátis (Aiven, Clever Cloud,
-   filess.io etc.) e importe o seed: `mysql -h HOST -P PORTA -u USUARIO -p BANCO < DB_Receitas.sql`.
+   filess.io etc.) e importe o seed: `mysql -h HOST -P PORTA -u USUARIO -p BANCO < database/DB_Receitas.sql`.
 2. Na Render: **New → Web Service → Docker** (Dockerfile padrão `./Dockerfile`).
 3. Em *Environment*, defina: `DB_HOST`, `DB_PORT` (provedores externos costumam usar
    porta diferente de 3306), `DB_NAME`, `DB_USER`, `DB_PASS`.
@@ -41,7 +41,7 @@ plano pago. Para reimportar o seed, recrie o disco (equivalente ao `down -v`).
 
 # Deploy com Docker (local/VPS)
 
-Sobe o site + banco (MySQL 8) com um comando. O seed (`DB_Receitas.sql`) é importado
+Sobe o site + banco (MySQL 8) com um comando. O seed (`database/DB_Receitas.sql`) é importado
 automaticamente na primeira execução, e o `composer install --no-dev --optimize-autoloader`
 roda dentro do build da imagem (o `vendor/` não é versionado).
 
@@ -88,6 +88,6 @@ docker compose down -v         # para e APAGA o banco (reimporta o seed na próx
 
 ## Observações
 - O banco só importa o seed quando o volume `dbdata` está vazio (primeira subida).
-  Se alterar o `DB_Receitas.sql` e quiser reimportar: `docker compose down -v` e suba de novo.
+  Se alterar o `database/DB_Receitas.sql` e quiser reimportar: `docker compose down -v` e suba de novo.
 - Usuários de demonstração do seed: `demo1@example.com` (senha `123456`) e
   `demo2@example.com` (senha `271821`) — as senhas no banco ficam em hash bcrypt.

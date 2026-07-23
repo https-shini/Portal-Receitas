@@ -28,7 +28,7 @@ services:
     volumes:
       # O seed só é importado quando o volume dbdata está vazio (primeira
       # subida). Para reimportar após mudar o SQL: docker compose down -v.
-      - ./DB_Receitas.sql:/docker-entrypoint-initdb.d/DB_Receitas.sql:ro
+      - ./database/DB_Receitas.sql:/docker-entrypoint-initdb.d/DB_Receitas.sql:ro
       - dbdata:/var/lib/mysql
     healthcheck:
       # Consulta uma tabela do seed via TCP (127.0.0.1, não socket): só fica

@@ -66,11 +66,12 @@ Ideias que **não existem** no código atual e ficam como evolução futura: rec
 Portal-Receitas/
 ├─ public/                              ← Único docroot (Apache serve só esta pasta)
 │  ├─ index.php                         ← Home: listagem, busca e filtro
-│  ├─ login.php · register.php · profile.php
+│  ├─ receita.php                       ← Página individual de receita (URL amigável /receita/{id}/{slug})
+│  ├─ login.php · register.php · logout.php · profile.php · favoritas.php
 │  ├─ healthz.php                       ← Health check (200, não toca o banco)
-│  ├─ api/                              ← Endpoints JSON de auth (login, register, logout, me, delete-account)
+│  ├─ api/                              ← Endpoints JSON (auth, favoritos, avaliações, comentários)
 │  ├─ privacidade.php · termos.php      ← Política de Privacidade e Termos de Uso (LGPD)
-│  └─ assets/                           ← css/, js/, img/, fonts/, vendor/ (self-hosted) e php/ (logout)
+│  └─ assets/                           ← css/, js/, img/, fonts/, vendor/ (tudo self-hosted)
 │
 ├─ src/                                 ← Núcleo por camada (regra: Presentation → Application → Domain)
 │  ├─ Domain/
@@ -88,15 +89,28 @@ Portal-Receitas/
 ├─ config/bootstrap.php                 ← Composição de dependências + leitura do ambiente
 ├─ tests/                               ← Unit/ (use cases + conexão PDO) e Support/ (fakes in-memory)
 │
-├─ DB_Receitas.sql                      ← Banco oficial (script único: DDL, views, rotinas, triggers, seed)
-├─ Dockerfile · docker-compose.yml
-├─ docker/                              ← Entrypoint (porta dinâmica) e imagens all-in-one/DB
+├─ database/DB_Receitas.sql             ← Banco oficial (script único: DDL, views, rotinas, triggers, seed)
+├─ docker/                              ← Dockerfiles auxiliares, entrypoints, config Apache
+├─ Dockerfile · docker-compose.yml     ← Imagem da aplicação + stack local (web + MySQL)
 ├─ render.yaml                          ← Blueprint de deploy na Render (plano free)
-├─ DEPLOY.md · CHANGELOG.md · docs/architecture.md
-└─ composer.json · phpunit.xml
+├─ DEPLOY.md · CHANGELOG.md · SECURITY.md
+└─ composer.json · phpunit.xml · phpstan.neon
 ```
 
-A regra de dependência e o papel de cada camada estão resumidos em [docs/architecture.md](docs/architecture.md). As **referências técnicas oficiais** do projeto: [docs/backend.md](docs/backend.md) (serviços, regras de negócio, API, segurança, escalabilidade, ADRs), [docs/frontend.md](docs/frontend.md) (Design System, UX/UI, acessibilidade, performance, ADRs) e [docs/auditoria-conformidade.md](docs/auditoria-conformidade.md) (auditoria LGPD + ISO/IEC 25010, com correções aplicadas na v2.2).
+### Finalidade de cada diretório
+
+| Diretório | Responsabilidade |
+|-----------|------------------|
+| `public/` | **Único docroot** exposto pelo Apache — entrypoints, APIs JSON e assets estáticos. Nenhum outro diretório é servido na web. |
+| `src/` | Núcleo da aplicação em **Clean Architecture** (Domain · Application · Infrastructure · Presentation), com a regra de dependência apontando para dentro. |
+| `config/` | Composition root (`bootstrap.php`): injeção de dependências e leitura do ambiente. |
+| `database/` | Script SQL oficial (schema, rotinas, triggers, seed) — fonte única do banco. |
+| `tests/` | Suíte PHPUnit: `Unit/` (casos de uso) e `Support/` (fakes in-memory). |
+| `docker/` | Dockerfiles auxiliares, entrypoints e configuração de Apache/headers. |
+| `docs/` | Documentação técnica (arquitetura, backend, frontend, auditoria LGPD, privacidade). |
+| `.github/` | Integração contínua (workflow de CI). |
+
+A regra de dependência e o papel de cada camada estão resumidos em [docs/architecture.md](docs/architecture.md). As **referências técnicas oficiais** do projeto: [docs/backend.md](docs/backend.md) (serviços, regras de negócio, API, segurança, escalabilidade, ADRs), [docs/frontend.md](docs/frontend.md) (Design System, UX/UI, acessibilidade, performance, ADRs) e [docs/auditoria-conformidade.md](docs/auditoria-conformidade.md) (auditoria LGPD + ISO/IEC 25010, com correções aplicadas na v2.2). A política de arquivos sensíveis e versionamento seguro está em [SECURITY.md](SECURITY.md).
 
 ---
 
@@ -129,7 +143,7 @@ cp .env.example .env          # opcional: ajuste WEB_PORT e DB_PASS
 docker compose up --build -d
 ```
 
-Acesse **http://localhost:8080**. O seed (`DB_Receitas.sql`) é importado automaticamente na **primeira** subida (volume vazio), e o serviço `web` só inicia depois do healthcheck do `db` ficar `healthy`.
+Acesse **http://localhost:8080**. O seed (`database/DB_Receitas.sql`) é importado automaticamente na **primeira** subida (volume vazio), e o serviço `web` só inicia depois do healthcheck do `db` ficar `healthy`.
 
 ### ☁️ Na Render (plano free)
 
@@ -140,7 +154,7 @@ O repositório traz o blueprint `render.yaml` (**New → Blueprint** no dashboar
 ### 💻 Com XAMPP (desenvolvimento local)
 
 1. Clone o projeto e rode `composer install`.
-2. Importe `DB_Receitas.sql` (cria o banco `tcc_receitas`).
+2. Importe `database/DB_Receitas.sql` (cria o banco `tcc_receitas`).
 3. Aponte o docroot do Apache para a pasta **`public/`**.
 4. Sem variáveis de ambiente, a conexão usa `localhost` / `root` / senha vazia / `tcc_receitas`.
 

@@ -1,5 +1,15 @@
 # CHANGELOG — Consolidação das branches
 
+## [3.4.0] — 2026-07-19
+
+Refatoração de organização e segurança do repositório (estrutural, sem mudar a lógica de negócio):
+
+- **Segurança de versionamento:** `.gitignore` endurecido (variações de `.env`, segredos, chaves/certificados, logs, temporários, uploads, artefatos de SO/IDE); `.env.example` documenta agora **todas** as variáveis lidas por `config/bootstrap.php` (`DB_HOST/PORT/NAME/USER/PASS`, `DB_SSL_CA/VERIFY`, `WEB_PORT`) com placeholders, sem valores reais.
+- **`SECURITY.md`:** política de arquivos sensíveis, boas práticas de contribuição e nota de transparência sobre o `backend/.env` de uma arquitetura anterior (Node, descontinuada) presente só no histórico inicial — credenciais defuntas (banco/JWT não usados no projeto PHP atual); recomendação de rotação registrada; histórico mantido por decisão do mantenedor (sem force-push em repo compartilhado).
+- **Raiz enxuta:** `DB_Receitas.sql` movido para `database/DB_Receitas.sql`; referências atualizadas em `docker-compose.yml`, `docker/db.Dockerfile`, `docker/render-free-entrypoint.sh`, `README.md`, `DEPLOY.md` e `docs/`. A raiz passa a conter apenas arquivos essenciais de configuração/gerência.
+- **Documentação:** README ganhou tabela de finalidade de cada diretório e árvore atualizada (correção de referências obsoletas a `assets/php/`); link para `SECURITY.md`.
+- Validado: 58 testes PHPUnit + E2E `docker compose` do zero (seed importado do novo caminho, rotas e fluxo autenticado 100% funcionais).
+
 ## [3.3.0] — 2026-07-19
 
 Melhorias incrementais (H), cada uma validada com o projeto 100% funcional (testes + E2E sob Apache real):

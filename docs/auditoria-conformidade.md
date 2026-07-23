@@ -347,7 +347,7 @@ O Portal Receitas chega a esta auditoria com **fundação técnica sólida e aci
 
 - **A. Inventário de dados** — §6.1 (tabela completa com locais e ciclo de vida);
 - **B. Matriz de riscos** — §10;
-- **C. Referências cruzadas:** [backend.md](backend.md) (ADRs 001–007, OWASP §8, roadmap §18) · [frontend.md](frontend.md) (WCAG §9, ADRs F01–F06) · [`DB_Receitas.sql`](../DB_Receitas.sql) (DCL §15, auditoria §12, autotestes §17) · [DEPLOY.md](../DEPLOY.md) (topologias e trade-off do free tier);
+- **C. Referências cruzadas:** [backend.md](backend.md) (ADRs 001–007, OWASP §8, roadmap §18) · [frontend.md](frontend.md) (WCAG §9, ADRs F01–F06) · [`DB_Receitas.sql`](../database/DB_Receitas.sql) (DCL §15, auditoria §12, autotestes §17) · [DEPLOY.md](../DEPLOY.md) (topologias e trade-off do free tier);
 - **D. Limitações da auditoria:** itens [NÃO VALIDADO] — configuração de produção da Render, retenção de logs da plataforma, matriz completa de navegadores, comportamento sob carga real.
 
 ---

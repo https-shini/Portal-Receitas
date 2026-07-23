@@ -41,7 +41,7 @@ mariadb --protocol=socket -u root -e \
 # CREATE DATABASE IF NOT EXISTS + USE, então basta redirecionar).
 if ! mariadb --protocol=socket -u root -e "USE tcc_receitas" 2>/dev/null; then
     echo "[render-free] Importando seed DB_Receitas.sql..."
-    mariadb --protocol=socket -u root < /var/www/html/DB_Receitas.sql
+    mariadb --protocol=socket -u root < /var/www/html/database/DB_Receitas.sql
     echo "[render-free] Seed importado."
 fi
 

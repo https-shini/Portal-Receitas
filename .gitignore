@@ -1,10 +1,60 @@
-# Dependências (geradas no build via composer install)
+# ════════════════════════════════════════════════════════════════
+#  .gitignore — o que NUNCA deve ser versionado neste repositório.
+#  Regra de ouro: segredos, artefatos gerados e arquivos de ambiente
+#  local ficam de fora. Versione apenas exemplos (ex.: .env.example).
+# ════════════════════════════════════════════════════════════════
+
+# ── Dependências (recriadas no build via `composer install`) ──
 /vendor/
 
-# Configuração local
-/.env
+# ── Variáveis de ambiente e segredos (NUNCA versionar) ──
+.env
+.env.*
+!.env.example
+secrets.*
+*.secret
 
-# Cache de ferramentas
+# ── Credenciais, chaves e certificados ──
+*.pem
+*.key
+*.crt
+*.cer
+*.p12
+*.pfx
+*.keystore
+id_rsa
+id_dsa
+id_ecdsa
+id_ed25519
+*.gpg
+
+# ── Caches de ferramentas / artefatos de build ──
 /.phpunit.cache/
 /.phpunit.result.cache
-build/
+/build/
+/.php-cs-fixer.cache
+/.phpstan.cache/
+
+# ── Logs e temporários ──
+*.log
+logs/
+tmp/
+*.tmp
+*.bak
+*.orig
+
+# ── Uploads / dados de runtime gerados localmente ──
+/uploads/
+/storage/
+
+# ── Sistema operacional ──
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Editores / IDEs ──
+/.idea/
+/.vscode/
+*.swp
+*.swo
+*~
