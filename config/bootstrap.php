@@ -76,7 +76,8 @@ $connectionFactory = new PdoConnectionFactory(
     getenv('DB_PASS') !== false ? (string) getenv('DB_PASS') : '',
     getenv('DB_PORT') ?: '3306',
     getenv('DB_SSL_CA') ?: null,
-    getenv('DB_SSL_VERIFY') !== 'false'
+    getenv('DB_SSL_VERIFY') !== 'false',
+    getenv('DB_SOCKET') ?: null
 );
 
 $userRepository = new PdoUserRepository($connectionFactory);

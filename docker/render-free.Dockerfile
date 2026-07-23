@@ -46,9 +46,12 @@ RUN composer dump-autoload --optimize --no-dev \
 
 EXPOSE 80
 
-# 127.0.0.1 (e não "localhost") força o PDO a usar TCP — com "localhost" o
-# driver tentaria o socket unix, que fica em caminho diferente do padrão.
-ENV DB_HOST=127.0.0.1 \
+# A aplicação conecta pela SOCKET Unix do MariaDB (DB_SOCKET), não por TCP:
+# no Debian (base desta imagem) o MariaDB não abre a porta TCP de forma
+# confiável, mas a socket local sempre funciona (é o caminho do seed e do
+# healthcheck). DB_SOCKET tem precedência sobre DB_HOST/DB_PORT no
+# PdoConnectionFactory. root autentica por senha vazia (ver entrypoint).
+ENV DB_SOCKET=/run/mysqld/mysqld.sock \
     DB_NAME=tcc_receitas \
     DB_USER=root \
     DB_PASS="" \

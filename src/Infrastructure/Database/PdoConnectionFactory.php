@@ -32,6 +32,14 @@ class PdoConnectionFactory
      *                               desligar apenas para certificado
      *                               autoassinado.
      */
+    /**
+     * @param string|null $socket Caminho do socket Unix do MySQL/MariaDB.
+     *                            Quando informado, a conexão é feita pela
+     *                            socket (unix_socket no DSN) e host/port são
+     *                            ignorados — usado na imagem all-in-one, onde
+     *                            banco e aplicação compartilham o container e
+     *                            a socket é o caminho mais confiável.
+     */
     public function __construct(
         private readonly string $host,
         private readonly string $database,
@@ -40,6 +48,7 @@ class PdoConnectionFactory
         private readonly string $port = '3306',
         private readonly ?string $sslCa = null,
         private readonly bool $sslVerify = true,
+        private readonly ?string $socket = null,
     ) {
     }
 
@@ -66,12 +75,14 @@ class PdoConnectionFactory
             $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = $this->sslVerify;
         }
 
-        $this->connection = new PDO(
-            sprintf('mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4', $this->host, $this->port, $this->database),
-            $this->username,
-            $this->password,
-            $options
-        );
+        // A socket (unix_socket) tem precedência sobre host/port: no container
+        // all-in-one ela é o caminho garantido, sem depender de o servidor
+        // abrir a porta TCP.
+        $dsn = $this->socket !== null && $this->socket !== ''
+            ? sprintf('mysql:unix_socket=%s;dbname=%s;charset=utf8mb4', $this->socket, $this->database)
+            : sprintf('mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4', $this->host, $this->port, $this->database);
+
+        $this->connection = new PDO($dsn, $this->username, $this->password, $options);
 
         return $this->connection;
     }

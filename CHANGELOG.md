@@ -2,11 +2,11 @@
 
 ## [3.4.1] — 2026-07-23
 
-Correção do deploy no plano free da Render (imagem all-in-one) — 503 na primeira carga apesar do build/seed OK:
+Correção do deploy no plano free da Render (imagem all-in-one) — 503 apesar de build e seed OK:
 
-- **Causa:** no Debian (base `php:8.2-apache`) o `mariadb-install-db` cria o `root` com autenticação **unix_socket**, que só funciona pela socket local. O seed importava (via socket) e o `mariadb-admin ping` (socket) ficava verde, mas a aplicação conecta por **TCP 127.0.0.1** (PDO) — caminho que a autenticação por socket rejeita → `PDOException` → 503 em toda página que toca o banco (o `/healthz.php`, que não toca, seguia 200).
-- **Correção no `docker/render-free-entrypoint.sh`:** `mariadb-install-db --auth-root-authentication-method=normal` (root por senha, não socket); `CREATE OR REPLACE USER 'root'@'127.0.0.1'` garante conta `mysql_native_password` de senha vazia; **readiness agora testa o TCP 127.0.0.1** (mesmo caminho do app), não só a socket; seed importado via TCP. Se o TCP não subir, o boot falha com log claro em vez de servir 503 silencioso.
-- Validado o fluxo completo do entrypoint em MariaDB 10.11 (install-db → TCP pronto → seed via TCP sem erros → query do app retornando 36 receitas / 20 categorias → idempotência no 2º boot).
+- **Causa:** no Debian (base `php:8.2-apache`) o MariaDB **não abre a porta TCP** de forma confiável (o boot falhou explicitamente ao esperar `127.0.0.1:3306`), mas a aplicação conectava por TCP (PDO) — daí `PDOException` → 503 em toda página que toca o banco (o `/healthz.php`, que não toca, seguia 200). A socket local, ao contrário, sempre responde (é o caminho do seed e do healthcheck).
+- **Correção — conexão pela SOCKET Unix:** `PdoConnectionFactory` passou a aceitar `DB_SOCKET` (DSN `unix_socket=…`, com precedência sobre `host/port`); `config/bootstrap.php` lê a variável. A imagem `render-free` define `DB_SOCKET=/run/mysqld/mysqld.sock` e o entrypoint roda `mariadb-install-db --auth-root-authentication-method=normal` para o `root` autenticar por **senha vazia** (e não `unix_socket`), permitindo que o processo do Apache (`www-data`) autentique como `root` pela socket.
+- Validado com PDO real (imagem PHP + `pdo_mysql`, usuário `www-data`) conectando por `unix_socket` e retornando 36 receitas / 20 categorias; o caminho `host/port` (docker-compose, banco externo) segue idêntico e foi revalidado (home 200, 36 receitas).
 
 ## [3.4.0] — 2026-07-19
 
