@@ -23,9 +23,27 @@ RUN sed -ri -e 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-avail
     && sed -ri '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf \
     && a2enmod headers rewrite
 
-# MariaDB dimensionado para os 512 MB do plano free; escuta apenas em
-# 127.0.0.1 — o banco nunca é exposto para fora do container.
-RUN printf '[mysqld]\nbind-address = 127.0.0.1\nperformance_schema = OFF\ninnodb_buffer_pool_size = 64M\nmax_connections = 30\n' \
+# MariaDB dimensionado com folga para os 512 MB do plano free (dividido com
+# Apache/PHP). Só a socket é usada, mas mantemos bind 127.0.0.1 (nunca
+# exposto). performance_schema OFF e buffers enxutos reduzem a pegada de RAM
+# a ~80–120 MB, evitando OOM (que derrubaria o banco após o seed).
+RUN printf '%s\n' \
+    '[mysqld]' \
+    'bind-address = 127.0.0.1' \
+    'skip-name-resolve' \
+    'performance_schema = OFF' \
+    'innodb_buffer_pool_size = 32M' \
+    'innodb_buffer_pool_chunk_size = 32M' \
+    'innodb_log_buffer_size = 8M' \
+    'key_buffer_size = 8M' \
+    'tmp_table_size = 8M' \
+    'max_heap_table_size = 8M' \
+    'sort_buffer_size = 512K' \
+    'read_buffer_size = 256K' \
+    'join_buffer_size = 256K' \
+    'thread_cache_size = 4' \
+    'table_open_cache = 64' \
+    'max_connections = 20' \
     > /etc/mysql/mariadb.conf.d/99-render-free.cnf
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer

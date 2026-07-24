@@ -31,7 +31,10 @@ if [ ! -d "$DATADIR/mysql" ]; then
 fi
 
 echo "[render-free] Iniciando MariaDB..."
-mariadbd-safe --user=mysql --datadir="$DATADIR" >/dev/null 2>&1 &
+# Log do MariaDB num arquivo (não descartado): permite mostrar o motivo real
+# caso o banco caia (ex.: OOM no plano free) durante ou após o seed.
+MARIA_LOG=/var/log/mariadb-boot.log
+mariadbd-safe --user=mysql --datadir="$DATADIR" >"$MARIA_LOG" 2>&1 &
 
 # Aguarda o servidor aceitar conexões pela socket (limite de 60s para o
 # healthcheck da plataforma não validar um container quebrado).
@@ -63,6 +66,8 @@ if su www-data -s /bin/sh -c "mariadb --socket=$SOCK -u root tcc_receitas -e 'SE
 else
     echo "[render-free] AVISO: www-data NÃO acessou o banco pela socket:" >&2
     cat /tmp/dbcheck.txt >&2
+    echo "[render-free] --- últimas linhas do log do MariaDB ---" >&2
+    tail -n 20 "$MARIA_LOG" >&2 2>/dev/null || true
 fi
 
 echo "[render-free] Banco pronto. Iniciando Apache..."
