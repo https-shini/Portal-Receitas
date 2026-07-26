@@ -1,5 +1,15 @@
 # CHANGELOG — Consolidação das branches
 
+## [4.0.0-alpha] — 2026-07-23
+
+Fundação da migração para **React + Supabase + n8n** (aditiva, sem tocar no app PHP legado — abordagem *strangler fig*). Segue o guia `docs/migracao-react-supabase-n8n.md`.
+
+- **Banco (`supabase/`):** migrations PostgreSQL com o schema completo (11 tabelas: users, categories, recipes, ingredients, recipe_ingredients, ratings, comments, favorites, follows, notifications, reports), índices (parcial de publicadas + GIN de busca), **RLS em todas as tabelas** e policies por dono/moderador, triggers (perfil no cadastro via `auth.users`, `tsvector`, rate limit de comentários), RPC `recipe_rating_stats`, `seed.sql` e `config.toml`.
+- **Edge Function** `generate-tags` (Deno): geração de tags por IA com `service_role` protegida.
+- **Frontend (`web/`):** React 18 + TypeScript + Vite. Client Supabase tipado, `AuthContext`, services (Repository Pattern), hooks com TanStack Query (infinite scroll, favorito otimista, comentários em Realtime), React Router com guard, lazy loading + Suspense + Error Boundary. Telas: catálogo com busca, detalhe da receita (ingredientes, avaliação, favoritar, comentários ao vivo), login, cadastro, publicar (upload com compressão WebP), perfil, callback de OAuth.
+- **Validado:** `npm run typecheck` limpo e `npm run build` (Vite) com code-splitting — 149 módulos, bundle ~134 kB gzip. O app PHP e a suíte PHPUnit permanecem intactos.
+- **Próximas etapas (roadmap §6.21):** seguidores, notificações, moderação, workflows n8n e monitoramento — requerem um projeto Supabase provisionado.
+
 ## [3.4.1] — 2026-07-23
 
 Correção do deploy no plano free da Render (imagem all-in-one) — 503 apesar de build e seed OK:
