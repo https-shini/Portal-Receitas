@@ -64,8 +64,19 @@ Importe o repositório na Vercel apontando **Root Directory = `web`**. Framework
 Vite é detectado. Configure as variáveis `VITE_SUPABASE_URL` e
 `VITE_SUPABASE_ANON_KEY`. O `vercel.json` já faz o fallback SPA.
 
-## Próximas etapas (roadmap §6.21)
+## Também implementado (roadmap §6.21)
 
-Seguidores, notificações (sino), moderação de denúncias, avaliações por estrela
-interativas, workflows n8n (onboarding, moderação, distribuição) e monitoramento
-(Sentry). Ver o checklist completo em §6.22 do guia.
+- **Avaliação por estrelas interativa** (upsert, um voto por usuário).
+- **Seguidores** (follow/unfollow + contador) na página de perfil.
+- **Notificações** com sino ao vivo (Realtime) + página; geradas por triggers no
+  banco (novo seguidor / comentário / avaliação).
+- **Denúncias** (botão na receita) + **página de moderação** (RLS por papel).
+- **Edge Functions** extras: `moderate-comment`, `recipe-stats`.
+- **Workflows n8n** em [`../n8n/`](../n8n) (onboarding, moderação, distribuição).
+- **Sentry** opcional (defina `VITE_SENTRY_DSN`) e **testes** (`npm run test`).
+
+## O que falta (provisionamento — sem código novo)
+
+Criar o projeto Supabase, aplicar `../supabase/migrations`, configurar
+OAuth/buckets, hospedar o n8n (Railway/Render/VPS) e importar os workflows.
+Ver o checklist completo em §6.22 do guia.

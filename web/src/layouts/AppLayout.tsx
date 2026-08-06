@@ -1,6 +1,7 @@
 import { Link, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { authService } from '../services/auth.service';
+import { NotificationBell } from '../components/NotificationBell';
 
 export function AppLayout() {
   const { user, loading } = useAuth();
@@ -22,6 +23,8 @@ export function AppLayout() {
               <>
                 <Link to="/nova-receita">Publicar</Link>
                 <Link to={`/perfil/${user.id}`}>Meu perfil</Link>
+                <Link to="/moderacao">Moderação</Link>
+                <NotificationBell />
                 <button type="button" onClick={logout}>Sair</button>
               </>
             ) : (

@@ -53,3 +53,26 @@ button:disabled { opacity: 0.6; cursor: default; }
 .auth__oauth { display: grid; gap: 0.5rem; margin: 1rem 0; }
 .auth__oauth button { background: #333; }
 .error { color: #b91c1c; }
+
+.recipe__actions { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin: 0.5rem 0 1rem; }
+.star--on, .star:not(:disabled):hover { cursor: pointer; }
+.star:not(:disabled) { cursor: pointer; }
+
+.notif-bell { position: relative; font-size: 1.15rem; }
+.notif-bell__badge { position: absolute; top: -8px; right: -10px; background: var(--brand); color: #fff; border-radius: 999px; font-size: 0.65rem; padding: 1px 5px; }
+.notif-list { list-style: none; padding: 0; }
+.notif { display: flex; justify-content: space-between; gap: 1rem; padding: 0.6rem 0; border-bottom: 1px solid var(--border); }
+.notif--unread { font-weight: 600; }
+.notif time { color: var(--muted); font-size: 0.8rem; font-weight: 400; }
+
+.follow { display: flex; align-items: center; gap: 0.75rem; margin: 0.5rem 0 1rem; }
+.follow__count { color: var(--muted); }
+
+.report { display: inline-flex; align-items: center; gap: 0.5rem; }
+.report__trigger { background: none; color: var(--muted); font-size: 0.85rem; padding: 0.2rem 0.4rem; }
+.report__box { display: inline-flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; }
+.report--sent { color: #15803d; font-size: 0.85rem; }
+
+.mod-table { width: 100%; border-collapse: collapse; }
+.mod-table th, .mod-table td { text-align: left; padding: 0.5rem; border-bottom: 1px solid var(--border); }
+.mod-table button { font-size: 0.8rem; margin-right: 0.3rem; }

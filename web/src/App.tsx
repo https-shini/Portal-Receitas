@@ -11,6 +11,8 @@ const Register = lazy(() => import('./pages/Register'));
 const NewRecipe = lazy(() => import('./pages/NewRecipe'));
 const Profile = lazy(() => import('./pages/Profile'));
 const AuthCallback = lazy(() => import('./pages/AuthCallback'));
+const Notifications = lazy(() => import('./pages/Notifications'));
+const Moderation = lazy(() => import('./pages/Moderation'));
 
 function RequireAuth() {
   const { session, loading } = useAuth();
@@ -30,7 +32,11 @@ const router = createBrowserRouter([
       { path: '/perfil/:id', element: <Profile /> },
       {
         element: <RequireAuth />,
-        children: [{ path: '/nova-receita', element: <NewRecipe /> }],
+        children: [
+          { path: '/nova-receita', element: <NewRecipe /> },
+          { path: '/notificacoes', element: <Notifications /> },
+          { path: '/moderacao', element: <Moderation /> },
+        ],
       },
       { path: '*', element: <Navigate to="/" replace /> },
     ],

@@ -1,0 +1,78 @@
+{
+  "name": "Portal Receitas — Moderação de denúncia",
+  "nodes": [
+    {
+      "parameters": { "httpMethod": "POST", "path": "portal-report-created" },
+      "id": "trigger-report",
+      "name": "Webhook reports.insert",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SUPABASE_URL }}/functions/v1/moderate-comment",
+        "sendBody": true,
+        "jsonBody": "={{ { \"body\": $json.body.record.reason } }}"
+      },
+      "id": "ia-classify",
+      "name": "IA classifica gravidade",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true },
+          "conditions": [
+            { "leftValue": "={{ $json.allowed }}", "rightValue": false, "operator": { "type": "boolean", "operation": "equals" } }
+          ]
+        }
+      },
+      "id": "if-grave",
+      "name": "Grave?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [720, 300]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/reports?id=eq.{{ $('Webhook reports.insert').item.json.body.record.id }}",
+        "sendBody": true,
+        "jsonBody": "={{ { \"status\": \"reviewing\" } }}"
+      },
+      "id": "hide-content",
+      "name": "Marca em análise",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [960, 220]
+    },
+    {
+      "parameters": { "method": "POST", "url": "={{ $env.SLACK_WEBHOOK_URL }}" },
+      "id": "slack-alert",
+      "name": "Alerta no Slack",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1200, 220]
+    },
+    {
+      "parameters": { "method": "POST", "url": "https://api.trello.com/1/cards" },
+      "id": "trello-card",
+      "name": "Card no Trello",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1440, 300]
+    }
+  ],
+  "connections": {
+    "Webhook reports.insert": { "main": [[{ "node": "IA classifica gravidade", "type": "main", "index": 0 }]] },
+    "IA classifica gravidade": { "main": [[{ "node": "Grave?", "type": "main", "index": 0 }]] },
+    "Grave?": { "main": [[{ "node": "Marca em análise", "type": "main", "index": 0 }], [{ "node": "Card no Trello", "type": "main", "index": 0 }]] },
+    "Marca em análise": { "main": [[{ "node": "Alerta no Slack", "type": "main", "index": 0 }]] },
+    "Alerta no Slack": { "main": [[{ "node": "Card no Trello", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" }
+}

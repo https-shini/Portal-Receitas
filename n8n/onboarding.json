@@ -1,0 +1,74 @@
+{
+  "name": "Portal Receitas — Onboarding pós-cadastro",
+  "nodes": [
+    {
+      "parameters": { "httpMethod": "POST", "path": "portal-user-created" },
+      "id": "trigger-user-created",
+      "name": "Webhook user.created",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true },
+          "conditions": [
+            { "leftValue": "={{ $json.body.record.email }}", "rightValue": ".+@.+", "operator": { "type": "string", "operation": "regex" } }
+          ]
+        }
+      },
+      "id": "if-valid-email",
+      "name": "E-mail válido?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.sendgrid.com/v3/mail/send",
+        "sendHeaders": true,
+        "sendBody": true,
+        "bodyParameters": { "parameters": [] }
+      },
+      "id": "email-welcome",
+      "name": "E-mail de boas-vindas",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [720, 220]
+    },
+    {
+      "parameters": { "method": "POST", "url": "https://api.hubapi.com/crm/v3/objects/contacts" },
+      "id": "crm-create",
+      "name": "Cria contato no CRM",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [960, 220]
+    },
+    {
+      "parameters": { "method": "POST", "url": "={{ $env.DISCORD_WEBHOOK_URL }}" },
+      "id": "discord-post",
+      "name": "Post no Discord",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1200, 220]
+    },
+    {
+      "parameters": { "method": "POST", "url": "={{ $env.ANALYTICS_URL }}" },
+      "id": "analytics",
+      "name": "Evento no Analytics",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1440, 220]
+    }
+  ],
+  "connections": {
+    "Webhook user.created": { "main": [[{ "node": "E-mail válido?", "type": "main", "index": 0 }]] },
+    "E-mail válido?": { "main": [[{ "node": "E-mail de boas-vindas", "type": "main", "index": 0 }], []] },
+    "E-mail de boas-vindas": { "main": [[{ "node": "Cria contato no CRM", "type": "main", "index": 0 }]] },
+    "Cria contato no CRM": { "main": [[{ "node": "Post no Discord", "type": "main", "index": 0 }]] },
+    "Post no Discord": { "main": [[{ "node": "Evento no Analytics", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" }
+}
