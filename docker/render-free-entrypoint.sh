@@ -49,6 +49,18 @@ until mariadb-admin ping --silent 2>/dev/null; do
 done
 echo "[render-free] MariaDB pronto (socket)."
 
+# Rede de segurança para a autenticação do root. O caminho normal é o datadir
+# ser inicializado acima com --auth-root-authentication-method=normal, mas
+# qualquer datadir que chegue aqui pronto (ex.: criado pelo postinst do pacote
+# durante o build) traz o padrão do Debian: root autentica pela socket e o
+# hash de senha fica "invalid". Nesse estado o processo do Apache (www-data)
+# leva "ERROR 1698 Access denied" e toda página com banco vira 503.
+# Este ALTER roda como uid 0 (que sempre autentica) e é idempotente.
+mariadb --protocol=socket -u root \
+    -e "ALTER USER 'root'@'localhost' IDENTIFIED VIA mysql_native_password USING PASSWORD('')" \
+    2>/dev/null \
+    || echo "[render-free] AVISO: não foi possível normalizar a autenticação do root." >&2
+
 # Importa o seed apenas quando o banco ainda não existe (o script tem
 # CREATE DATABASE IF NOT EXISTS + USE, então basta redirecionar).
 if ! mariadb --protocol=socket -u root -e "USE tcc_receitas" 2>/dev/null; then
@@ -64,7 +76,11 @@ SOCK="${DB_SOCKET:-/run/mysqld/mysqld.sock}"
 if su www-data -s /bin/sh -c "mariadb --socket=$SOCK -u root tcc_receitas -e 'SELECT COUNT(*) FROM receita'" >/tmp/dbcheck.txt 2>&1; then
     echo "[render-free] Checagem do banco pelo Apache (www-data via socket): OK — $(tr -d '\n' </tmp/dbcheck.txt)"
 else
-    echo "[render-free] AVISO: www-data NÃO acessou o banco pela socket:" >&2
+    # Chegar aqui significa que o site responderá 503 em toda página com banco
+    # — e o /healthz.php, que não toca o banco, seguirá 200, escondendo a
+    # falha do healthcheck da plataforma. Por isso o log é ERRO, não aviso.
+    echo "[render-free] ERRO: www-data NÃO acessou o banco pela socket — o site" >&2
+    echo "[render-free]       servirá 503 nas páginas que dependem do banco:" >&2
     cat /tmp/dbcheck.txt >&2
     echo "[render-free] --- últimas linhas do log do MariaDB ---" >&2
     tail -n 20 "$MARIA_LOG" >&2 2>/dev/null || true

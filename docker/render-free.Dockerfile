@@ -10,9 +10,19 @@
 # ════════════════════════════════════════════════════════════════
 FROM php:8.2-apache
 
+# O postinst do pacote mariadb-server JÁ inicializa /var/lib/mysql durante o
+# build — e o faz com a autenticação padrão do Debian para o root (socket, com
+# hash de senha inválido). Esse datadir ficaria gravado na camada da imagem e
+# o `if [ ! -d "$DATADIR/mysql" ]` do entrypoint nunca dispararia, pulando o
+# --auth-root-authentication-method=normal: o Apache (www-data) receberia
+# "ERROR 1698 Access denied" e TODA página com banco viraria 503 (com o
+# /healthz.php respondendo 200, mascarando a falha no healthcheck da Render).
+# Esvaziar o datadir aqui garante que o entrypoint inicialize o banco no boot,
+# que é o comportamento esperado no plano free (filesystem efêmero).
 RUN apt-get update \
     && apt-get install -y --no-install-recommends mariadb-server \
     && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /var/lib/mysql/* \
     && docker-php-ext-install pdo_mysql \
     && mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 

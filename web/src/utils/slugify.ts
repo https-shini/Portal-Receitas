@@ -2,7 +2,7 @@
 export function slugify(input: string): string {
   const base = input
     .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
+    .replace(/[\u0300-\u036f]/g, '') // marcas combinantes (acentos) separadas pelo NFD
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/(^-|-$)/g, '');
