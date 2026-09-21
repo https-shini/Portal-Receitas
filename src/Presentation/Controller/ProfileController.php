@@ -55,7 +55,7 @@ class ProfileController
 
         // Anti-CSRF: o POST precisa devolver o token emitido para esta sessão
         // (defesa adicional ao SameSite=Lax do cookie).
-        if (!$this->sessionManager->validateCsrf($post['_csrf'] ?? null)) {
+        if (!$this->sessionManager->validateCsrf(self::campo($post, '_csrf'))) {
             $viewData['erroAtualizacao'] = true;
 
             return $viewData;
@@ -64,9 +64,9 @@ class ProfileController
         try {
             $updated = $this->updateUserProfileUseCase->execute(
                 (int) $this->sessionManager->get('idUsuario', 0),
-                $post['nome'] ?? null,
-                $post['email'] ?? null,
-                $post['senha'] ?? null,
+                self::campo($post, 'nome'),
+                self::campo($post, 'email'),
+                self::campo($post, 'senha'),
             );
 
             if ($updated) {
@@ -80,5 +80,22 @@ class ProfileController
             $viewData['erroAtualizacao'] = true;
             return $viewData;
         }
+    }
+
+    /**
+     * Lê um campo do POST como string, ou null quando ausente.
+     *
+     * O formulário é HTML puro: qualquer cliente pode enviar `nome[]=a` e
+     * entregar um array onde o caso de uso declara ?string. Sem esta coerção
+     * o TypeError sobe sem tratamento e a página responde 500 — aqui o valor
+     * não escalar é simplesmente ignorado (equivale a "manter o atual").
+     *
+     * @param array<array-key, mixed> $post
+     */
+    private static function campo(array $post, string $chave): ?string
+    {
+        $valor = $post[$chave] ?? null;
+
+        return is_scalar($valor) ? (string) $valor : null;
     }
 }

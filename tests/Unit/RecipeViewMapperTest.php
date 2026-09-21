@@ -71,7 +71,9 @@ class RecipeViewMapperTest extends TestCase
         $detail = RecipeViewMapper::detail($row);
 
         $this->assertSame(['item 1', 'item 2', ...array_fill(0, 13, 'Não há mais ingredientes')], $detail['ingredients']);
-        $this->assertCount(2, $detail['preparation']);
+        // Passos numerados a partir de 1 e sem buracos (o índice do explode()
+        // começava em 0 e pulava os trechos vazios descartados).
+        $this->assertSame(['1. Bata tudo', '2. Leve à geladeira'], $detail['preparation']);
         $this->assertSame('Fácil', $detail['difficulty']);
         $this->assertSame('12 min', $detail['cookTime']);
         $this->assertSame('Sirva gelado.', $detail['tips']);

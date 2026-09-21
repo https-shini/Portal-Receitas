@@ -1,7 +1,36 @@
+# ════════════════════════════════════════════════════════════════
+#  .dockerignore — o que NÃO entra no contexto de build da imagem.
+#  Menos contexto = build mais rápido e imagem menor. Só o necessário
+#  para rodar a aplicação PHP (public/, src/, config/, database/) é
+#  copiado; dependências são instaladas no próprio build.
+# ════════════════════════════════════════════════════════════════
+
+# ── Controle de versão e CI ──
 .git
+.github
 .gitignore
+.dockerignore
+
+# ── Segredos ──
 .env
+
+# ── Dependências recriadas no build (composer install) ──
 vendor
+
+# ── Frontend React da migração: build e deploy próprios (Vercel),
+#    não faz parte da imagem PHP. node_modules/dist somam centenas de
+#    MB ao contexto quando o dev roda `npm ci` localmente. ──
+web
+
+# ── Serviços com deploy próprio (Supabase CLI / n8n) ──
+supabase
+n8n
+
+# ── Testes, documentação e caches de ferramentas ──
 tests
 docs
-.dockerignore
+phpunit.xml
+phpstan.neon
+.phpunit.cache
+.phpunit.result.cache
+build

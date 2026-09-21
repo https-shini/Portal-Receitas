@@ -1,5 +1,22 @@
 # CHANGELOG — Consolidação das branches
 
+## [4.0.1] — 2026-09-21
+
+Correção de defeitos encontrados em auditoria do app PHP executada contra **MariaDB real** (seed importado, 36 receitas) com `error_reporting=E_ALL`. Todos os itens são reproduzíveis e foram revalidados após a correção.
+
+- **Escrita em receita inexistente deixou de mentir.** As três ações de escrita (favoritar, avaliar, comentar) dependiam da chave estrangeira do banco para rejeitar um `idReceita` inválido — e cada uma falhava de um jeito diferente:
+  - `POST /api/favorites.php` respondia **200 `{"favorited":true}` sem gravar nada** (o `INSERT IGNORE` engolia a violação), e todo toque seguinte repetia a mentira — a interface marcava "Favoritada" para sempre;
+  - `POST /api/ratings.php` e `POST /api/comments.php` respondiam **503 "serviço indisponível"** (a `PDOException` da FK caía no `catch` de banco fora do ar) a um erro do cliente.
+
+  Os casos de uso agora consultam `RecipeRepositoryInterface::exists()` antes de escrever e lançam `NotFoundException` (nova, irmã de `ValidationException`), que os controllers convertem em **404 `{"detail":"Receita não encontrada."}`**. Cobertura de regressão nos três casos de uso.
+- **Corpo JSON com array/objeto corrompia dados e quebrava a resposta.** `{"texto":["a","b"]}` gravava o comentário literal **"Array"** (201) e emitia `Array to string conversion`; com `display_errors` ligado o warning era impresso **antes** do JSON, invalidando a resposta que o frontend lê com `res.json()`. O bootstrap da API (`public/api/_bootstrap.php`) passa a normalizar o corpo decodificado para um mapa plano de escalares — o campo não escalar é descartado e cai na validação normal (400 com a mensagem certa).
+- **`POST /profile.php` com campo array derrubava a página (500).** `nome[]=a` chegava como array onde o caso de uso declara `?string`: `TypeError` não tratado → erro fatal. `ProfileController` passa a ler os campos do POST com coerção a escalar (valor não escalar = "manter o atual").
+- **Página de receita degrada por inteiro.** Favoritos, nota do usuário e comentários consultavam o banco **fora** do `try/catch` de `public/receita.php`: uma queda do MariaDB (ex.: OOM no plano free) nesses pontos virava erro fatal 500 em vez do **503 amigável**. Todo o acesso a banco da página ficou sob o mesmo `try`.
+- **Numeração dos passos do preparo.** `RecipeViewMapper::detail()` numerava a partir do índice do `explode()` — começava em **0** e pulava posições ao descartar trechos vazios. Agora numera de 1, sequencialmente.
+- **Contexto de build do Docker.** `.dockerignore` passou a excluir `web/` (o `npm ci` local soma centenas de MB de `node_modules`/`dist` ao contexto), `supabase/`, `n8n/`, `.github/` e caches de ferramentas — nada disso é servido pelo docroot `public/`.
+- **Limpeza:** removida a auto-atribuição morta `nextUrl = nextUrl` no `catch` de `catalog.js`.
+- **Validado:** 61 testes PHPUnit verdes (58 + 3 de regressão); lint PHP/JS e `composer validate --strict` limpos; `web/` com `typecheck` + Vitest + `build` verdes; varredura das 36 páginas de receita e das 13 rotas públicas/autenticadas com `E_ALL` **sem um único warning**; fluxos de cadastro, login, perfil, favoritar/avaliar/comentar e exclusão de conta (LGPD) reexecutados ponta a ponta contra o banco real.
+
 ## [4.0.0-alpha] — 2026-07-23
 
 Fundação da migração para **React + Supabase + n8n** (aditiva, sem tocar no app PHP legado — abordagem *strangler fig*). Segue o guia `docs/migracao-react-supabase-n8n.md`.

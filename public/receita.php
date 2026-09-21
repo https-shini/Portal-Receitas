@@ -24,32 +24,36 @@ if ($id === false || $id === null) {
     exit;
 }
 
+// Todo o acesso ao banco desta página fica sob o mesmo try: favoritos,
+// avaliação e comentários também consultam o banco, e fora do try uma queda
+// do MariaDB (ex.: OOM no plano free) viraria erro fatal 500 em vez do 503
+// amigável já implementado para a busca da receita.
 try {
     $viewData = $services['recipeController']->show($id);
+
+    if ($viewData === null) {
+        http_response_code(404);
+        require __DIR__ . '/../src/Presentation/View/not-found.php';
+        exit;
+    }
+
+    // Estado de favorito e token CSRF só interessam ao usuário autenticado
+    // (o botão de favoritar aparece apenas para quem está logado).
+    $isFavorite = false;
+    $userScore = null;
+    $csrfToken = '';
+    if ($isLogged) {
+        $isFavorite = $services['favoriteController']->isFavorite($id);
+        $userScore = $services['ratingController']->userScore($id);
+        $csrfToken = $services['sessionManager']->csrfToken();
+    }
+
+    // Comentários (leitura pública; publicar exige login).
+    $comments = $services['commentController']->forRecipe($id);
 } catch (PDOException) {
     http_response_code(503);
     require __DIR__ . '/../src/Presentation/View/unavailable.php';
     exit;
 }
-
-if ($viewData === null) {
-    http_response_code(404);
-    require __DIR__ . '/../src/Presentation/View/not-found.php';
-    exit;
-}
-
-// Estado de favorito e token CSRF só interessam ao usuário autenticado
-// (o botão de favoritar aparece apenas para quem está logado).
-$isFavorite = false;
-$userScore = null;
-$csrfToken = '';
-if ($isLogged) {
-    $isFavorite = $services['favoriteController']->isFavorite($id);
-    $userScore = $services['ratingController']->userScore($id);
-    $csrfToken = $services['sessionManager']->csrfToken();
-}
-
-// Comentários (leitura pública; publicar exige login).
-$comments = $services['commentController']->forRecipe($id);
 
 require __DIR__ . '/../src/Presentation/View/recipe.php';

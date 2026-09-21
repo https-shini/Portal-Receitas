@@ -98,6 +98,16 @@ class PdoRecipeRepository implements RecipeRepositoryInterface
         return $row === false ? null : $row;
     }
 
+    public function exists(int $id): bool
+    {
+        $stmt = $this->connectionFactory->create()->prepare(
+            'SELECT 1 FROM receita WHERE idReceita = :id LIMIT 1',
+        );
+        $stmt->execute(['id' => $id]);
+
+        return $stmt->fetchColumn() !== false;
+    }
+
     public function findRelated(int $categoryId, int $excludeId, int $limit): array
     {
         $limit = max(1, min(24, $limit));

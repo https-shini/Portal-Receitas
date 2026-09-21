@@ -49,13 +49,15 @@ final class RecipeViewMapper
             $ingredients[] = $value !== '' ? $value : self::SENTINELA_INGREDIENTE;
         }
 
+        // Numera a partir de 1 e sem buracos: o índice do explode() começa em
+        // 0 e pula as posições descartadas (trechos vazios entre pontos).
         $preparation = [];
-        foreach (explode('.', (string) $recipe['modoPreparo']) as $index => $step) {
+        foreach (explode('.', (string) $recipe['modoPreparo']) as $step) {
             $step = trim($step);
             if ($step === '') {
                 continue;
             }
-            $preparation[] = sprintf('%d. %s', $index, $step);
+            $preparation[] = sprintf('%d. %s', count($preparation) + 1, $step);
         }
 
         return [
