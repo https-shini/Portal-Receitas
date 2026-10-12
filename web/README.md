@@ -75,6 +75,10 @@ Vite é detectado. Configure as variáveis `VITE_SUPABASE_URL` e
 - **Workflows n8n** em [`../n8n/`](../n8n) (onboarding, moderação, distribuição).
 - **Sentry** opcional (defina `VITE_SENTRY_DSN`) e **testes** (`npm run test`).
 
+Os testes cobrem normalização de slugs e inicialização da autenticação,
+incluindo sessão existente, falha de leitura, eventos de login durante a
+inicialização e desmontagem antes de uma resposta tardia.
+
 ## O que falta (provisionamento — sem código novo)
 
 Criar o projeto Supabase, aplicar `../supabase/migrations`, configurar

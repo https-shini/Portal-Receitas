@@ -55,7 +55,8 @@
                 doc.querySelectorAll("#gradeReceitas > li").forEach((li) => grid.appendChild(li));
                 nextUrl = doc.getElementById("pagination")?.dataset.next || "";
             } catch (e) {
-                nextUrl = nextUrl; // erro de rede: permite tentar de novo
+                /* erro de rede: nextUrl continua apontando para a mesma
+                   página, então o botão segue disponível para nova tentativa */
             }
             if (nextUrl) {
                 btn.removeAttribute("aria-busy");

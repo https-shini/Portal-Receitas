@@ -1,5 +1,60 @@
 # CHANGELOG — Consolidação das branches
 
+## [4.0.3] — 2026-10-12
+
+- Consolida os dois commits exclusivos de `claude/busy-turing-okx836`: respostas 404 para receitas inexistentes nas ações de escrita, normalização de corpos JSON e formulários, tratamento completo de falhas do banco na página de receita, numeração dos passos, recuperação da autenticação React e migrações Supabase reaplicáveis.
+- Preserva a correção do PR #7: Apache autentica como `www-data` via socket, com permissões limitadas; a prontidão consulta o catálogo real e falhas de inicialização interrompem o boot.
+- A estratégia anterior de liberar root com senha vazia (descrita na auditoria 4.0.2) foi substituída pela conta própria da aplicação. Não é necessário apagar o datadir preparado pelo pacote Debian.
+- Mantém React Router 7, Vite 7 e Vitest 4 sem alertas nas auditorias de dependências, e exclui frontend, serviços auxiliares e arquivos locais do contexto da imagem PHP.
+
+## [4.0.2] — 2026-09-21
+
+Segunda rodada da auditoria, agora cobrindo o que a primeira não alcançava: a **imagem de deploy** (Apache real + mod_rewrite + `.htaccess` + cabeçalhos), as **migrations Supabase** (PostgreSQL 16 real) e o **frontend React**.
+
+### Deploy free da Render estava servindo 503 em todas as páginas (bloqueante)
+
+O `if [ ! -d "$DATADIR/mysql" ]` do `render-free-entrypoint.sh` era **código morto**: o `postinst` do pacote `mariadb-server` já roda `mariadb-install-db` durante o `apt-get install` do build, então `/var/lib/mysql/mysql` vinha **pronto na camada da imagem** — com a autenticação padrão do Debian para o `root` (socket, `authentication_string = invalid`). O `--auth-root-authentication-method=normal` nunca chegava a rodar, o Apache (`www-data`) levava `ERROR 1698 Access denied for user 'root'@'localhost'` e **toda página que toca o banco virava 503** — enquanto o `/healthz.php`, que deliberadamente não toca o banco, seguia **200** e mantinha o healthcheck da plataforma verde, escondendo a falha. É a mesma classe de sintoma de 3.4.1, cuja correção (socket) resolveu só metade do problema.
+
+Reproduzido e corrigido com Apache + mod_php + MariaDB reais nesta sessão:
+- **Causa raiz** — `docker/render-free.Dockerfile` esvazia o datadir (`rm -rf /var/lib/mysql/*`) logo após o `apt-get install`, para o entrypoint inicializar o banco no boot, que é o comportamento esperado no plano free (filesystem efêmero).
+- **Rede de segurança** — o entrypoint normaliza a autenticação do `root` após subir o servidor (`ALTER USER … IDENTIFIED VIA mysql_native_password USING PASSWORD('')`, rodando como uid 0, idempotente): qualquer datadir que chegue pronto passa a funcionar.
+- **Diagnóstico** — a checagem de sanidade que falhava passou de `AVISO` a **`ERRO`**, dizendo explicitamente que o site servirá 503, já que o healthcheck não denuncia.
+- **Validado** — partindo do datadir no estado exato que o `postinst` produz, o boot agora reporta `Checagem do banco pelo Apache (www-data via socket): OK — COUNT(*)36` e o site responde 200; antes da correção, 503 em `/`, `/index.php` e `/receita.php`.
+
+### Migrations Supabase não eram reaplicáveis
+
+As migrations seguem a convenção idempotente (`if not exists`, `or replace`, `drop trigger if exists` — 33 ocorrências), mas **25 `create policy` e os três `alter publication` ficavam de fora**. Reaplicar abortava com `policy … already exists`, e o aborto acontece **depois** do `enable row level security`: um retry parcial podia deixar tabelas com RLS ligado e sem as policies seguintes — ou seja, dados inacessíveis (ou expostos, conforme a policy que faltasse).
+- Cada `create policy` ganhou o `drop policy if exists` correspondente.
+- O bloco de Realtime passou a criar a publication se ela faltar e a adicionar só as tabelas ainda não publicadas.
+- **Validado** em **PostgreSQL 16 real**: as 3 migrations + seed aplicam **três vezes seguidas** sem erro, resultando em 11 tabelas, 25 policies, 6 triggers, RLS ativo nas 11 tabelas e 3 tabelas no `supabase_realtime`.
+
+### Frontend React travava no "Carregando…"
+
+`AuthContext` chamava `supabase.auth.getSession().then(…)` **sem `catch`**: qualquer rejeição (rede fora no primeiro carregamento, token guardado corrompido, storage bloqueado) deixava `loading` em `true` para sempre — a app inteira ficava presa no "Carregando…", incluindo as rotas do `RequireAuth`. Agora há `catch` (segue como visitante) e `finally`, com guarda de desmontagem; `onAuthStateChange` também encerra o `loading`.
+
+### Outros
+
+- `slugify` usava as marcas combinantes **literais** no `RegExp` (`[̀-ͯ]`); trocadas pela forma escapada `[\u0300-\u036f]`, imune a reencode do arquivo.
+- **Validado sob Apache real** (o que o servidor embutido do PHP não cobre): as URLs amigáveis do `.htaccess` (`/receita/{id}/{slug}`, `/receita/{id}`, `/receitas`, `/sitemap.xml`), os 6 cabeçalhos de segurança e o `Cache-Control` de assets (1h para CSS/JS, 30d imutável para imagens/fontes) — todos conferidos na resposta.
+- **Regressão completa**: 61 testes PHPUnit, lint PHP/JS, `shellcheck` nos entrypoints, `composer validate --strict`, `typecheck` + Vitest + `build` do `web/`, as 36 páginas de receita e as rotas públicas/autenticadas sob Apache **sem um único diagnóstico PHP**, e os fluxos de cadastro, login, favoritar, avaliar e comentar reexecutados ponta a ponta.
+
+## [4.0.1] — 2026-09-21
+
+Correção de defeitos encontrados em auditoria do app PHP executada contra **MariaDB real** (seed importado, 36 receitas) com `error_reporting=E_ALL`. Todos os itens são reproduzíveis e foram revalidados após a correção.
+
+- **Escrita em receita inexistente deixou de mentir.** As três ações de escrita (favoritar, avaliar, comentar) dependiam da chave estrangeira do banco para rejeitar um `idReceita` inválido — e cada uma falhava de um jeito diferente:
+  - `POST /api/favorites.php` respondia **200 `{"favorited":true}` sem gravar nada** (o `INSERT IGNORE` engolia a violação), e todo toque seguinte repetia a mentira — a interface marcava "Favoritada" para sempre;
+  - `POST /api/ratings.php` e `POST /api/comments.php` respondiam **503 "serviço indisponível"** (a `PDOException` da FK caía no `catch` de banco fora do ar) a um erro do cliente.
+
+  Os casos de uso agora consultam `RecipeRepositoryInterface::exists()` antes de escrever e lançam `NotFoundException` (nova, irmã de `ValidationException`), que os controllers convertem em **404 `{"detail":"Receita não encontrada."}`**. Cobertura de regressão nos três casos de uso.
+- **Corpo JSON com array/objeto corrompia dados e quebrava a resposta.** `{"texto":["a","b"]}` gravava o comentário literal **"Array"** (201) e emitia `Array to string conversion`; com `display_errors` ligado o warning era impresso **antes** do JSON, invalidando a resposta que o frontend lê com `res.json()`. O bootstrap da API (`public/api/_bootstrap.php`) passa a normalizar o corpo decodificado para um mapa plano de escalares — o campo não escalar é descartado e cai na validação normal (400 com a mensagem certa).
+- **`POST /profile.php` com campo array derrubava a página (500).** `nome[]=a` chegava como array onde o caso de uso declara `?string`: `TypeError` não tratado → erro fatal. `ProfileController` passa a ler os campos do POST com coerção a escalar (valor não escalar = "manter o atual").
+- **Página de receita degrada por inteiro.** Favoritos, nota do usuário e comentários consultavam o banco **fora** do `try/catch` de `public/receita.php`: uma queda do MariaDB (ex.: OOM no plano free) nesses pontos virava erro fatal 500 em vez do **503 amigável**. Todo o acesso a banco da página ficou sob o mesmo `try`.
+- **Numeração dos passos do preparo.** `RecipeViewMapper::detail()` numerava a partir do índice do `explode()` — começava em **0** e pulava posições ao descartar trechos vazios. Agora numera de 1, sequencialmente.
+- **Contexto de build do Docker.** `.dockerignore` passou a excluir `web/` (o `npm ci` local soma centenas de MB de `node_modules`/`dist` ao contexto), `supabase/`, `n8n/`, `.github/` e caches de ferramentas — nada disso é servido pelo docroot `public/`.
+- **Limpeza:** removida a auto-atribuição morta `nextUrl = nextUrl` no `catch` de `catalog.js`.
+- **Validado:** 61 testes PHPUnit verdes (58 + 3 de regressão); lint PHP/JS e `composer validate --strict` limpos; `web/` com `typecheck` + Vitest + `build` verdes; varredura das 36 páginas de receita e das 13 rotas públicas/autenticadas com `E_ALL` **sem um único warning**; fluxos de cadastro, login, perfil, favoritar/avaliar/comentar e exclusão de conta (LGPD) reexecutados ponta a ponta contra o banco real.
+
 ## [4.0.0-alpha] — 2026-07-23
 
 Fundação da migração para **React + Supabase + n8n** (aditiva, sem tocar no app PHP legado — abordagem *strangler fig*). Segue o guia `docs/migracao-react-supabase-n8n.md`.

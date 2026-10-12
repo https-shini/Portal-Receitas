@@ -7,13 +7,15 @@ namespace App\Presentation\Controller;
 use App\Application\Security\RateLimiterInterface;
 use App\Application\UseCase\ListFavoritesUseCase;
 use App\Application\UseCase\ToggleFavoriteUseCase;
+use App\Domain\Exception\NotFoundException;
 use App\Domain\Repository\FavoriteRepositoryInterface;
 use App\Presentation\Http\SessionManager;
 
 /**
  * Controller de favoritos: alternância via API (POST autenticado + CSRF +
  * rate limit) e dados da página /favoritas. Escrita restrita à tabela
- * favorito (menor privilégio no banco).
+ * favorito (menor privilégio no banco). Receita inexistente responde 404 —
+ * nunca um "favoritada" que não persistiu.
  */
 class FavoriteController
 {
@@ -60,7 +62,11 @@ class FavoriteController
             return ['status' => 400, 'body' => ['detail' => 'Receita inválida.']];
         }
 
-        $favorited = $this->toggleFavoriteUseCase->execute($userId, $recipeId);
+        try {
+            $favorited = $this->toggleFavoriteUseCase->execute($userId, $recipeId);
+        } catch (NotFoundException $exception) {
+            return ['status' => 404, 'body' => ['detail' => $exception->getMessage()]];
+        }
 
         return ['status' => 200, 'body' => ['favorited' => $favorited]];
     }

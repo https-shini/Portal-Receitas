@@ -38,6 +38,15 @@ interface RecipeRepositoryInterface
     public function findById(int $id): ?array;
 
     /**
+     * A receita existe no catálogo? Consulta barata (só a chave primária),
+     * usada pelas ações de escrita (favoritar, avaliar, comentar) para
+     * rejeitar um id inexistente ANTES de tocar o banco — sem ela a violação
+     * de chave estrangeira viraria um 503 enganoso (ou, no INSERT IGNORE dos
+     * favoritos, um "sucesso" que não persiste nada).
+     */
+    public function exists(int $id): bool;
+
+    /**
      * Receitas relacionadas (mesma categoria), excluindo a própria, no formato
      * de resumo (card). Ordem aleatória, limitada a $limit.
      *

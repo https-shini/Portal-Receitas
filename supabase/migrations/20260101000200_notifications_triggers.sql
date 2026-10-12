@@ -61,5 +61,6 @@ language sql stable as $$
 $$;
 
 -- Moderador pode atualizar o status das denúncias.
+drop policy if exists "reports: moderador atualiza" on public.reports;
 create policy "reports: moderador atualiza" on public.reports for update
   using (public.is_moderator()) with check (public.is_moderator());

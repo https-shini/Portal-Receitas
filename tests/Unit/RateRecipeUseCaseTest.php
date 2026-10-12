@@ -5,13 +5,15 @@ declare(strict_types=1);
 namespace App\Tests\Unit;
 
 use App\Application\UseCase\RateRecipeUseCase;
+use App\Domain\Exception\NotFoundException;
 use App\Domain\Exception\ValidationException;
 use App\Tests\Support\InMemoryRatingRepository;
+use App\Tests\Support\InMemoryRecipeRepository;
 use PHPUnit\Framework\TestCase;
 
 /**
  * Avaliação de receita: revoto atualiza a média, nota 0 remove, notas fora do
- * intervalo são rejeitadas.
+ * intervalo são rejeitadas e receita inexistente responde "não encontrada".
  */
 class RateRecipeUseCaseTest extends TestCase
 {
@@ -22,7 +24,11 @@ class RateRecipeUseCaseTest extends TestCase
     protected function setUp(): void
     {
         $this->repo = new InMemoryRatingRepository();
-        $this->useCase = new RateRecipeUseCase($this->repo);
+
+        $recipes = new InMemoryRecipeRepository();
+        $recipes->seed(10, 'Carbonara', 2, 'Massas');
+
+        $this->useCase = new RateRecipeUseCase($this->repo, $recipes);
     }
 
     public function testAveragesMultipleUsers(): void
@@ -59,5 +65,15 @@ class RateRecipeUseCaseTest extends TestCase
     {
         $this->expectException(ValidationException::class);
         $this->useCase->execute(1, 10, 9);
+    }
+
+    /**
+     * Regressão: a violação de chave estrangeira virava PDOException e o
+     * endpoint respondia 503 ("serviço indisponível") a um erro do cliente.
+     */
+    public function testRejectsUnknownRecipe(): void
+    {
+        $this->expectException(NotFoundException::class);
+        $this->useCase->execute(1, 999, 5);
     }
 }

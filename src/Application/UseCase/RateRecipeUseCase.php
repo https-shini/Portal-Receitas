@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Application\UseCase;
 
+use App\Domain\Exception\NotFoundException;
 use App\Domain\Exception\ValidationException;
 use App\Domain\Repository\RatingRepositoryInterface;
+use App\Domain\Repository\RecipeRepositoryInterface;
 
 /**
  * Caso de uso: registrar (ou remover) a nota de um usuário para uma receita e
@@ -13,17 +15,26 @@ use App\Domain\Repository\RatingRepositoryInterface;
  */
 class RateRecipeUseCase
 {
-    public function __construct(private readonly RatingRepositoryInterface $ratingRepository)
-    {
+    public function __construct(
+        private readonly RatingRepositoryInterface $ratingRepository,
+        private readonly RecipeRepositoryInterface $recipeRepository,
+    ) {
     }
 
     /**
      * @param  int $score Nota de 1 a 5, ou 0 para remover a avaliação.
      * @return array{average: float|null, count: int, userScore: int|null}
      * @throws ValidationException Nota fora do intervalo permitido.
+     * @throws NotFoundException   Receita inexistente — sem esta guarda a
+     *                             violação de chave estrangeira subiria como
+     *                             PDOException e viraria um 503 enganoso.
      */
     public function execute(int $userId, int $recipeId, int $score): array
     {
+        if (!$this->recipeRepository->exists($recipeId)) {
+            throw new NotFoundException('Receita não encontrada.');
+        }
+
         if ($score === 0) {
             $this->ratingRepository->remove($userId, $recipeId);
         } elseif ($score >= 1 && $score <= 5) {

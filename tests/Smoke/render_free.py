@@ -11,6 +11,7 @@ import subprocess
 import sys
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 import uuid
 
@@ -36,11 +37,11 @@ try:
         urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()),
     )
 
-    def request(path, data=None, method=None):
-        body = json.dumps(data).encode() if data is not None else None
+    def request(path, data=None, method=None, form=False):
+        body = (urllib.parse.urlencode(data).encode() if form else json.dumps(data).encode()) if data is not None else None
         req = urllib.request.Request(
             base + path, data=body, method=method,
-            headers={"Content-Type": "application/json"} if body else {},
+            headers={"Content-Type": "application/x-www-form-urlencoded" if form else "application/json"} if body else {},
         )
         try:
             response = client.open(req, timeout=5)
@@ -49,12 +50,14 @@ try:
         with response:
             return response.status, response.read().decode()
 
-    def expect(path, status=200, text=None, data=None, method=None):
+    def expect(path, status=200, text=None, data=None, method=None, form=False):
         global checks
-        actual, body = request(path, data, method)
+        actual, body = request(path, data, method, form)
         if actual != status or (text is not None and text not in body):
             raise AssertionError(f"{path}: expected {status}/{text!r}, got {actual}: {body[:400]}")
         checks += 1
+        if path.startswith('/api/'):
+            json.loads(body)  # PHP warnings must never corrupt the JSON response.
         return body
 
     def wait_ready():
@@ -99,6 +102,17 @@ try:
         raise AssertionError("Recipe did not expose its CSRF token")
     payload = {"idReceita": 1, "_csrf": token.group(1)}
     expect("/api/favorites.php", status=403, data={"idReceita": 1})
+    for path in ("/api/favorites.php", "/api/ratings.php", "/api/comments.php"):
+        expect(path, status=404, data={**payload, "idReceita": 999999, "nota": 5, "texto": "No recipe"})
+    expect("/api/comments.php", status=400, data={**payload, "texto": ["invalid", "array"]})
+    expect("/api/favorites.php", status=403, data={**payload, "_csrf": ["invalid"]})
+    expect("/profile.php", data={"salvar": "1", "_csrf": ["invalid"]})
+    expect("/profile.php", form=True, data={"salvar": "1", "_csrf[]": "invalid", "nome[]": "invalid"})
+    expect("/profile.php", form=True, data={"salvar": "1", "_csrf": token.group(1), "nome[]": "invalid"})
+    # A successful profile submission ends the session; authenticate again.
+    expect("/api/login.php", data={"email": email, "senha": password})
+    page = expect("/receita/1/macarrao-a-carbonara")
+    payload["_csrf"] = re.search(r'data-csrf="([^"]+)"', page).group(1)
     expect("/api/favorites.php", text='"favorited":true', data=payload)
     expect("/api/favorites.php", text='"favorited":false', data=payload)
     expect("/api/ratings.php", data={**payload, "nota": 5})
