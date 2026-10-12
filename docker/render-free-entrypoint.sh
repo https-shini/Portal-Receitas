@@ -6,12 +6,9 @@
 # → entrega o processo ao Apache via apache-entrypoint.sh (que aplica a
 # porta dinâmica PORT).
 #
-# A aplicação conecta pela SOCKET Unix (DB_SOCKET), não por TCP: no Debian
-# desta imagem o MariaDB não abre a porta TCP de forma confiável, mas a
-# socket local sempre responde. Por isso o root é criado com autenticação
-# por SENHA (--auth-root-authentication-method=normal): assim o processo do
-# Apache (www-data) consegue autenticar como root pela socket, o que a
-# autenticação unix_socket (padrão do Debian) não permitiria.
+# A aplicação usa uma conta própria autenticada pela identidade Unix do
+# Apache (www-data). Não depende da autenticação de root, pois o pacote
+# Debian pode inicializar o datadir antes deste entrypoint.
 # ════════════════════════════════════════════════════════════════
 set -e
 
@@ -27,7 +24,7 @@ chmod 755 /run/mysqld
 if [ ! -d "$DATADIR/mysql" ]; then
     echo "[render-free] Inicializando datadir do MariaDB..."
     mariadb-install-db --user=mysql --datadir="$DATADIR" \
-        --auth-root-authentication-method=normal --skip-test-db >/dev/null
+        --auth-root-authentication-method=socket --skip-test-db >/dev/null
 fi
 
 echo "[render-free] Iniciando MariaDB..."
@@ -57,17 +54,31 @@ if ! mariadb --protocol=socket -u root -e "USE tcc_receitas" 2>/dev/null; then
     echo "[render-free] Seed importado."
 fi
 
-# Sanidade: testa o MESMO caminho da aplicação (usuário www-data → socket →
-# tcc_receitas). O resultado vai para o log da Render, tornando óbvio, num
-# eventual 503, se o problema é o acesso ao banco pelo processo do Apache.
-SOCK="${DB_SOCKET:-/run/mysqld/mysqld.sock}"
-if su www-data -s /bin/sh -c "mariadb --socket=$SOCK -u root tcc_receitas -e 'SELECT COUNT(*) FROM receita'" >/tmp/dbcheck.txt 2>&1; then
+# Esta imagem possui banco embutido; configurações antigas de root ou de
+# banco externo não podem sobrescrever a identidade validada abaixo.
+export DB_SOCKET=/run/mysqld/mysqld.sock
+export DB_NAME=tcc_receitas
+export DB_USER=www-data
+export DB_PASS=''
+
+# Reexecutável em datadirs existentes, sem reimportar ou apagar dados.
+# A identidade do processo Unix substitui senhas compartilhadas de root.
+mariadb --protocol=socket -u root <<'SQL'
+CREATE USER IF NOT EXISTS 'www-data'@'localhost' IDENTIFIED VIA unix_socket;
+ALTER USER 'www-data'@'localhost' IDENTIFIED VIA unix_socket;
+GRANT SELECT, INSERT, UPDATE, DELETE ON tcc_receitas.* TO 'www-data'@'localhost';
+SQL
+
+# Valida PDO e as consultas reais do catálogo sob o mesmo UID do Apache.
+# Falhar aqui impede publicar uma instância que só devolveria 503.
+if su www-data -s /bin/sh -c 'php -r '\''$services = require "/var/www/html/config/bootstrap.php"; $services["recipeController"]->list([]); echo "Catálogo e conexão PDO OK\n";'\''' >/tmp/dbcheck.txt 2>&1; then
     echo "[render-free] Checagem do banco pelo Apache (www-data via socket): OK — $(tr -d '\n' </tmp/dbcheck.txt)"
 else
-    echo "[render-free] AVISO: www-data NÃO acessou o banco pela socket:" >&2
+    echo "[render-free] ERRO: o catálogo não está pronto para o Apache:" >&2
     cat /tmp/dbcheck.txt >&2
     echo "[render-free] --- últimas linhas do log do MariaDB ---" >&2
     tail -n 20 "$MARIA_LOG" >&2 2>/dev/null || true
+    exit 1
 fi
 
 echo "[render-free] Banco pronto. Iniciando Apache..."

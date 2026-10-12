@@ -1,7 +1,15 @@
 .git
 .gitignore
 .env
+.env.*
+!.env.example
 vendor
+web/node_modules
+web/dist
+web/.env
+web/.env.*
+!web/.env.example
+.phpunit.cache
 tests
 docs
 .dockerignore

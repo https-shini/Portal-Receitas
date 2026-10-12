@@ -68,10 +68,11 @@ EXPOSE 80
 # no Debian (base desta imagem) o MariaDB não abre a porta TCP de forma
 # confiável, mas a socket local sempre funciona (é o caminho do seed e do
 # healthcheck). DB_SOCKET tem precedência sobre DB_HOST/DB_PORT no
-# PdoConnectionFactory. root autentica por senha vazia (ver entrypoint).
+# PdoConnectionFactory. A conta www-data autentica pela identidade Unix do
+# Apache, sem usar root nem compartilhar senha (ver entrypoint).
 ENV DB_SOCKET=/run/mysqld/mysqld.sock \
     DB_NAME=tcc_receitas \
-    DB_USER=root \
+    DB_USER=www-data \
     DB_PASS="" \
     APP_DEMO_MODE=1
 
