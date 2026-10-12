@@ -11,8 +11,31 @@ Um único serviço web roda Apache/PHP **e** o MariaDB no mesmo container
 
 1. No dashboard da Render: **New → Blueprint** e aponte para este repositório
    (ou **New → Web Service → Docker** com *Dockerfile Path* = `docker/render-free.Dockerfile`).
-2. Health check já configurado em `/healthz.php`. Nenhuma variável é necessária.
+2. Health check já configurado em `/readyz.php` (valida banco e catálogo).
+   Em serviços criados manualmente, ajuste também **Health Check Path** para
+   `/readyz.php`. `/healthz.php` continua disponível para vivacidade.
+   Nenhuma variável é necessária: o entrypoint configura a conta local
+   `www-data`, autenticada via socket Unix e limitada a operações de dados.
 3. Aguarde o deploy. Pronto — custo zero.
+
+Se uma versão anterior retorna `SQLSTATE[HY000] [1698] Access denied for user
+'root'@'localhost'`, o MariaDB está exigindo a identidade Unix de root, mas o
+Apache roda como `www-data`. Esta imagem provisiona uma conta própria para o
+Apache em cada boot e valida o catálogo antes de iniciá-lo, inclusive quando o
+datadir já existe. Não altere a autenticação de root nem desative verificações.
+O modo embutido define `DB_SOCKET`, `DB_NAME`, `DB_USER` e `DB_PASS`; para usar
+um banco externo, use a imagem da opção B.
+
+Para validar a imagem antes de publicar (Python 3 + Docker):
+
+```bash
+docker build -f docker/render-free.Dockerfile -t portal-receitas-free:ci .
+python3 tests/Smoke/render_free.py portal-receitas-free:ci
+```
+
+O teste usa um container descartável com 512 MiB e valida catálogo, cadastro,
+login, favoritos, avaliações, comentários, reinício, queda do banco e
+recuperação. Nenhum dado do serviço publicado é alterado.
 
 > ⚠️ **Limitação do plano free (sem disco persistente):** dados criados em runtime
 > (novos cadastros, edições de perfil) são perdidos quando o serviço hiberna

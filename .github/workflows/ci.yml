@@ -66,3 +66,6 @@ jobs:
 
       - name: Imagem all-in-one (Render free)
         run: docker build -f docker/render-free.Dockerfile -t portal-receitas-free:ci .
+
+      - name: Catálogo, autenticação e recuperação (Render free)
+        run: python3 tests/Smoke/render_free.py portal-receitas-free:ci

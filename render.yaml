@@ -15,4 +15,4 @@ services:
     plan: free
     dockerfilePath: ./docker/render-free.Dockerfile
     dockerContext: .
-    healthCheckPath: /healthz.php
+    healthCheckPath: /readyz.php

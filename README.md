@@ -34,7 +34,7 @@ O que o site faz hoje, exatamente como está no código:
 - **Perfil do usuário** com edição de nome, e-mail e senha, protegido por guard de sessão.
 - **SEO**: JSON-LD `Recipe` por página, canonical e **sitemap dinâmico** (`/sitemap.xml`, uma URL por receita).
 - **Logout** com encerramento de sessão.
-- **Resiliência de deploy**: página amigável de indisponibilidade (HTTP 503) quando o banco está fora, e endpoint `healthz.php` (HTTP 200, sem tocar o banco) para health check das plataformas.
+- **Resiliência de deploy**: página amigável de indisponibilidade (HTTP 503) quando o banco está fora, `healthz.php` para vivacidade e `readyz.php` para validar o banco e o catálogo antes de receber tráfego.
 
 ### 🗺️ Roadmap (ainda não implementado)
 
