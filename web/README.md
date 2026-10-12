@@ -24,7 +24,7 @@ React 18 · TypeScript · Vite · TanStack Query v5 · React Router v6 ·
 
 ## Pré-requisitos
 
-- Node ≥ 20, npm.
+- Node 20.19+ ou 22.12+, npm (requisito do Vite 7).
 - Um projeto no [Supabase](https://supabase.com) (free tier serve).
 - (Opcional) [Supabase CLI](https://supabase.com/docs/guides/cli) para aplicar as
   migrations e rodar localmente.
