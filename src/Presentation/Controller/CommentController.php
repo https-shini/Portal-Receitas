@@ -6,6 +6,7 @@ namespace App\Presentation\Controller;
 
 use App\Application\Security\RateLimiterInterface;
 use App\Application\UseCase\PostCommentUseCase;
+use App\Domain\Exception\NotFoundException;
 use App\Domain\Exception\ValidationException;
 use App\Domain\Repository\CommentRepositoryInterface;
 use App\Presentation\Http\SessionManager;
@@ -69,16 +70,20 @@ class CommentController
             return ['status' => 400, 'body' => ['detail' => 'Receita inválida.']];
         }
 
+        $texto = (string) ($input['texto'] ?? '');
+
         try {
-            $id = $this->postCommentUseCase->execute($userId, $recipeId, (string) ($input['texto'] ?? ''));
+            $id = $this->postCommentUseCase->execute($userId, $recipeId, $texto);
         } catch (ValidationException $exception) {
             return ['status' => 400, 'body' => ['detail' => $exception->getMessage()]];
+        } catch (NotFoundException $exception) {
+            return ['status' => 404, 'body' => ['detail' => $exception->getMessage()]];
         }
 
         return ['status' => 201, 'body' => [
             'id' => $id,
             'autor' => (string) $this->sessionManager->get('nomeSessao'),
-            'texto' => trim((string) $input['texto']),
+            'texto' => trim($texto),
             'data' => $this->formatDate(date('Y-m-d H:i:s')),
             'mine' => true,
         ]];

@@ -174,6 +174,20 @@ composer install
 composer test
 ```
 
+As verificações funcionais usadas pelo CI também podem ser executadas com
+Docker e Python 3 (containers descartáveis):
+
+```bash
+docker build -f docker/render-free.Dockerfile -t portal-receitas-free:ci .
+python3 tests/Smoke/render_free.py portal-receitas-free:ci
+python3 tests/Smoke/supabase_migrations.py
+```
+
+O primeiro teste cobre as rotas reais, entradas inválidas, escrita no banco,
+reinício e recuperação. O segundo reaplica as migrações e o seed três vezes e
+confere RLS e triggers em PostgreSQL 16 isolado, com fixtures locais dos
+contratos SQL de autenticação; não provisiona um projeto Supabase externo.
+
 A suíte PHPUnit cobre os casos de uso e o fluxo de conexão:
 
 - **Cadastro** — hash bcrypt compatível, rejeição de e-mail duplicado, formato de e-mail inválido e categoria ausente.

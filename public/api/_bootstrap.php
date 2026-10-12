@@ -19,6 +19,31 @@ header('X-Content-Type-Options: nosniff');
 
 $services = require __DIR__ . '/../../config/bootstrap.php';
 
+/**
+ * Normaliza o corpo decodificado para um mapa PLANO de escalares.
+ *
+ * Os controllers convertem cada campo com (string)/(int); um array ou objeto
+ * aninhado nessa posição produziria "Array to string conversion" — warning que
+ * suja a saída (quebrando o JSON quando display_errors está ligado) e grava
+ * lixo no banco (ex.: {"texto": ["a","b"]} viraria o comentário "Array").
+ * Descartar a chave faz o campo cair na validação normal do caso de uso, que
+ * responde 400 com a mensagem certa.
+ *
+ * @param  array<array-key, mixed> $decoded
+ * @return array<string, scalar>
+ */
+function apiScalarsOnly(array $decoded): array
+{
+    $input = [];
+    foreach ($decoded as $key => $value) {
+        if (is_scalar($value)) {
+            $input[(string) $key] = $value;
+        }
+    }
+
+    return $input;
+}
+
 /*
  * Entrada: preferencialmente JSON no corpo (Content-Type: application/json);
  * fallback para $_POST cobre clientes form-urlencoded.
@@ -28,11 +53,11 @@ $rawBody = file_get_contents('php://input');
 if ($rawBody !== false && $rawBody !== '') {
     $decoded = json_decode($rawBody, true);
     if (is_array($decoded)) {
-        $apiInput = $decoded;
+        $apiInput = apiScalarsOnly($decoded);
     }
 }
 if ($apiInput === []) {
-    $apiInput = $_POST;
+    $apiInput = apiScalarsOnly($_POST);
 }
 
 /**

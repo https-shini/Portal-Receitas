@@ -60,6 +60,11 @@ class InMemoryRecipeRepository implements RecipeRepositoryInterface
         return $this->rows[$id] ?? null;
     }
 
+    public function exists(int $id): bool
+    {
+        return isset($this->rows[$id]);
+    }
+
     public function findRelated(int $categoryId, int $excludeId, int $limit): array
     {
         $related = array_filter(

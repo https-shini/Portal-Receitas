@@ -5,13 +5,15 @@ declare(strict_types=1);
 namespace App\Tests\Unit;
 
 use App\Application\UseCase\PostCommentUseCase;
+use App\Domain\Exception\NotFoundException;
 use App\Domain\Exception\ValidationException;
 use App\Tests\Support\InMemoryCommentRepository;
+use App\Tests\Support\InMemoryRecipeRepository;
 use PHPUnit\Framework\TestCase;
 
 /**
  * Publicação de comentário: guarda o texto após validar (não vazio, ≤ 500),
- * aparando espaços; rejeita texto vazio e longo demais.
+ * aparando espaços; rejeita texto vazio, longo demais e receita inexistente.
  */
 class PostCommentUseCaseTest extends TestCase
 {
@@ -22,7 +24,11 @@ class PostCommentUseCaseTest extends TestCase
     protected function setUp(): void
     {
         $this->repo = new InMemoryCommentRepository();
-        $this->useCase = new PostCommentUseCase($this->repo);
+
+        $recipes = new InMemoryRecipeRepository();
+        $recipes->seed(10, 'Carbonara', 2, 'Massas');
+
+        $this->useCase = new PostCommentUseCase($this->repo, $recipes);
     }
 
     public function testStoresTrimmedComment(): void
@@ -43,5 +49,15 @@ class PostCommentUseCaseTest extends TestCase
     {
         $this->expectException(ValidationException::class);
         $this->useCase->execute(1, 10, str_repeat('a', 501));
+    }
+
+    /**
+     * Regressão: a violação de chave estrangeira virava PDOException e o
+     * endpoint respondia 503 ("serviço indisponível") a um erro do cliente.
+     */
+    public function testRejectsUnknownRecipe(): void
+    {
+        $this->expectException(NotFoundException::class);
+        $this->useCase->execute(1, 999, 'Comentário em receita inexistente');
     }
 }

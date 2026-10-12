@@ -69,3 +69,6 @@ jobs:
 
       - name: Catálogo, autenticação e recuperação (Render free)
         run: python3 tests/Smoke/render_free.py portal-receitas-free:ci
+
+      - name: Migrações e políticas RLS (PostgreSQL 16 isolado)
+        run: python3 tests/Smoke/supabase_migrations.py

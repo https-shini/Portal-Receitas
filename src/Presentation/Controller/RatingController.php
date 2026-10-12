@@ -6,6 +6,7 @@ namespace App\Presentation\Controller;
 
 use App\Application\Security\RateLimiterInterface;
 use App\Application\UseCase\RateRecipeUseCase;
+use App\Domain\Exception\NotFoundException;
 use App\Domain\Exception\ValidationException;
 use App\Domain\Repository\RatingRepositoryInterface;
 use App\Presentation\Http\SessionManager;
@@ -75,6 +76,8 @@ class RatingController
             $result = $this->rateRecipeUseCase->execute($userId, $recipeId, (int) ($input['nota'] ?? 0));
         } catch (ValidationException $exception) {
             return ['status' => 400, 'body' => ['detail' => $exception->getMessage()]];
+        } catch (NotFoundException $exception) {
+            return ['status' => 404, 'body' => ['detail' => $exception->getMessage()]];
         }
 
         return ['status' => 200, 'body' => $result];

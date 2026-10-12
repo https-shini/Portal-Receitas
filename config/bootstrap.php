@@ -95,10 +95,10 @@ $findRecipesUseCase = new FindRecipesUseCase($recipeRepository);
 $listCategoriesUseCase = new ListCategoriesUseCase($categoryRepository);
 $showRecipeUseCase = new ShowRecipeUseCase($recipeRepository);
 $recommendRecipesUseCase = new RecommendRecipesUseCase($recipeRepository, $favoriteRepository);
-$toggleFavoriteUseCase = new ToggleFavoriteUseCase($favoriteRepository);
+$toggleFavoriteUseCase = new ToggleFavoriteUseCase($favoriteRepository, $recipeRepository);
 $listFavoritesUseCase = new ListFavoritesUseCase($favoriteRepository);
-$rateRecipeUseCase = new RateRecipeUseCase($ratingRepository);
-$postCommentUseCase = new PostCommentUseCase($commentRepository);
+$rateRecipeUseCase = new RateRecipeUseCase($ratingRepository, $recipeRepository);
+$postCommentUseCase = new PostCommentUseCase($commentRepository, $recipeRepository);
 
 $sessionManager = new SessionManager();
 

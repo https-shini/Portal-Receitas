@@ -15,12 +15,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
+    let ativo = true;
+
+    // O .catch é essencial: sem ele, uma falha em getSession() (rede fora no
+    // primeiro carregamento, token guardado corrompido, storage bloqueado)
+    // deixa `loading` em true para sempre — e a app inteira fica presa no
+    // "Carregando…", inclusive as rotas protegidas do RequireAuth.
+    supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        if (ativo) setSession(data.session);
+      })
+      .catch(() => {
+        if (ativo) setSession(null); // segue como visitante
+      })
+      .finally(() => {
+        if (ativo) setLoading(false);
+      });
+
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
+      if (!ativo) return;
+      setSession(s);
       setLoading(false);
     });
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => setSession(s));
-    return () => sub.subscription.unsubscribe();
+
+    return () => {
+      ativo = false;
+      sub.subscription.unsubscribe();
+    };
   }, []);
 
   return (
