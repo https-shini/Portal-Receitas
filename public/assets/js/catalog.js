@@ -10,7 +10,11 @@
 "use strict";
 
 (function () {
-    /* ── Painel de filtros ───────────────────────────────────────── */
+    /* ── Painel de filtros ───────────────────────────────────────────
+       Regra única: o painel SÓ abre por ação explícita do usuário no
+       botão. Carregamento, recarga, navegação (incluindo voltar/avançar
+       com filtros ativos) e re-renderizações sempre começam fechados —
+       o estado nunca é inferido dos filtros aplicados. */
     function initFilterToggle() {
         const btn = document.getElementById("btnFiltros");
         const panel = document.getElementById("filtersPanel");
@@ -21,13 +25,28 @@
             btn.setAttribute("aria-expanded", open ? "true" : "false");
         }
 
-        // Começa aberto se já houver categoria marcada (filtro ativo).
-        setOpen(!!panel.querySelector("input[type=checkbox]:checked"));
+        // Estado inicial: fechado, sempre. O servidor já entrega o painel
+        // com `hidden`; aqui apenas sincronizamos o rótulo acessível.
+        setOpen(false);
 
-        btn.addEventListener("click", () => setOpen(panel.hidden));
+        // bfcache: voltar para a página restaura o DOM como estava ao sair.
+        // Sem isto, um painel aberto reaparece aberto ao usar "voltar".
+        window.addEventListener("pageshow", () => setOpen(false));
 
-        // Esc fecha o painel e devolve o foco ao botão (teclado).
-        panel.addEventListener("keydown", (e) => {
+        btn.addEventListener("click", () => {
+            const abrindo = panel.hidden;
+            setOpen(abrindo);
+            // Teclado: ao abrir, leva o foco para o primeiro controle do
+            // painel; ao fechar, devolve o foco ao botão.
+            if (abrindo) {
+                panel.querySelector("input:not(:disabled), select, button")?.focus();
+            } else {
+                btn.focus();
+            }
+        });
+
+        // Esc fecha de qualquer lugar enquanto o painel estiver aberto.
+        document.addEventListener("keydown", (e) => {
             if (e.key === "Escape" && !panel.hidden) {
                 setOpen(false);
                 btn.focus();

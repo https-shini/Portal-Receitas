@@ -25,6 +25,12 @@ img, svg, video, iframe { display: block; max-width: 100%; }
 
 button, input, select, textarea { font: inherit; color: inherit; }
 
+/* O atributo `hidden` só vale pela folha do navegador, que QUALQUER regra de
+   autor com `display` sobrescreve — basta um `.painel { display: grid }` para
+   um elemento marcado como oculto voltar a ocupar a página. Esta regra torna
+   `hidden` a fonte de verdade da visibilidade em todo o site. */
+[hidden] { display: none !important; }
+
 /* ── Hierarquia tipográfica ─────────────────────────────────────── */
 h1, h2, h3, h4 {
     font-family: var(--font-display);

@@ -367,7 +367,7 @@ require __DIR__ . '/partials/head.php';
         <?php if ($related !== []): ?>
             <section class="related" aria-labelledby="tituloRelacionadas">
                 <h2 id="tituloRelacionadas" class="related__title">Receitas relacionadas</h2>
-                <ul class="recipe-grid" role="list" style="list-style:none; padding:0;">
+                <ul class="recipe-grid" role="list">
                     <?php foreach ($related as $cardIndex => $card): ?>
                         <?php require __DIR__ . '/partials/recipe-card.php'; ?>
                     <?php endforeach; ?>

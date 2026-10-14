@@ -37,7 +37,7 @@ require __DIR__ . '/partials/head.php';
                 <a class="btn btn--primary" href="index.php"><i class="las la-utensils" aria-hidden="true"></i> Ver receitas</a>
             </div>
         <?php else: ?>
-            <ul class="recipe-grid" role="list" style="list-style:none; padding:0;">
+            <ul class="recipe-grid" role="list">
                 <?php foreach ($cards as $cardIndex => $card): ?>
                     <?php require __DIR__ . '/partials/recipe-card.php'; ?>
                 <?php endforeach; ?>

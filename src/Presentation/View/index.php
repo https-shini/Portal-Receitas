@@ -144,22 +144,50 @@ require __DIR__ . '/partials/head.php';
                 <div class="results__head">
                     <h2 id="tituloReco"><i class="las la-magic" aria-hidden="true"></i> <?= htmlspecialchars($recommendations['title']) ?></h2>
                 </div>
-                <ul class="recipe-grid" role="list" style="list-style:none; padding:0;">
+                <ul class="recipe-grid" role="list">
                     <?php foreach ($recommendations['cards'] as $cardIndex => $card): ?>
+                        <?php $cardEager = $cardIndex < 4; /* primeira dobra: não adia o LCP */ ?>
                         <?php require __DIR__ . '/partials/recipe-card.php'; ?>
                     <?php endforeach; ?>
+                    <?php $cardEager = false; ?>
                 </ul>
             </section>
         <?php endif; ?>
 
         <!-- ── Resultados ── -->
         <section class="results container" aria-labelledby="tituloResultados">
+            <?php
+            // Ordenação vive aqui (e não no painel oculto) para ficar sempre
+            // ao alcance; `form` a mantém no mesmo GET do formulário de busca.
+            $sortLabels = [
+                'relevancia' => 'Mais relevantes',
+                'nome' => 'Nome (A–Z)',
+                'tempo' => 'Tempo de preparo',
+            ];
+            ?>
             <div class="results__head">
-                <h2 id="tituloResultados"><?= $filtrando ? 'Sua busca' : 'Receitas' ?></h2>
-                <span class="results__count" role="status"><?= (int) $pagination['total'] ?> receita<?= (int) $pagination['total'] === 1 ? '' : 's' ?></span>
-                <?php if ($filtrando): ?>
-                    <a class="results__clear" href="index.php"><i class="las la-times" aria-hidden="true"></i> Limpar filtros</a>
-                <?php endif; ?>
+                <div class="results__headline">
+                    <h2 id="tituloResultados"><?= $filtrando ? 'Sua busca' : 'Receitas' ?></h2>
+                    <span class="results__count" role="status"><?= (int) $pagination['total'] ?> receita<?= (int) $pagination['total'] === 1 ? '' : 's' ?></span>
+                </div>
+                <div class="results__tools">
+                    <?php if ($filtrando): ?>
+                        <a class="results__clear" href="index.php"><i class="las la-times" aria-hidden="true"></i> Limpar filtros</a>
+                    <?php endif; ?>
+                    <div class="results__sort">
+                        <label class="visually-hidden" for="ordenar">Ordenar por</label>
+                        <div class="field__control">
+                            <i class="las la-sort" aria-hidden="true"></i>
+                            <select class="field__input js-ordenar" name="ordenar" id="ordenar" form="formSearch">
+                                <?php foreach ($sortLabels as $valor => $rotulo): ?>
+                                    <option value="<?= $valor ?>" <?= ($filters['sort'] ?? 'relevancia') === $valor ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($rotulo) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <?php if ($filtrando): ?>
@@ -199,10 +227,13 @@ require __DIR__ . '/partials/head.php';
                     <a class="btn btn--soft" href="index.php">Ver todas as receitas</a>
                 </div>
             <?php else: ?>
-                <ul class="recipe-grid" id="gradeReceitas" role="list" style="list-style:none; padding:0;">
+                <ul class="recipe-grid" id="gradeReceitas" role="list">
                     <?php foreach ($cards as $cardIndex => $card): ?>
+                        <?php /* Sem vitrine acima, a grade é a primeira dobra. */ ?>
+                        <?php $cardEager = empty($recommendations['cards']) && $cardIndex < 4; ?>
                         <?php require __DIR__ . '/partials/recipe-card.php'; ?>
                     <?php endforeach; ?>
+                    <?php $cardEager = false; ?>
                 </ul>
 
                 <?php if ((int) $pagination['totalPages'] > 1): ?>

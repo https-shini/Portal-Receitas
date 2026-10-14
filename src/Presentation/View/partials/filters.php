@@ -1,32 +1,44 @@
 <?php
 /**
- * Painel de filtros do catálogo (dentro do <form> GET da home). Categorias
- * vêm do banco (data-driven); ordenação por whitelist. Funciona sem JS
- * (botão "Aplicar"); catalog.js só melhora a experiência (abrir/fechar,
- * auto-submit da ordenação).
+ * Painel de filtros do catálogo (dentro do <form> GET da home).
+ *
+ * Visibilidade: entregue SEMPRE com `hidden`. Quem abre é o usuário, pelo
+ * botão "Filtros" (catalog.js) — nenhum estado do servidor abre o painel.
+ * O `[hidden] { display:none !important }` de base.css garante que nenhuma
+ * regra de layout volte a exibi-lo.
+ *
+ * Categorias vêm do banco (data-driven); as sem receitas chegam desabilitadas
+ * e recebem um modificador para ficarem visualmente secundárias, sem sumir.
+ * A ordenação vive na barra de resultados (sempre acessível), associada a
+ * este form por `form="formSearch"`.
+ *
+ * Funciona sem JS: o <noscript> revela o painel e o botão "Aplicar filtros"
+ * submete normalmente.
  *
  * @var list<array{id:int,name:string,icon:?string,total:int}> $categories
  * @var array{search:?string,categoryIds:list<int>,difficulties:list<string>,sort:string} $filters
  */
-$sortLabels = [
-    'relevancia' => 'Mais relevantes',
-    'nome' => 'Nome (A–Z)',
-    'tempo' => 'Tempo de preparo',
-];
 $dificuldades = ['Fácil' => 'la-smile', 'Médio' => 'la-meh', 'Difícil' => 'la-fire'];
 $selecionadas = $filters['categoryIds'] ?? [];
 $difSelecionadas = $filters['difficulties'] ?? [];
 ?>
-<div class="filters-panel" id="filtersPanel" hidden>
+<noscript>
+    <style>/* Sem JS não há botão de alternância: mantém os filtros utilizáveis. */
+        .filters-panel[hidden] { display: grid !important; }
+        #btnFiltros { display: none; }
+    </style>
+</noscript>
+<div class="filters-panel" id="filtersPanel" role="group" aria-label="Filtros do catálogo" hidden>
     <div class="filters-panel__group">
         <h2 class="filters-panel__title" id="filtroCategorias">Categorias</h2>
         <ul class="filters-cats" role="list" aria-labelledby="filtroCategorias">
             <?php foreach ($categories as $categoria): ?>
+                <?php $vazia = (int) $categoria['total'] === 0; ?>
                 <li>
-                    <label class="filter-chip">
+                    <label class="filter-chip<?= $vazia ? ' filter-chip--empty' : '' ?>">
                         <input type="checkbox" name="categoriaReceita[]" value="<?= (int) $categoria['id'] ?>"
                                <?= in_array($categoria['id'], $selecionadas, true) ? 'checked' : '' ?>
-                               <?= $categoria['total'] === 0 ? 'disabled' : '' ?>>
+                               <?= $vazia ? 'disabled' : '' ?>>
                         <span class="filter-chip__body">
                             <i class="las <?= htmlspecialchars($categoria['icon'] ?? 'la-utensils') ?>" aria-hidden="true"></i>
                             <?= htmlspecialchars($categoria['name']) ?>
@@ -56,22 +68,8 @@ $difSelecionadas = $filters['difficulties'] ?? [];
         </ul>
     </div>
 
-    <div class="filters-panel__group">
-        <label class="filters-panel__title" for="ordenar">Ordenar por</label>
-        <div class="field__control">
-            <i class="las la-sort" aria-hidden="true"></i>
-            <select class="field__input js-ordenar" name="ordenar" id="ordenar">
-                <?php foreach ($sortLabels as $valor => $rotulo): ?>
-                    <option value="<?= $valor ?>" <?= ($filters['sort'] ?? 'relevancia') === $valor ? 'selected' : '' ?>>
-                        <?= htmlspecialchars($rotulo) ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-    </div>
-
     <div class="filters-panel__actions">
-        <a class="btn btn--ghost" href="index.php">Limpar</a>
+        <a class="btn btn--ghost" href="index.php">Limpar tudo</a>
         <button class="btn btn--primary" type="submit">Aplicar filtros</button>
     </div>
 </div>
