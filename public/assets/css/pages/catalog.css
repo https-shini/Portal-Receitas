@@ -4,7 +4,36 @@
    ════════════════════════════════════════════════════════════════ */
 
 /* ── Botão "Filtros" na barra de busca ──────────────────────────── */
-.btn--filtros { position: relative; border-radius: var(--radius-full); }
+/* Estado visual = estado funcional:
+   repouso (neutro) · hover · aberto ([aria-expanded]) · com filtros aplicados.
+   Antes reutilizava .btn--soft, cujo repouso é igual ao chip "selecionado". */
+.btn--filtros {
+    position: relative;
+    border-radius: var(--radius-full);
+    background: var(--color-surface);
+    color: var(--color-text-secondary);
+    border-color: var(--color-border-strong);
+}
+.btn--filtros .las { color: var(--color-text-muted); }
+
+@media (hover: hover) {
+    .btn--filtros:hover:not(:disabled) {
+        background: var(--color-hover);
+        color: var(--color-text-primary);
+    }
+}
+
+/* Painel aberto */
+.btn--filtros[aria-expanded="true"] {
+    background: var(--color-primary-soft);
+    border-color: var(--color-primary);
+    color: var(--color-primary-strong);
+}
+.btn--filtros[aria-expanded="true"] .las { color: var(--color-primary); }
+
+/* Há filtros aplicados (mesmo com o painel fechado) */
+.btn--filtros.has-filters { border-color: var(--color-primary); color: var(--color-text-primary); }
+.btn--filtros.has-filters .las { color: var(--color-primary); }
 
 .btn__badge {
     display: inline-grid;

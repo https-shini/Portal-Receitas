@@ -25,6 +25,14 @@
         setOpen(!!panel.querySelector("input[type=checkbox]:checked"));
 
         btn.addEventListener("click", () => setOpen(panel.hidden));
+
+        // Esc fecha o painel e devolve o foco ao botão (teclado).
+        panel.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && !panel.hidden) {
+                setOpen(false);
+                btn.focus();
+            }
+        });
     }
 
     /* ── Ordenação: aplica ao mudar ──────────────────────────────── */

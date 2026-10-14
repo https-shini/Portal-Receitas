@@ -119,11 +119,13 @@ require __DIR__ . '/partials/head.php';
                                placeholder="Ex.: carbonara, bacon, chocolate…"
                                value="<?= htmlspecialchars($pesquisaAtual) ?>">
                     </div>
-                    <button class="btn btn--soft btn--filtros" type="button" id="btnFiltros"
+                    <?php $filtrosAplicados = count($filters['categoryIds']) + count($filters['difficulties'] ?? []); ?>
+                    <button class="btn btn--filtros<?= $filtrosAplicados > 0 ? ' has-filters' : '' ?>" type="button" id="btnFiltros"
                             aria-expanded="false" aria-controls="filtersPanel">
                         <i class="las la-sliders-h" aria-hidden="true"></i> Filtros
-                        <?php if ($filters['categoryIds'] !== []): ?>
-                            <span class="btn__badge"><?= count($filters['categoryIds']) ?></span>
+                        <?php if ($filtrosAplicados > 0): ?>
+                            <span class="btn__badge" aria-hidden="true"><?= $filtrosAplicados ?></span>
+                            <span class="visually-hidden"><?= $filtrosAplicados ?> filtro<?= $filtrosAplicados === 1 ? '' : 's' ?> aplicado<?= $filtrosAplicados === 1 ? '' : 's' ?></span>
                         <?php endif; ?>
                     </button>
                     <button class="btn btn--primary" type="submit" id="btnBuscar">

@@ -106,7 +106,7 @@ require __DIR__ . '/partials/head.php';
                     <div class="recipe__media glass">
                         <img id="galeriaPrincipal" src="./assets/img/<?= htmlspecialchars((string) $gallery[0]) ?>"
                              alt="Foto da receita <?= htmlspecialchars((string) $recipe['name']) ?>"
-                             width="800" height="600">
+                             width="800" height="600" fetchpriority="high" decoding="async">
                     </div>
                     <?php if (count($gallery) > 1): ?>
                         <ul class="recipe__thumbs js-galeria" role="list" aria-label="Galeria de fotos">
@@ -124,20 +124,39 @@ require __DIR__ . '/partials/head.php';
                 </div>
 
                 <div class="recipe__intro">
-                    <h1 class="recipe__title"><?= htmlspecialchars((string) $recipe['name']) ?></h1>
+                    <a class="recipe__back" href="<?= $recipe['categoryId'] > 0 ? 'index.php?categoriaReceita=' . (int) $recipe['categoryId'] . '&amp;buscar=1' : 'index.php' ?>">
+                        <i class="las la-arrow-left" aria-hidden="true"></i>
+                        <?= $recipe['categoryId'] > 0 ? 'Mais receitas de ' . htmlspecialchars((string) $recipe['category']) : 'Voltar às receitas' ?>
+                    </a>
 
-                    <ul class="recipe__facts" aria-label="Informações da receita">
-                        <li class="badge"><i class="las la-tag" aria-hidden="true"></i><?= htmlspecialchars((string) $recipe['category']) ?></li>
-                        <li class="badge"><i class="las la-clock" aria-hidden="true"></i><?= htmlspecialchars((string) $recipe['time']) ?></li>
-                        <?php if (!empty($recipe['cookTime'])): ?>
-                            <li class="badge"><i class="las la-fire" aria-hidden="true"></i>Cozimento <?= htmlspecialchars((string) $recipe['cookTime']) ?></li>
+                    <div class="recipe__titlebox">
+                        <?php if (!empty($recipe['category'])): ?>
+                            <span class="recipe__category"><?= htmlspecialchars((string) $recipe['category']) ?></span>
                         <?php endif; ?>
-                        <li class="badge"><i class="las la-utensils" aria-hidden="true"></i><?= (int) $recipe['servings'] ?> porções</li>
-                        <?php if (!empty($recipe['difficulty'])): ?>
-                            <li class="badge"><i class="las la-signal" aria-hidden="true"></i><?= htmlspecialchars((string) $recipe['difficulty']) ?></li>
-                        <?php endif; ?>
-                        <li class="badge"><i class="las la-bolt" aria-hidden="true"></i><?= htmlspecialchars((string) $recipe['calories']) ?> cal</li>
-                    </ul>
+                        <h1 class="recipe__title"><?= htmlspecialchars((string) $recipe['name']) ?></h1>
+                    </div>
+
+                    <?php
+                    $fatos = [['la-clock', 'Preparo', (string) $recipe['time']]];
+                    if (!empty($recipe['cookTime'])) {
+                        $fatos[] = ['la-fire', 'Cozimento', (string) $recipe['cookTime']];
+                    }
+                    if ((int) $recipe['servings'] > 0) {
+                        $fatos[] = ['la-utensils', 'Rendimento', (int) $recipe['servings'] . ' porções'];
+                    }
+                    if (!empty($recipe['difficulty'])) {
+                        $fatos[] = ['la-signal', 'Dificuldade', (string) $recipe['difficulty']];
+                    }
+                    $fatos[] = ['la-bolt', 'Por porção', (string) $recipe['calories'] . ' cal'];
+                    ?>
+                    <dl class="recipe__facts" aria-label="Informações da receita">
+                        <?php foreach ($fatos as [$icone, $rotuloFato, $valorFato]): ?>
+                            <div class="fact">
+                                <dt><i class="las <?= $icone ?>" aria-hidden="true"></i> <?= $rotuloFato ?></dt>
+                                <dd><?= htmlspecialchars($valorFato) ?></dd>
+                            </div>
+                        <?php endforeach; ?>
+                    </dl>
 
                     <?php $rating = $recipe['rating']; $notaUsuario = $userScore ?? null; ?>
                     <div class="recipe__rating" aria-label="Avaliação média">
@@ -192,7 +211,42 @@ require __DIR__ . '/partials/head.php';
             </header>
 
             <div class="recipe__grid">
-                <div class="recipe__col">
+                <div class="recipe__col recipe__col--main">
+                    <section class="recipe-section" aria-labelledby="tituloIngredientes">
+                        <h2 id="tituloIngredientes"><i class="las la-shopping-basket" aria-hidden="true"></i> Ingredientes</h2>
+                        <?php if ($ingredientes !== []): ?>
+                            <p class="recipe__hint">Marque os itens conforme for separando.</p>
+                            <ul class="recipe__ingredients">
+                                <?php foreach ($ingredientes as $idx => $ingrediente): ?>
+                                    <li>
+                                        <label class="ingredient">
+                                            <input type="checkbox" id="ing<?= (int) $idx ?>">
+                                            <span class="ingredient__text"><?= htmlspecialchars($ingrediente) ?></span>
+                                        </label>
+                                    </li>
+                                <?php endforeach; ?>
+                            </ul>
+                        <?php else: ?>
+                            <p class="recipe__empty">A lista de ingredientes desta receita não está disponível.</p>
+                        <?php endif; ?>
+                    </section>
+
+                    <section class="recipe-section" aria-labelledby="tituloPreparo">
+                        <h2 id="tituloPreparo"><i class="las la-mortar-pestle" aria-hidden="true"></i> Modo de preparo</h2>
+                        <?php if ($preparo !== []): ?>
+                            <ol class="recipe__steps">
+                                <?php foreach ($preparo as $passo): ?>
+                                    <li><?= htmlspecialchars($passo) ?></li>
+                                <?php endforeach; ?>
+                            </ol>
+                        <?php else: ?>
+                            <p class="recipe__empty">O modo de preparo desta receita não está disponível.</p>
+                        <?php endif; ?>
+                    </section>
+                </div>
+
+                <div class="recipe__col recipe__col--aside">
+                    <?php if (trim((string) $recipe['video']) !== ''): ?>
                     <section class="recipe-section" aria-labelledby="tituloVideo">
                         <h2 id="tituloVideo"><i class="las la-play-circle" aria-hidden="true"></i> Vídeo</h2>
                         <div class="recipe__video video-consent js-video-consent">
@@ -204,6 +258,7 @@ require __DIR__ . '/partials/head.php';
                             <template class="js-video-tpl"><?= VideoEmbed::prepare((string) $recipe['video']) ?></template>
                         </div>
                     </section>
+                    <?php endif; ?>
 
                     <?php if (!empty($recipe['tips'])): ?>
                         <section class="recipe-section" aria-labelledby="tituloDicas">
@@ -266,25 +321,6 @@ require __DIR__ . '/partials/head.php';
                     </section>
                 </div>
 
-                <div class="recipe__col">
-                    <section class="recipe-section" aria-labelledby="tituloIngredientes">
-                        <h2 id="tituloIngredientes"><i class="las la-shopping-basket" aria-hidden="true"></i> Ingredientes</h2>
-                        <ul class="recipe__ingredients">
-                            <?php foreach ($ingredientes as $ingrediente): ?>
-                                <li><?= htmlspecialchars($ingrediente) ?></li>
-                            <?php endforeach; ?>
-                        </ul>
-                    </section>
-
-                    <section class="recipe-section" aria-labelledby="tituloPreparo">
-                        <h2 id="tituloPreparo"><i class="las la-mortar-pestle" aria-hidden="true"></i> Modo de preparo</h2>
-                        <ol class="recipe__steps">
-                            <?php foreach ($preparo as $passo): ?>
-                                <li><?= htmlspecialchars($passo) ?></li>
-                            <?php endforeach; ?>
-                        </ol>
-                    </section>
-                </div>
             </div>
         </article>
 
