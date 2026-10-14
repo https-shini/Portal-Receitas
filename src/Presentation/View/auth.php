@@ -160,7 +160,7 @@ $showLoginCta = false;
 
 <?php require __DIR__ . '/partials/footer.php'; ?>
 
-    <script src="./assets/js/theme.js" defer></script>
-    <script src="./assets/js/script-auth.js" defer></script>
+    <script src="<?= hmgAsset('assets/js/theme.js') ?>" defer></script>
+    <script src="<?= hmgAsset('assets/js/script-auth.js') ?>" defer></script>
 </body>
 </html>

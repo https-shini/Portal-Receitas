@@ -93,7 +93,7 @@ require __DIR__ . '/partials/head.php';
 
 <?php require __DIR__ . '/partials/footer.php'; ?>
 
-    <script src="./assets/js/theme.js" defer></script>
-    <script src="./assets/js/profile.js" defer></script>
+    <script src="<?= hmgAsset('assets/js/theme.js') ?>" defer></script>
+    <script src="<?= hmgAsset('assets/js/profile.js') ?>" defer></script>
 </body>
 </html>

@@ -53,4 +53,4 @@ $emailContato = 'receitasdelicia498@gmail.com';
     </div>
 </footer>
 
-<script src="./assets/js/header.js" defer></script>
+<script src="<?= hmgAsset('assets/js/header.js') ?>" defer></script>

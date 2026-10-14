@@ -259,8 +259,8 @@ require __DIR__ . '/partials/head.php';
 
 <?php require __DIR__ . '/partials/footer.php'; ?>
 
-    <script src="./assets/js/theme.js" defer></script>
-    <script src="./assets/js/home.js" defer></script>
-    <script src="./assets/js/catalog.js" defer></script>
+    <script src="<?= hmgAsset('assets/js/theme.js') ?>" defer></script>
+    <script src="<?= hmgAsset('assets/js/home.js') ?>" defer></script>
+    <script src="<?= hmgAsset('assets/js/catalog.js') ?>" defer></script>
 </body>
 </html>
