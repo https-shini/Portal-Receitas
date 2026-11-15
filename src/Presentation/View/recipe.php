@@ -53,11 +53,9 @@ $pageDescription = 'Receita de ' . $recipe['name'] . ' (' . $recipe['category'] 
 $pageCss = ['pages/home.css', 'pages/recipe.css'];
 
 // Open Graph/Twitter exigem URLs absolutas (o crawler não resolve <base href>).
-// Deriva o origin do request; usa o host/protocolo efetivos por trás de proxy.
-$scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-    || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https') ? 'https' : 'http';
-$host = (string) ($_SERVER['HTTP_HOST'] ?? 'localhost');
-$origin = $scheme . '://' . preg_replace('/[^\w.:-]/', '', $host);
+// APP_URL fixa o endereço oficial (ex.: https://receitas.gcruz.dev.br); sem
+// ela, deriva o origin do request, com o host/protocolo efetivos atrás de proxy.
+$origin = \App\Application\Support\PublicOrigin::resolve($_SERVER, getenv('APP_URL') ?: null);
 $ogUrl = $origin . '/receita/' . (int) $recipe['id'] . '/' . $slug;
 $ogImage = $origin . '/assets/img/' . rawurlencode((string) $recipe['image']);
 
@@ -79,7 +77,7 @@ $og = <<<HTML
     <meta name="twitter:image" content="{$ogImageE}">
 HTML;
 
-$extraHead = "<link rel=\"canonical\" href=\"receita/{$recipe['id']}/{$slug}\">\n"
+$extraHead = "<link rel=\"canonical\" href=\"{$ogUrlE}\">\n"
     . '    ' . $og . "\n"
     . "    <script type=\"application/ld+json\">{$jsonLd}</script>";
 require __DIR__ . '/partials/head.php';

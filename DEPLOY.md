@@ -68,6 +68,21 @@ Sobe o site + banco (MySQL 8) com um comando. O seed (`database/DB_Receitas.sql`
 automaticamente na primeira execução, e o `composer install --no-dev --optimize-autoloader`
 roda dentro do build da imagem (o `vendor/` não é versionado).
 
+## Domínio próprio (`receitas.gcruz.dev.br`)
+
+O serviço `portal-receitas` da Render responde em `https://portal-receitas.onrender.com`
+e, com o domínio próprio, em `https://receitas.gcruz.dev.br`.
+
+1. Na Render: serviço → **Settings → Custom Domains → Add**: `receitas.gcruz.dev.br`.
+2. Na Cloudflare (zona `gcruz.dev.br`): registro **CNAME** `receitas` →
+   `portal-receitas.onrender.com`, com o proxy **desligado** (DNS only). O
+   certificado é emitido pela Render.
+3. Quando o domínio aparecer como verificado na Render, defina
+   `APP_URL=https://receitas.gcruz.dev.br` em **Environment**. A partir daí,
+   canonical, Open Graph e sitemap apontam só para o domínio próprio, mesmo
+   para quem entrar pelo `onrender.com`.
+4. Opcional: desative o endereço `onrender.com` em **Settings → Render Subdomain**.
+
 ## Requisitos
 - Docker e Docker Compose instalados.
 
@@ -83,6 +98,7 @@ Acesse: http://localhost:8080
 |----------|--------|-----------|
 | `WEB_PORT` | `8080` | Porta pública do site |
 | `DB_PASS` | `rootpass` | Senha do root do MySQL (usada pelo web e pelo db) |
+| `APP_URL` | vazio | Endereço oficial (ex.: `https://receitas.gcruz.dev.br`) usado no canonical, no Open Graph e no sitemap. Vazio: usa o host da requisição |
 
 O container `web` recebe `DB_HOST=db`, `DB_NAME=tcc_receitas`, `DB_USER=root` e
 `DB_PASS` via compose. A aplicação também aceita `DB_PORT` (padrão `3306`) e a

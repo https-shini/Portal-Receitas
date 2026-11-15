@@ -8,15 +8,15 @@ declare(strict_types=1);
  * → apenas as páginas estáticas, ainda 200.
  */
 
+use App\Application\Support\PublicOrigin;
 use App\Application\Support\Slug;
 
 $services = require __DIR__ . '/../config/bootstrap.php';
 
 header('Content-Type: application/xml; charset=utf-8');
 
-$https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-    || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
-$base = ($https ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
+// APP_URL fixa o endereço oficial; sem ela, usa o host da requisição.
+$base = PublicOrigin::resolve($_SERVER, getenv('APP_URL') ?: null);
 
 $urls = [
     ['loc' => '/index.php', 'freq' => 'daily', 'pri' => '1.0'],
