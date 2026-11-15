@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Application\Security\RateLimiterInterface;
+use App\Application\Support\PublicOrigin;
 use App\Application\UseCase\AuthenticateUserUseCase;
 use App\Application\UseCase\DeleteUserAccountUseCase;
 use App\Application\UseCase\FindRecipesUseCase;
@@ -61,6 +62,21 @@ if (file_exists($vendorAutoload)) {
             require_once $file;
         }
     });
+}
+
+/*
+ * Endereço antigo: com APP_URL definida, quem chega pelo host do Render
+ * (*.onrender.com) recebe 308 para o mesmo caminho no domínio oficial. O
+ * 308 mantém método e corpo, então os POST da API seguem funcionando.
+ */
+$oldHostRedirect = PublicOrigin::redirectFromOldHost(
+    $_SERVER,
+    getenv('APP_URL') ?: null,
+    getenv('RENDER_EXTERNAL_HOSTNAME') ?: null
+);
+if ($oldHostRedirect !== null && PHP_SAPI !== 'cli') {
+    header('Location: ' . $oldHostRedirect, true, 308);
+    exit;
 }
 
 /*
