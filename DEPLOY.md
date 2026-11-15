@@ -80,7 +80,10 @@ e, com o domínio próprio, em `https://receitas.gcruz.dev.br`.
 3. Quando o domínio aparecer como verificado na Render, defina
    `APP_URL=https://receitas.gcruz.dev.br` em **Environment**. A partir daí,
    canonical, Open Graph e sitemap apontam só para o domínio próprio, mesmo
-   para quem entrar pelo `onrender.com`.
+   para quem entrar pelo `onrender.com`, e as páginas acessadas pelo
+   `onrender.com` respondem 308 para o mesmo caminho no domínio próprio (a
+   Render define `RENDER_EXTERNAL_HOSTNAME` sozinha; o `/healthz.php` não passa
+   por esse redirecionamento).
 4. Opcional: desative o endereço `onrender.com` em **Settings → Render Subdomain**.
 
 ## Requisitos

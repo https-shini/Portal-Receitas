@@ -47,6 +47,54 @@ class PublicOriginTest extends TestCase
         $this->assertSame('http://localhost', PublicOrigin::resolve([], null));
     }
 
+    public function testHostAntigoRedirecionaParaAppUrlComCaminhoEQuery(): void
+    {
+        $server = ['HTTP_HOST' => 'portal-receitas.onrender.com', 'REQUEST_URI' => '/receita/7/bolo?x=1'];
+
+        $this->assertSame(
+            'https://receitas.gcruz.dev.br/receita/7/bolo?x=1',
+            PublicOrigin::redirectFromOldHost($server, 'https://receitas.gcruz.dev.br', 'portal-receitas.onrender.com')
+        );
+    }
+
+    public function testHostAntigoComPortaETamanhoDiferenteTambemRedireciona(): void
+    {
+        $server = ['HTTP_HOST' => 'Portal-Receitas.onrender.com:443', 'REQUEST_URI' => '/'];
+
+        $this->assertSame(
+            'https://receitas.gcruz.dev.br/',
+            PublicOrigin::redirectFromOldHost($server, 'https://receitas.gcruz.dev.br/', 'portal-receitas.onrender.com')
+        );
+    }
+
+    public function testDominioProprioNaoRedireciona(): void
+    {
+        $server = ['HTTP_HOST' => 'receitas.gcruz.dev.br', 'REQUEST_URI' => '/'];
+
+        $this->assertNull(
+            PublicOrigin::redirectFromOldHost($server, 'https://receitas.gcruz.dev.br', 'portal-receitas.onrender.com')
+        );
+    }
+
+    public function testSemAppUrlOuSemHostAntigoNaoRedireciona(): void
+    {
+        $server = ['HTTP_HOST' => 'portal-receitas.onrender.com', 'REQUEST_URI' => '/'];
+
+        $this->assertNull(PublicOrigin::redirectFromOldHost($server, null, 'portal-receitas.onrender.com'));
+        $this->assertNull(PublicOrigin::redirectFromOldHost($server, 'https://receitas.gcruz.dev.br', null));
+        $this->assertNull(PublicOrigin::redirectFromOldHost($server, 'receitas.gcruz.dev.br', 'portal-receitas.onrender.com'));
+    }
+
+    public function testCaminhoComDuasBarrasNaoViraOutroHost(): void
+    {
+        $server = ['HTTP_HOST' => 'portal-receitas.onrender.com', 'REQUEST_URI' => '//evil.example/x'];
+
+        $this->assertSame(
+            'https://receitas.gcruz.dev.br/evil.example/x',
+            PublicOrigin::redirectFromOldHost($server, 'https://receitas.gcruz.dev.br', 'portal-receitas.onrender.com')
+        );
+    }
+
     #[DataProvider('appUrlsInvalidas')]
     public function testAppUrlInvalidaEhIgnorada(string $appUrl): void
     {

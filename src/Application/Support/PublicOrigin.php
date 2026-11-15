@@ -37,6 +37,38 @@ final class PublicOrigin
         return ($https ? 'https' : 'http') . '://' . ($host !== '' ? $host : 'localhost');
     }
 
+    /**
+     * Destino do redirecionamento quando a requisição chega pelo endereço
+     * antigo (o host do Render, em RENDER_EXTERNAL_HOSTNAME): APP_URL mais o
+     * mesmo caminho e query. Devolve null quando não há o que redirecionar —
+     * APP_URL ausente ou inválida, host antigo não informado ou requisição
+     * vinda por outro host (o domínio próprio, o health check interno, o
+     * ambiente local).
+     *
+     * @param array<string, mixed> $server     Normalmente $_SERVER.
+     * @param string|null          $configured Valor de APP_URL, se houver.
+     * @param string|null          $oldHost    Valor de RENDER_EXTERNAL_HOSTNAME.
+     */
+    public static function redirectFromOldHost(array $server, ?string $configured, ?string $oldHost): ?string
+    {
+        $origin = self::fromConfigured($configured);
+        $oldHost = strtolower(trim((string) $oldHost));
+        if ($origin === null || $oldHost === '') {
+            return null;
+        }
+
+        $host = strtolower((string) preg_replace('/:\d+$/', '', (string) ($server['HTTP_HOST'] ?? '')));
+        if ($host !== $oldHost) {
+            return null;
+        }
+
+        // Só caminhos locais: "//outro-host" viraria uma URL de outro domínio.
+        $uri = (string) ($server['REQUEST_URI'] ?? '/');
+        $uri = '/' . ltrim($uri, '/');
+
+        return $origin . $uri;
+    }
+
     private static function fromConfigured(?string $configured): ?string
     {
         $configured = trim((string) $configured);
