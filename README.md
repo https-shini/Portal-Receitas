@@ -1,246 +1,332 @@
-<img width=100% src="https://capsule-render.vercel.app/api?type=waving&color=gradient&height=120&section=header" alt="Header Wave"/>
+<h1 align="center">Portal Receitas — HomeMadeGourmet</h1>
 
-<div align="center">
-  <img src="https://readme-typing-svg.herokuapp.com?font=Orbitron&weight=700&size=32&duration=3000&pause=1000&color=FF6B6B&center=true&vCenter=true&width=900&lines=Sua+Jornada+Culin%C3%A1ria+Personalizada;Descubra+Receitas+e+Crie+Sua+Hist%C3%B3ria;Homemade+Gourmet" alt="Título Dinâmico" />
-</div>
-
-<div align="center">
-
-[![Status](https://img.shields.io/badge/Status-Concluído-success?style=for-the-badge)](https://github.com/https-shini/Portal-Receitas)
-[![License](https://img.shields.io/badge/Licença-MIT-yellow?style=for-the-badge)](LICENSE)
-[![PHP](https://img.shields.io/badge/PHP-8.2%2B-777BB4?style=for-the-badge&logo=php&logoColor=white)](composer.json)
-[![Arquitetura](https://img.shields.io/badge/Clean-Architecture-2d3436?style=for-the-badge)](docs/architecture.md)
-[![TCC](https://img.shields.io/badge/TCC-2022→Refactor%202026-blue?style=for-the-badge)](CHANGELOG.md)
-
-</div>
-
----
-
-## 🍳 Sobre o Projeto
-
-**Homemade Gourmet** é um portal de receitas nascido como TCC (ETEC de Vila Formosa, NOVOTEC, 2022) e, em 2026, reescrito sobre **Clean Architecture** em PHP 8.2, com deploy em Docker/Render, senhas protegidas por bcrypt e testes automatizados.
-
-O que o site faz hoje, exatamente como está no código:
-
-- **Catálogo estilo marketplace** em cards (foto, categoria, tempo de preparo, dificuldade), com **filtros facetados** (categorias múltiplas + dificuldade), **ordenação** e **paginação** ("Carregar mais").
-- **Página individual de receita** em rota própria (`/receita/{id}/{slug}`) — layout único reutilizável com galeria/hero, selos (categoria, tempos, porções, dificuldade, calorias), ingredientes, modo de preparo, dicas, **receitas relacionadas**, compartilhamento e vídeo do YouTube com **consentimento por clique** (LGPD).
-- **Busca por ingrediente**: o termo é comparado (`LIKE`) contra as 15 colunas de ingredientes de cada receita.
-- **Categorias controladas por dados** (tabela `categoria`, com ícone) — novas categorias entram sem alterar o código da interface.
-- **Favoritos** para usuários autenticados: botão na página da receita (API `POST /api/favorites.php`, sessão + CSRF + rate limit) e página **Minhas favoritas** (`/favoritas`).
-- **Avaliações por estrelas**: média e contagem no card e na página; usuários autenticados dão/alteram/removem a própria nota (API `POST /api/ratings.php`).
-- **Galeria de imagens** por receita (miniaturas que trocam a foto principal) e **informações nutricionais** por porção (calorias + proteínas/carboidratos/gorduras) com **calculadora de porções** que recalcula o total em tempo real.
-- **Comentários** de usuários na página da receita (API `POST /api/comments.php`) e **recomendações** na home ("Para você" por afinidade de categoria; "Mais bem avaliadas" para visitantes).
-- **Cadastro e login de usuários** com senha protegida por `password_hash`/`password_verify` (bcrypt, `PASSWORD_DEFAULT`) — validação no servidor (mín. 8 caracteres com letra e número), UX inspirada no [AuthService](https://github.com/https-shini/AuthService), com API JSON própria (`/api/login.php`, `/api/register.php`, `/api/me.php`, `/api/logout.php`).
-- **Perfil do usuário** com edição de nome, e-mail e senha, protegido por guard de sessão.
-- **SEO**: JSON-LD `Recipe` por página, canonical e **sitemap dinâmico** (`/sitemap.xml`, uma URL por receita).
-- **Logout** com encerramento de sessão.
-- **Resiliência de deploy**: página amigável de indisponibilidade (HTTP 503) quando o banco está fora, `healthz.php` para vivacidade e `readyz.php` para validar o banco e o catálogo antes de receber tráfego.
-
-### 🗺️ Roadmap (ainda não implementado)
-
-Ideias que **não existem** no código atual e ficam como evolução futura: recomendação por machine learning, notificações, moderação de comentários com denúncia, e análise estática (PHPStan) fixada como etapa bloqueante do CI após o baseline.
-
----
-
-## 🛠️ Stack
+<p align="center">
+  Portal de receitas com catálogo filtrável, favoritos, avaliações e comentários.<br>
+  TCC da ETEC de Vila Formosa (2022), reescrito em 2026 com <strong>Clean Architecture em PHP 8.2</strong>.
+</p>
 
 <div align="center">
 
-| Camada | Tecnologia |
-|--------|-----------|
-| **Interface** | HTML5 semântico, CSS3 e JavaScript (vanilla) · Design System próprio (Liquid Glass, tokens, 8pt grid, temas claro/escuro, WCAG 2.2 AA) |
-| **Backend** | PHP 8.2+ · Clean Architecture · PSR-4 (`App\ → src/`) · Composer |
-| **Dados** | MySQL 8 / MariaDB · PDO com prepared statements (`EMULATE_PREPARES = false`, `utf8mb4`) |
-| **Segurança** | bcrypt · queries 100% parametrizadas · sessão HttpOnly/SameSite + CSRF · rate limiting · headers CSP/HSTS · TLS opcional |
-| **Privacidade** | LGPD: Política/Termos, exclusão de conta por anonimização, fontes/ícones self-hosted, vídeo com consentimento · docs em `docs/privacidade/` |
-| **Deploy** | Docker + Docker Compose (`php:8.2-apache`) · blueprint Render (`render.yaml`) |
-| **Testes** | PHPUnit 11 |
+[![Demonstração](https://img.shields.io/badge/Demonstração-receitas.gcruz.dev.br-c2410c?style=for-the-badge)](https://receitas.gcruz.dev.br)
+[![CI](https://img.shields.io/github/actions/workflow/status/https-shini/Portal-Receitas/ci.yml?branch=main&style=for-the-badge&label=CI)](https://github.com/https-shini/Portal-Receitas/actions/workflows/ci.yml)
+[![PHP](https://img.shields.io/badge/PHP-8.2-777BB4?style=for-the-badge&logo=php&logoColor=white)](composer.json)
+[![Licença MIT](https://img.shields.io/badge/Licença-MIT-yellow?style=for-the-badge)](LICENSE)
 
 </div>
 
+![Página inicial do HomeMadeGourmet com busca por ingrediente e as receitas mais bem avaliadas](docs/images/cover.webp)
+
+<p align="center">
+  <a href="https://receitas.gcruz.dev.br"><strong>Acessar a aplicação</strong></a> ·
+  <a href="docs/architecture.md">Arquitetura</a> ·
+  <a href="docs/backend.md">Backend</a> ·
+  <a href="docs/frontend.md">Frontend</a> ·
+  <a href="DEPLOY.md">Deploy</a>
+</p>
+
+> [!NOTE]
+> A demonstração roda no plano gratuito do Render: o primeiro acesso após inatividade pode levar alguns segundos. O banco é recriado a partir do seed a cada reinício, então cadastros e avaliações feitos na demonstração não são permanentes.
+
 ---
 
-## 📁 Estrutura do Projeto
+## Sumário
 
+- [Sobre o projeto](#sobre-o-projeto)
+- [Problema e proposta](#problema-e-proposta)
+- [Funcionalidades](#funcionalidades)
+- [Capturas de tela](#capturas-de-tela)
+- [Tecnologias](#tecnologias)
+- [Arquitetura](#arquitetura)
+- [Pré-requisitos](#pré-requisitos)
+- [Instalação e execução](#instalação-e-execução)
+- [Variáveis de ambiente](#variáveis-de-ambiente)
+- [Testes e qualidade](#testes-e-qualidade)
+- [Build e produção](#build-e-produção)
+- [Exemplos de uso](#exemplos-de-uso)
+- [Migração para React e Supabase](#migração-para-react-e-supabase)
+- [Limitações conhecidas](#limitações-conhecidas)
+- [Solução de problemas](#solução-de-problemas)
+- [Documentação complementar](#documentação-complementar)
+- [Créditos](#créditos)
+- [Licença](#licença)
+
+## Sobre o projeto
+
+O HomeMadeGourmet é um portal de receitas caseiras em que o visitante busca por nome ou ingrediente, filtra por categoria e dificuldade e abre uma página completa de cada receita, com ingredientes, modo de preparo, informações nutricionais, calculadora de porções e vídeo. Usuários cadastrados favoritam, avaliam com estrelas e comentam.
+
+O projeto nasceu como Trabalho de Conclusão de Curso em 2022 e foi reescrito em 2026 sobre Clean Architecture em PHP 8.2, com PDO e consultas parametrizadas, senhas com bcrypt, proteção CSRF, adequação à LGPD, testes automatizados e deploy em Docker.
+
+## Problema e proposta
+
+Receitas compartilhadas informalmente se perdem em mensagens e cadernos, sem padrão de ingredientes, tempo ou porções. O portal organiza esse conteúdo em um catálogo padronizado e pesquisável — inclusive pelo ingrediente que a pessoa tem em casa — e acrescenta sinais da comunidade (avaliações, comentários e favoritos) para ajudar na escolha.
+
+## Funcionalidades
+
+- **Catálogo com filtros facetados** — cards com foto, categoria, tempo e dificuldade; filtros por várias categorias e por dificuldade, ordenação e paginação ("Carregar mais").
+- **Busca por ingrediente** — o termo é comparado com o nome da receita e com as colunas de ingredientes.
+- **Página da receita** — rota amigável `/receita/{id}/{slug}` com galeria, tempos, porções, dificuldade, calorias, ingredientes marcáveis, modo de preparo numerado, dicas e receitas relacionadas.
+- **Nutrição e porções** — calorias e macronutrientes por porção, com calculadora que recalcula o total para outra quantidade de porções.
+- **Favoritos, avaliações e comentários** — APIs JSON protegidas por sessão, token CSRF e limite de requisições; página "Minhas favoritas".
+- **Contas de usuário** — cadastro, login, edição de perfil e exclusão de conta por anonimização, com senhas em bcrypt.
+- Recomendações na página inicial: "Para você" por afinidade de categoria e "Mais bem avaliadas" para visitantes.
+- Vídeo do YouTube (`youtube-nocookie.com`) carregado só após consentimento, além de Política de Privacidade e Termos de Uso.
+- SEO com JSON-LD `Recipe`, URL canônica e sitemap dinâmico (`/sitemap.xml`).
+- Tema claro e escuro, layout responsivo e página de indisponibilidade (HTTP 503) quando o banco está fora do ar.
+
+## Capturas de tela
+
+|                                               Catálogo                                               |                                Página da receita                                |
+| :--------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------: |
+|   ![Grade de receitas com categoria, avaliação, tempo e dificuldade](docs/images/01-catalogo.webp)   | ![Página da receita com galeria, tempos e porções](docs/images/02-receita.webp) |
+|                                        **Preparo e nutrição**                                        |                                   **Filtros**                                   |
+| ![Modo de preparo numerado, dicas e calculadora nutricional](docs/images/03-preparo-e-nutricao.webp) |  ![Painel de filtros por categoria e dificuldade](docs/images/04-filtros.webp)  |
+|                                              **Login**                                               |                                 **Tema escuro**                                 |
+|                          ![Formulário de login](docs/images/05-login.webp)                           |        ![Página inicial no tema escuro](docs/images/06-tema-escuro.webp)        |
+
+<p align="center">
+  <img src="docs/images/mobile-receita.webp" alt="Página de receita no celular" width="300">
+</p>
+
+> Capturas da demonstração publicada em [receitas.gcruz.dev.br](https://receitas.gcruz.dev.br), com os dados do seed.
+
+## Tecnologias
+
+**Aplicação**
+
+- **PHP 8.2** — Clean Architecture com autoload PSR-4 (`App\` → `src/`) via Composer.
+- **MySQL 8 / MariaDB** — acesso por PDO com _prepared statements_ reais e `utf8mb4`.
+- **Apache** — imagem `php:8.2-apache`, servindo apenas a pasta `public/`.
+- **HTML, CSS e JavaScript** — sem framework; design system próprio com tokens e dois temas.
+- **Line Awesome** — ícones, servidos pelo próprio site junto com as fontes Inter e Sora.
+
+**Qualidade e entrega**
+
+- **PHPUnit 11** — testes dos casos de uso com repositórios em memória.
+- **PHPStan** — análise estática (informativa na CI).
+- **Python** — testes de fumaça do container e das migrações SQL.
+- **Docker** — imagem principal e imagem _all-in-one_ para o plano gratuito do Render.
+- **Docker Compose** — aplicação + MySQL 8 com healthcheck e volume persistente.
+- **GitHub Actions** — lint, `composer audit`, testes, build das imagens e testes de fumaça.
+- **Render** — hospedagem da demonstração (`render.yaml`).
+
+## Arquitetura
+
+As dependências apontam sempre para dentro: a apresentação conhece a aplicação, que conhece apenas as interfaces do domínio. A infraestrutura implementa essas interfaces e é ligada no _composition root_ (`config/bootstrap.php`).
+
+```text
+public/*.php, public/api/*.php        pontos de entrada HTTP (único docroot)
+        │
+        ▼
+Presentation   Controllers, SessionManager, Views (PHP templates)
+        │
+        ▼
+Application    Casos de uso (FindRecipes, ShowRecipe, ToggleFavorite, RateRecipe,
+               PostComment, RegisterUser, AuthenticateUser, DeleteUserAccount…),
+               políticas (PasswordPolicy) e mapeadores
+        │
+        ▼
+Domain         Interfaces de repositório e exceções de domínio
+        ▲
+        │ implementa
+Infrastructure PdoConnectionFactory, repositórios PDO, FileRateLimiter
 ```
+
+O banco (`database/DB_Receitas.sql`) define as tabelas `categoria`, `usuario`, `receita`, `receita_imagem`, `favorito`, `avaliacao`, `comentario` e `auditoria_usuario`, além de views, rotinas, triggers e o seed com 36 receitas.
+
+<details>
+<summary><strong>Estrutura de diretórios</strong></summary>
+
+```text
 Portal-Receitas/
-├─ public/                              ← Único docroot (Apache serve só esta pasta)
-│  ├─ index.php                         ← Home: listagem, busca e filtro
-│  ├─ receita.php                       ← Página individual de receita (URL amigável /receita/{id}/{slug})
-│  ├─ login.php · register.php · logout.php · profile.php · favoritas.php
-│  ├─ healthz.php                       ← Health check (200, não toca o banco)
-│  ├─ api/                              ← Endpoints JSON (auth, favoritos, avaliações, comentários)
-│  ├─ privacidade.php · termos.php      ← Política de Privacidade e Termos de Uso (LGPD)
-│  └─ assets/                           ← css/, js/, img/, fonts/, vendor/ (tudo self-hosted)
-│
-├─ src/                                 ← Núcleo por camada (regra: Presentation → Application → Domain)
-│  ├─ Domain/
-│  │  ├─ Repository/                    ← UserRepositoryInterface, RecipeRepositoryInterface
-│  │  └─ Exception/                     ← Domain / Validation / Authentication Exception
-│  ├─ Application/UseCase/              ← AuthenticateUser · RegisterUser · UpdateUserProfile · FindRecipes
-│  ├─ Infrastructure/
-│  │  ├─ Database/PdoConnectionFactory.php
-│  │  └─ Repository/                    ← PdoUserRepository, PdoRecipeRepository (implementam o Domain)
-│  └─ Presentation/
-│     ├─ Controller/                    ← Auth · Profile · Recipe
-│     ├─ Http/SessionManager.php
-│     └─ View/                          ← index · auth (login/cadastro) · profile · unavailable
-│
-├─ config/bootstrap.php                 ← Composição de dependências + leitura do ambiente
-├─ tests/                               ← Unit/ (use cases + conexão PDO) e Support/ (fakes in-memory)
-│
-├─ database/DB_Receitas.sql             ← Banco oficial (script único: DDL, views, rotinas, triggers, seed)
-├─ docker/                              ← Dockerfiles auxiliares, entrypoints, config Apache
-├─ Dockerfile · docker-compose.yml     ← Imagem da aplicação + stack local (web + MySQL)
-├─ render.yaml                          ← Blueprint de deploy na Render (plano free)
-├─ DEPLOY.md · CHANGELOG.md · SECURITY.md
-└─ composer.json · phpunit.xml · phpstan.neon
+├── public/                 único docroot: páginas, api/ (JSON) e assets/
+├── src/
+│   ├── Domain/             Repository/ (interfaces) e Exception/
+│   ├── Application/        UseCase/, Query/, Mapper/, Validation/, Security/, Support/
+│   ├── Infrastructure/     Database/, Repository/ (PDO), Security/ (rate limit)
+│   └── Presentation/       Controller/, Http/SessionManager.php, View/
+├── config/bootstrap.php    composition root e leitura do ambiente
+├── database/               DB_Receitas.sql (schema, rotinas, triggers e seed)
+├── tests/                  Unit/, Support/ (fakes em memória) e Smoke/ (Python)
+├── docker/                 Dockerfiles auxiliares, entrypoints e cabeçalhos do Apache
+├── docs/                   arquitetura, backend, frontend, LGPD e guias
+├── web/                    frontend React + Supabase (migração em andamento)
+├── supabase/               migrações, RLS e Edge Functions
+├── n8n/                    workflows de automação (migração)
+├── Dockerfile · docker-compose.yml · render.yaml
+└── composer.json · phpunit.xml · phpstan.neon
 ```
 
-### Finalidade de cada diretório
+</details>
 
-| Diretório | Responsabilidade |
-|-----------|------------------|
-| `public/` | **Único docroot** exposto pelo Apache — entrypoints, APIs JSON e assets estáticos. Nenhum outro diretório é servido na web. |
-| `src/` | Núcleo da aplicação em **Clean Architecture** (Domain · Application · Infrastructure · Presentation), com a regra de dependência apontando para dentro. |
-| `config/` | Composition root (`bootstrap.php`): injeção de dependências e leitura do ambiente. |
-| `database/` | Script SQL oficial (schema, rotinas, triggers, seed) — fonte única do banco. |
-| `tests/` | Suíte PHPUnit: `Unit/` (casos de uso) e `Support/` (fakes in-memory). |
-| `docker/` | Dockerfiles auxiliares, entrypoints e configuração de Apache/headers. |
-| `docs/` | Documentação técnica (arquitetura, backend, frontend, auditoria LGPD, privacidade). |
-| `.github/` | Integração contínua (workflow de CI). |
+## Pré-requisitos
 
-A regra de dependência e o papel de cada camada estão resumidos em [docs/architecture.md](docs/architecture.md). As **referências técnicas oficiais** do projeto: [docs/backend.md](docs/backend.md) (serviços, regras de negócio, API, segurança, escalabilidade, ADRs), [docs/frontend.md](docs/frontend.md) (Design System, UX/UI, acessibilidade, performance, ADRs) e [docs/auditoria-conformidade.md](docs/auditoria-conformidade.md) (auditoria LGPD + ISO/IEC 25010, com correções aplicadas na v2.2). A política de arquivos sensíveis e versionamento seguro está em [SECURITY.md](SECURITY.md). Para a evolução futura, há um guia de arquitetura para migração a **React + Supabase + n8n** em [docs/migracao-react-supabase-n8n.md](docs/migracao-react-supabase-n8n.md), cuja **fundação já está implementada** (aditiva) em [`web/`](web/) (frontend React) e [`supabase/`](supabase/) (schema, RLS, Edge Functions) — ver [`web/README.md`](web/README.md).
+- **Docker** e **Docker Compose** (recomendado), ou
+- **PHP 8.2+** com `pdo_mysql`, **Composer** e **MySQL 8** ou **MariaDB** (ex.: XAMPP).
 
----
+## Instalação e execução
 
-## ⚙️ Configuração (variáveis de ambiente)
-
-O banco é configurado **inteiramente por ambiente**, lido em `config/bootstrap.php`. Sem variáveis, os padrões apontam para um XAMPP local.
-
-| Variável | Padrão | Descrição |
-|----------|--------|-----------|
-| `DB_HOST` | `localhost` | Host do MySQL |
-| `DB_NAME` | `tcc_receitas` | Nome do banco |
-| `DB_USER` | `root` | Usuário |
-| `DB_PASS` | *(vazio)* | Senha |
-| `DB_PORT` | `3306` | Porta (útil em MySQL gerenciado externo) |
-| `DB_SSL_CA` | *(nulo)* | Caminho do certificado CA (PEM) quando o provedor exige TLS (ex.: Aiven) |
-| `DB_SSL_VERIFY` | `true` | Verificação do certificado do servidor; use `false` só para cert. autoassinado |
-
-> `WEB_PORT` e `DB_PASS` do `.env.example` são consumidos pelo `docker-compose.yml` (porta publicada e senha do serviço MySQL).
-
----
-
-## 📦 Como Rodar
-
-### 🐳 Com Docker (recomendado)
+**Com Docker Compose (recomendado)**
 
 ```bash
 git clone https://github.com/https-shini/Portal-Receitas.git
+```
+
+```bash
 cd Portal-Receitas
-cp .env.example .env          # opcional: ajuste WEB_PORT e DB_PASS
+```
+
+```bash
+cp .env.example .env
+```
+
+```bash
 docker compose up --build -d
 ```
 
-Acesse **http://localhost:8080**. O seed (`database/DB_Receitas.sql`) é importado automaticamente na **primeira** subida (volume vazio), e o serviço `web` só inicia depois do healthcheck do `db` ficar `healthy`.
+Acesse http://localhost:8080. Na primeira subida, o MySQL importa `database/DB_Receitas.sql`; o serviço `web` só inicia depois de o banco ficar saudável.
 
-### ☁️ Na Render (plano free)
+**Com XAMPP ou PHP local**
 
-O repositório traz o blueprint `render.yaml` (**New → Blueprint** no dashboard). No modo free, um único container roda Apache/PHP + MariaDB com o seed importado no boot — custo zero e health check já apontado para `/healthz.php`.
-
-> ⚠️ O free não tem disco persistente: cadastros e edições feitos em runtime somem quando o serviço hiberna ou redeploya (receitas e usuários-demo sempre voltam pelo seed). Opções com persistência (MySQL externo ou serviços separados) estão em [DEPLOY.md](DEPLOY.md).
-
-### 💻 Com XAMPP (desenvolvimento local)
-
-1. Clone o projeto e rode `composer install`.
+1. Rode `composer install`.
 2. Importe `database/DB_Receitas.sql` (cria o banco `tcc_receitas`).
-3. Aponte o docroot do Apache para a pasta **`public/`**.
-4. Sem variáveis de ambiente, a conexão usa `localhost` / `root` / senha vazia / `tcc_receitas`.
+3. Aponte o docroot do Apache para a pasta `public/`.
+4. Sem variáveis de ambiente, a conexão usa `localhost`, `root`, senha vazia e o banco `tcc_receitas`.
 
-### 🔑 Usuários de demonstração (do seed)
+**Usuários de demonstração (seed)**
 
-| E-mail | Senha |
-|--------|-------|
+| E-mail              | Senha    |
+| ------------------- | -------- |
 | `demo1@example.com` | `123456` |
 | `demo2@example.com` | `271821` |
 
----
+## Variáveis de ambiente
 
-## 🧪 Testes
+As variáveis do banco são lidas em `config/bootstrap.php`; `WEB_PORT` e `DB_PASS` também são usadas pelo `docker-compose.yml`.
+
+| Variável        | Descrição                                                            | Padrão                        |
+| --------------- | -------------------------------------------------------------------- | ----------------------------- |
+| `WEB_PORT`      | Porta publicada no host (Docker Compose)                             | `8080`                        |
+| `DB_HOST`       | Host do MySQL                                                        | `localhost` (`db` no Compose) |
+| `DB_PORT`       | Porta do MySQL                                                       | `3306`                        |
+| `DB_NAME`       | Nome do banco                                                        | `tcc_receitas`                |
+| `DB_USER`       | Usuário                                                              | `root`                        |
+| `DB_PASS`       | Senha (no Compose, também a senha de root do MySQL)                  | vazio                         |
+| `DB_SSL_CA`     | Caminho do certificado CA para conexões TLS (provedores gerenciados) | vazio                         |
+| `DB_SSL_VERIFY` | Verifica o certificado do servidor                                   | `true`                        |
+| `APP_URL`       | Origem oficial usada no canonical, Open Graph e sitemap              | host da requisição            |
+
+Exemplo seguro de `.env`:
+
+```dotenv
+WEB_PORT=8080
+DB_HOST=db
+DB_NAME=tcc_receitas
+DB_USER=root
+DB_PASS=troque-esta-senha
+APP_URL=
+```
+
+## Testes e qualidade
 
 ```bash
 composer install
+```
+
+```bash
 composer test
 ```
 
-As verificações funcionais usadas pelo CI também podem ser executadas com
-Docker e Python 3 (containers descartáveis):
+A suíte PHPUnit cobre casos de uso (cadastro, autenticação, perfil, exclusão de conta, busca, favoritos, avaliações, comentários, recomendações), política de senha, _rate limiter_, conexão PDO e renderização do painel de filtros. Na última verificação: **85 testes e 162 asserções**, com 1 teste de integração ignorado — ele só roda quando `TEST_DB_HOST` aponta para um banco real.
+
+Testes de fumaça (exigem Docker e Python 3):
 
 ```bash
 docker build -f docker/render-free.Dockerfile -t portal-receitas-free:ci .
+```
+
+```bash
 python3 tests/Smoke/render_free.py portal-receitas-free:ci
+```
+
+```bash
 python3 tests/Smoke/supabase_migrations.py
 ```
 
-O primeiro teste cobre as rotas reais, entradas inválidas, escrita no banco,
-reinício e recuperação. O segundo reaplica as migrações e o seed três vezes e
-confere RLS e triggers em PostgreSQL 16 isolado, com fixtures locais dos
-contratos SQL de autenticação; não provisiona um projeto Supabase externo.
+O primeiro valida rotas reais, entradas inválidas, escrita no banco, reinício e recuperação do container; o segundo reaplica as migrações do Supabase em um PostgreSQL 16 isolado e confere RLS e triggers. A CI (`.github/workflows/ci.yml`) executa lint de PHP e JavaScript, `composer audit`, PHPUnit, PHPStan (informativo), o build das duas imagens e os testes de fumaça.
 
-A suíte PHPUnit cobre os casos de uso e o fluxo de conexão:
+## Build e produção
 
-- **Cadastro** — hash bcrypt compatível, rejeição de e-mail duplicado, formato de e-mail inválido e categoria ausente.
-- **Autenticação** — credenciais corretas, hash dos usuários-demo do seed, senha errada, e-mail inexistente e credenciais vazias.
-- **Perfil** — atualização de nome/e-mail/senha com hash, preservação da senha quando o campo vem em branco e rejeição de ID inválido.
-- **Conexão PDO** — exceção em host inalcançável e reuso da mesma conexão; o teste de integração real roda apenas quando `TEST_DB_HOST` está definido.
+| Cenário                | Como                                                                                                                                                          |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Servidor próprio / VPS | `docker compose up --build -d` (aplicação + MySQL com volume `dbdata`)                                                                                        |
+| Render, plano gratuito | Blueprint `render.yaml` com `docker/render-free.Dockerfile`: Apache, PHP e MariaDB no mesmo container, seed importado no boot e health check em `/readyz.php` |
+| Banco gerenciado       | Imagem principal (`Dockerfile`) com `DB_*` e `DB_SSL_CA` apontando para o provedor                                                                            |
 
-Os testes usam fakes in-memory (`tests/Support/`), sem dependência de banco para a maioria dos casos.
+Endpoints de saúde: `/healthz.php` (vivacidade, não consulta o banco) e `/readyz.php` (prontidão: valida banco e catálogo). Opções de deploy com persistência estão em [DEPLOY.md](DEPLOY.md).
 
----
+## Exemplos de uso
 
-## 🔐 Notas de segurança
+- Buscar pelo ingrediente: digite `bacon` na busca da página inicial para listar receitas que o usam.
+- Filtrar: em **Filtros**, combine as categorias **Massas** e **Carnes** com a dificuldade **Fácil** e aplique.
+- Abrir uma receita diretamente: `https://receitas.gcruz.dev.br/receita/1/macarrao-a-carbonara`.
+- Recalcular a nutrição: na página da receita, ajuste a quantidade em **Calcular o total para N porções**.
+- Favoritar e avaliar: entre com um usuário de demonstração e use **Favoritar** e as estrelas na página da receita.
 
-- Todas as senhas são gravadas e verificadas via bcrypt (`password_hash`/`password_verify`); a coluna `senhaUsuario` é `varchar(255)` para comportar o hash.
-- **100% das queries** usam prepared statements parametrizados (`PdoUserRepository`, `PdoRecipeRepository`), com `EMULATE_PREPARES = false`.
-- O acesso ao perfil exige sessão autenticada (`SessionManager` + guard no `ProfileController`); todo redirecionamento é seguido de `exit;`.
+## Migração para React e Supabase
 
----
+O repositório contém a fundação de uma nova versão, desenvolvida em paralelo ao app PHP (padrão _strangler fig_) e **ainda não publicada**:
 
-## 👥 Créditos
+- [`web/`](web/) — frontend em React 18, TypeScript, Vite, TanStack Query e `supabase-js`;
+- [`supabase/`](supabase/) — migrações do schema, políticas RLS, triggers e Edge Functions (`generate-tags`, `moderate-comment`, `recipe-stats`);
+- [`n8n/`](n8n/) — workflows de moderação, onboarding e distribuição de receitas.
 
-### Instituição
+O plano está em [docs/migracao-react-supabase-n8n.md](docs/migracao-react-supabase-n8n.md) e as instruções do frontend, em [web/README.md](web/README.md).
 
-- **Escola:** ETEC de Vila Formosa · **Curso:** Técnico em Desenvolvimento de Sistemas (Integrado ao NOVOTEC) · **Ano:** 2022
+## Limitações conhecidas
 
-### Equipe
+- No plano gratuito do Render não há disco persistente: alterações feitas em produção somem quando o serviço hiberna ou é republicado.
+- As senhas dos usuários de demonstração vêm do seed e não seguem a política atual (mínimo de 8 caracteres com letra e número), que vale para novos cadastros.
+- O PHPStan ainda é informativo na CI, até a definição de um _baseline_.
+- Ainda não implementados: recomendação por aprendizado de máquina, notificações e denúncia/moderação de comentários no app PHP.
 
-<div align="center">
+## Solução de problemas
 
-| Nome | Função |
-|------|--------|
-| Cassiano Reis de Jesus | Desenvolvedor |
-| Guilherme de Souza Cruz | Desenvolvedor |
-| Henrriky Jhonny de Oliveira | Desenvolvedor |
-| João Vitor Santos de Matos | Desenvolvedor |
-| Nicolas de Abreu Alves | Desenvolvedor |
-| Rodrigo Mazucato Lopes de Souza | Desenvolvedor |
-| Sabrina Maia Quirino | Desenvolvedora |
+- **Conexão recusada (Docker):** aguarde o serviço `db` ficar `healthy` (`docker compose ps`).
+- **Seed não reimporta:** o MySQL só importa o SQL com o volume vazio; rode `docker compose down -v` e suba de novo.
+- **Página 503:** o banco está inacessível; confira o serviço do banco e as variáveis `DB_*`.
+- **Página em branco:** consulte os logs com `docker compose logs -f web`.
 
-**Orientadores:** Prof. Márcio Bergamin e Prof. Sérgio Muniz
+## Documentação complementar
 
-</div>
+| Documento                                                        | Conteúdo                                            |
+| ---------------------------------------------------------------- | --------------------------------------------------- |
+| [docs/architecture.md](docs/architecture.md)                     | Camadas e regra de dependência                      |
+| [docs/backend.md](docs/backend.md)                               | Casos de uso, API, segurança e decisões             |
+| [docs/frontend.md](docs/frontend.md)                             | Design system, acessibilidade e desempenho          |
+| [docs/auditoria-conformidade.md](docs/auditoria-conformidade.md) | Auditoria LGPD e ISO/IEC 25010                      |
+| [docs/privacidade/](docs/privacidade/)                           | Registro de tratamento, DPIA, retenção e incidentes |
+| [DEPLOY.md](DEPLOY.md)                                           | Opções de deploy                                    |
+| [SECURITY.md](SECURITY.md)                                       | Política de segurança                               |
+| [CHANGELOG.md](CHANGELOG.md)                                     | Histórico de versões                                |
 
----
+## Créditos
 
-## 🐛 Troubleshooting
+**Instituição:** ETEC de Vila Formosa · Técnico em Desenvolvimento de Sistemas (integrado ao NOVOTEC) · 2022
 
-- **Conexão recusada (Docker):** aguarde o serviço `db` ficar `healthy` (`docker compose ps`); o `web` só sobe depois dele.
-- **Conexão recusada (XAMPP):** confira se o MySQL está ativo e se o banco `tcc_receitas` foi importado. Para valores diferentes dos padrões, defina `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS`.
-- **Seed não reimporta:** o MySQL só importa `DB_Receitas.sql` com o volume vazio. Rode `docker compose down -v` e suba de novo.
-- **Página 503 (indisponível):** o banco está fora do ar — a aplicação exibe a view `unavailable.php` em vez de um erro 500 seco. Verifique o serviço de banco.
-- **Página em branco:** cheque os logs (`docker compose logs -f web` ou `xampp/apache/logs/error.log`).
+| Nome                            | Função         |
+| ------------------------------- | -------------- |
+| Cassiano Reis de Jesus          | Desenvolvedor  |
+| Guilherme de Souza Cruz         | Desenvolvedor  |
+| Henrriky Jhonny de Oliveira     | Desenvolvedor  |
+| João Vitor Santos de Matos      | Desenvolvedor  |
+| Nicolas de Abreu Alves          | Desenvolvedor  |
+| Rodrigo Mazucato Lopes de Souza | Desenvolvedor  |
+| Sabrina Maia Quirino            | Desenvolvedora |
 
----
+**Orientadores:** Prof. Márcio Bergamin e Prof. Sérgio Muniz.
 
-<img width=100% src="https://capsule-render.vercel.app/api?type=waving&color=gradient&height=120&section=footer" alt="Footer Wave"/>
+A reescrita de 2026 foi conduzida por [Guilherme Cruz](https://gcruz.dev.br).
+
+## Licença
+
+Distribuído sob a licença MIT. Consulte o arquivo [LICENSE](LICENSE).
